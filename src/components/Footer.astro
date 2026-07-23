@@ -1,0 +1,67 @@
+---
+const currentYear = new Date().getFullYear();
+---
+<footer class="relative bg-[#111111] text-white pt-24 pb-12 px-6 md:px-12 xl:px-24 border-t border-white/10 overflow-hidden" id="contacto" style="background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.09) 1.2px, transparent 0), linear-gradient(to right, rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.025) 1px, transparent 1px); background-size: 36px 36px, 36px 36px, 36px 36px;">
+  
+  <div class="w-full flex flex-col items-center justify-center text-center relative z-10 py-16 md:py-24 border-b border-white/10">
+    <h2 id="footer-cta-text" class="font-sans text-4xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95] font-medium tracking-tighter text-white mb-10 cursor-default max-w-5xl mx-auto">
+      ¿Listo para dar el salto?
+    </h2>
+    
+    <a href="mailto:hello@orbitaleap.com" id="footer-cta-btn" class="group relative inline-flex items-center gap-4 bg-white border border-white rounded-xl px-9 py-4 md:px-11 md:py-5 text-base md:text-lg font-medium overflow-hidden transition-all duration-[400ms] opacity-0">
+      <span class="relative z-10 text-white mix-blend-difference">hello@orbitaleap.com</span>
+      <svg class="w-5 h-5 stroke-current text-white relative z-10 mix-blend-difference group-hover:rotate-45 transition-transform duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/>
+      </svg>
+      <div class="absolute inset-0 bg-[#111111] translate-y-full group-hover:translate-y-0 transition-transform duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]"></div>
+    </a>
+  </div>
+  
+  <div class="max-w-screen-2xl mx-auto py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 border-b border-white/10">
+    
+    <div class="lg:col-span-5 flex flex-col items-start gap-5">
+      <a href="/" class="opacity-90 hover:opacity-100 transition-opacity">
+        <img src="/brand/ol_imagotipo-hw.svg" alt="Orbital Leap Logo" class="h-8 w-auto" />
+      </a>
+      <p class="font-sans text-white/60 font-light text-sm md:text-base leading-relaxed max-w-sm">
+        Estudio de diseño y desarrollo digital. Creamos páginas web, plataformas y aplicaciones a medida para particulares, marcas y empresas.
+      </p>
+    </div>
+
+    <div class="lg:col-span-2 flex flex-col gap-4">
+      <span class="font-sans text-xs text-white/40 uppercase tracking-widest font-medium">Navegación</span>
+      <ul class="flex flex-col gap-3 font-sans text-sm text-white/70">
+        <li><a href="#servicios" class="hover:text-white transition-colors">Servicios</a></li>
+        <li><a href="#metodologia" class="hover:text-white transition-colors">Metodología</a></li>
+        <li><a href="#portfolio" class="hover:text-white transition-colors">Portafolio</a></li>
+        <li><a href="#contacto" class="hover:text-white transition-colors">Contacto</a></li>
+      </ul>
+    </div>
+
+    <div class="lg:col-span-3 flex flex-col gap-4">
+      <span class="font-sans text-xs text-white/40 uppercase tracking-widest font-medium">Contacto & Legal</span>
+      <ul class="flex flex-col gap-3 font-sans text-sm text-white/70">
+        <li><a href="mailto:hello@orbitaleap.com" class="hover:text-white transition-colors">hello@orbitaleap.com</a></li>
+        <li><a href="tel:+34623947598" class="hover:text-white transition-colors">+34 623 94 75 98</a></li>
+        <li><a href="#" class="hover:text-white transition-colors">Política de Privacidad</a></li>
+        <li><a href="#" class="hover:text-white transition-colors">Términos y Condiciones</a></li>
+      </ul>
+    </div>
+
+    <div class="lg:col-span-2 flex flex-col gap-4">
+      <span class="font-sans text-xs text-white/40 uppercase tracking-widest font-medium">Redes Sociales</span>
+      <ul class="flex flex-col gap-3 font-sans text-sm text-white/70">
+        <li><a href="https://linkedin.com/company/orbitaleap" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">LinkedIn ↗</a></li>
+        <li><a href="https://instagram.com/orbitaleap" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">Instagram ↗</a></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="max-w-screen-2xl mx-auto pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+    <p class="font-sans text-white/40 text-xs font-light">
+      &copy; {currentYear} Orbital Leap Technologies, S.L. Todos los derechos reservados.
+    </p>
+  </div>
+
+</footer>

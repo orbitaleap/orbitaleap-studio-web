@@ -1,0 +1,278 @@
+---
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAACoSt6_i55YN9YBM";
+---
+
+<!-- Contact Modal Backdrop Overlay -->
+<div id="contact-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-10 opacity-0 pointer-events-none transition-all duration-500 bg-black/80 backdrop-blur-2xl">
+  
+  <!-- Modal Card Container -->
+  <div class="relative w-full max-w-2xl bg-[#161616] border border-white/15 rounded-3xl p-6 sm:p-10 text-white shadow-2xl overflow-hidden transform scale-95 transition-all duration-500 max-h-[90vh] overflow-y-auto" id="contact-modal-card">
+    
+    <!-- Top Corner Close Button -->
+    <button type="button" id="close-modal-btn" aria-label="Cerrar formulario" class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-white/70 hover:text-white transition-all cursor-pointer">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+
+    <!-- Header Block -->
+    <div class="mb-8">
+      <span class="font-sans text-xs text-white/40 uppercase tracking-widest block mb-2 font-medium">HABLEMOS DE TU PROYECTO</span>
+      <h2 class="font-sans text-3xl sm:text-4xl font-medium tracking-tight text-white">
+        Inicia la conversación.
+      </h2>
+      <p class="font-sans text-white/60 font-light text-sm sm:text-base mt-2">
+        Cuéntanos qué necesitas construir. Te responderemos en menos de 24 horas.
+      </p>
+    </div>
+
+    <!-- Contact Form -->
+    <form id="contact-form" class="flex flex-col gap-5">
+      
+      <!-- Honeypot Bot Field (Hidden) -->
+      <div class="hidden" aria-hidden="true">
+        <input type="text" name="website_url" id="website_url" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <!-- Name -->
+        <div class="flex flex-col gap-2">
+          <label htmlFor="name" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Nombre y Apellidos *</label>
+          <input 
+            type="text" 
+            id="name" 
+            name="name" 
+            required 
+            placeholder="Ej. Ana Martínez" 
+            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors" 
+          />
+        </div>
+
+        <!-- Email -->
+        <div class="flex flex-col gap-2">
+          <label htmlFor="email" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Email de contacto *</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            required 
+            placeholder="ana@ejemplo.com" 
+            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors" 
+          />
+        </div>
+
+        <!-- Company / Organization / Individual -->
+        <div class="flex flex-col gap-2">
+          <label htmlFor="company" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Empresa / Proyecto <span class="text-white/40 font-normal lowercase">(opcional)</span></label>
+          <input 
+            type="text" 
+            id="company" 
+            name="company" 
+            placeholder="Particular, startup o empresa" 
+            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors" 
+          />
+        </div>
+
+        <!-- Phone (Required) -->
+        <div class="flex flex-col gap-2">
+          <label htmlFor="phone" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Teléfono de contacto *</label>
+          <input 
+            type="tel" 
+            id="phone" 
+            name="phone" 
+            required 
+            placeholder="+34 600 000 000" 
+            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors" 
+          />
+        </div>
+      </div>
+
+      <!-- Message -->
+      <div class="flex flex-col gap-2">
+        <div class="flex justify-between items-center">
+          <label htmlFor="message" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Detalles del proyecto *</label>
+          <span id="char-counter" class="font-sans text-[11px] text-white/40">Mínimo 20 caracteres</span>
+        </div>
+        <textarea 
+          id="message" 
+          name="message" 
+          rows="4" 
+          required 
+          placeholder="Describe brevemente tus objetivos, alcance o plazos aproximados..." 
+          class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors resize-none"
+        ></textarea>
+      </div>
+
+      <!-- Turnstile Cloudflare Security Widget -->
+      <div class="my-1">
+        <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="dark"></div>
+      </div>
+
+      <!-- Terms Checkbox -->
+      <div class="flex items-start gap-3 pt-1">
+        <input 
+          type="checkbox" 
+          id="accept-terms" 
+          required 
+          class="mt-1 w-4 h-4 rounded border-white/20 bg-white/5 text-white accent-white cursor-pointer" 
+        />
+        <label htmlFor="accept-terms" class="font-sans text-xs text-white/60 font-light leading-relaxed cursor-pointer select-none">
+          Acepto el tratamiento de mis datos de contacto de acuerdo con la <a href="#" class="text-white underline underline-offset-2">Política de Privacidad</a> de Orbital Leap.
+        </label>
+      </div>
+
+      <!-- Feedback Banner -->
+      <div id="form-feedback" class="hidden p-4 rounded-xl text-sm font-sans"></div>
+
+      <!-- Submit Button -->
+      <button 
+        type="submit" 
+        id="submit-form-btn" 
+        class="w-full bg-white text-black font-medium py-4 px-8 rounded-xl uppercase tracking-wider text-xs transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] flex items-center justify-center gap-2 cursor-pointer mt-2"
+      >
+        <span id="submit-btn-text">Enviar mensaje</span>
+        <svg class="w-4 h-4 stroke-current" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/>
+        </svg>
+      </button>
+
+    </form>
+
+  </div>
+</div>
+
+<script>
+  // Turnstile script auto-loader
+  if (!document.getElementById('turnstile-script')) {
+    const script = document.createElement('script');
+    script.id = 'turnstile-script';
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+  }
+
+  const modal = document.getElementById('contact-modal');
+  const modalCard = document.getElementById('contact-modal-card');
+  const closeBtn = document.getElementById('close-modal-btn');
+  const form = document.getElementById('contact-form') as HTMLFormElement;
+  const feedback = document.getElementById('form-feedback');
+  const submitBtn = document.getElementById('submit-form-btn') as HTMLButtonElement;
+  const submitBtnText = document.getElementById('submit-btn-text');
+  const messageInput = document.getElementById('message') as HTMLTextAreaElement;
+  const charCounter = document.getElementById('char-counter');
+
+  // Open modal trigger
+  window.openContactModal = () => {
+    if (modal && modalCard) {
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      modalCard.classList.remove('scale-95');
+      modalCard.classList.add('scale-100');
+      document.body.style.overflow = 'hidden';
+    }
+  };
+
+  // Close modal function
+  const closeModal = () => {
+    if (modal && modalCard) {
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      modalCard.classList.remove('scale-100');
+      modalCard.classList.add('scale-95');
+      document.body.style.overflow = '';
+    }
+  };
+
+  closeBtn?.addEventListener('click', closeModal);
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // Message char length counter
+  messageInput?.addEventListener('input', () => {
+    const len = messageInput.value.length;
+    if (charCounter) {
+      if (len < 20) {
+        charCounter.textContent = `Faltan ${20 - len} caracteres`;
+        charCounter.className = 'font-sans text-[11px] text-amber-400';
+      } else {
+        charCounter.textContent = `${len} caracteres`;
+        charCounter.className = 'font-sans text-[11px] text-emerald-400';
+      }
+    }
+  });
+
+  // Handle Form Submission with Resend API
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const turnstileToken = (formData.get('cf-turnstile-response') as string) || '';
+
+    const payload = {
+      name: formData.get('name'),
+      email: formData.get('email'),
+      company: formData.get('company'),
+      phone: formData.get('phone'),
+      message: formData.get('message'),
+      turnstileToken,
+      website_url: formData.get('website_url'),
+    };
+
+    if (feedback) {
+      feedback.classList.remove('hidden', 'bg-red-500/20', 'text-red-300', 'bg-emerald-500/20', 'text-emerald-300');
+    }
+
+    if (submitBtn && submitBtnText) {
+      submitBtn.disabled = true;
+      submitBtnText.textContent = 'Enviando...';
+    }
+
+    try {
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const resData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(resData.error || 'Error al enviar el mensaje');
+      }
+
+      if (feedback) {
+        feedback.textContent = '¡Mensaje enviado con éxito! Nos pondremos en contacto contigo en menos de 24 horas.';
+        feedback.className = 'p-4 rounded-xl text-sm font-sans bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+      }
+
+      form.reset();
+      if (submitBtnText) submitBtnText.textContent = 'Enviado con éxito ✓';
+
+      setTimeout(() => {
+        closeModal();
+        if (submitBtn && submitBtnText) {
+          submitBtn.disabled = false;
+          submitBtnText.textContent = 'Enviar mensaje';
+        }
+      }, 3000);
+
+    } catch (err: any) {
+      if (feedback) {
+        feedback.textContent = err.message || 'Ocurrió un error inesperado. Por favor inténtalo de nuevo.';
+        feedback.className = 'p-4 rounded-xl text-sm font-sans bg-red-500/20 text-red-300 border border-red-500/30';
+      }
+      if (submitBtn && submitBtnText) {
+        submitBtn.disabled = false;
+        submitBtnText.textContent = 'Reintentar envío';
+      }
+    }
+  });
+
+  // Attach triggers to all contact links
+  document.querySelectorAll('a[href^="mailto:hello@orbitaleap.com"], a[href="#contacto"]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.openContactModal();
+    });
+  });
+</script>

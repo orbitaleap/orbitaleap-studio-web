@@ -1,0 +1,213 @@
+<style>
+  #navbar {
+    background-color: rgba(17, 17, 17, 0.4);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+  }
+  #navbar.theme-light {
+    background-color: rgba(249, 249, 249, 0.65) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border-bottom-color: rgba(0, 0, 0, 0.08) !important;
+    color: #000000 !important;
+  }
+  #navbar.theme-light .nav-link {
+    color: rgba(0, 0, 0, 0.6) !important;
+  }
+  #navbar.theme-light .nav-link:hover,
+  #navbar.theme-light .nav-link.active-link {
+    color: #000000 !important;
+  }
+  #navbar.theme-light .nav-indicator {
+    background-color: #000000 !important;
+  }
+  #navbar.theme-light #nav-cta-btn {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+  }
+</style>
+<header class="fixed top-0 left-0 w-full z-50 px-6 md:px-12 xl:px-24 py-5 transition-all duration-500 ease-out text-white" id="navbar">
+  <nav class="flex justify-between items-center w-full max-w-screen-2xl mx-auto">
+    
+    <a href="/" class="flex items-center opacity-90 hover:opacity-100 transition-opacity focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-light focus-visible:outline-offset-4">
+      <img id="nav-logo" src="/brand/ol_imagotipo-hw.svg" alt="Orbital Leap Logo" class="h-7 md:h-8 w-auto transition-all duration-300" />
+    </a>
+    
+    <ul class="hidden md:flex items-center gap-10 text-white/70 font-sans text-xs font-medium tracking-[0.15em] uppercase">
+      <li>
+        <a href="#servicios" data-nav="servicios" class="nav-link block transition-all duration-300 hover:text-white relative py-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-light">
+          Servicios
+          <span class="nav-indicator absolute bottom-0 left-0 w-full h-[1.5px] bg-white scale-x-0 transition-transform duration-300 origin-left"></span>
+        </a>
+      </li>
+      <li>
+        <a href="#metodologia" data-nav="metodologia" class="nav-link block transition-all duration-300 hover:text-white relative py-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-light">
+          Metodología
+          <span class="nav-indicator absolute bottom-0 left-0 w-full h-[1.5px] bg-white scale-x-0 transition-transform duration-300 origin-left"></span>
+        </a>
+      </li>
+      <li>
+        <a href="#portfolio" data-nav="portfolio" class="nav-link block transition-all duration-300 hover:text-white relative py-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-light">
+          Portafolio
+          <span class="nav-indicator absolute bottom-0 left-0 w-full h-[1.5px] bg-white scale-x-0 transition-transform duration-300 origin-left"></span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="hidden md:flex items-center gap-4">
+      <a href="mailto:hello@orbitaleap.com" id="nav-cta-btn" class="group relative inline-flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded-lg text-xs font-medium uppercase tracking-wider transition-all duration-300 hover:scale-[1.03]">
+        <span>Hablemos</span>
+        <svg class="w-3.5 h-3.5 stroke-current group-hover:rotate-45 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/>
+        </svg>
+      </a>
+    </div>
+
+    <button id="mobile-menu-btn" aria-label="Toggle mobile menu" aria-expanded="false" class="md:hidden text-current opacity-80 hover:opacity-100 transition-opacity p-2">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+  </nav>
+</header>
+
+<div id="mobile-menu-drawer" class="fixed inset-0 z-[60] bg-[#111111]/98 backdrop-blur-2xl flex flex-col justify-between p-8 transition-all duration-300 ease-out opacity-0 pointer-events-none translate-y-[-10px] text-white">
+  <div class="flex justify-between items-center w-full">
+    <a href="/" class="flex items-center">
+      <img src="/brand/ol_imagotipo-hw.svg" alt="Orbital Leap Logo" class="h-7 w-auto" />
+    </a>
+    <button id="mobile-menu-close" aria-label="Close menu" class="p-2 text-white/70 hover:text-white transition-colors">
+      <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="flex flex-col gap-8 my-auto py-12">
+    <a href="#servicios" class="mobile-nav-link text-3xl font-medium tracking-tight text-white/80 hover:text-white transition-colors">
+      Servicios
+    </a>
+    <a href="#metodologia" class="mobile-nav-link text-3xl font-medium tracking-tight text-white/80 hover:text-white transition-colors">
+      Metodología
+    </a>
+    <a href="#portfolio" class="mobile-nav-link text-3xl font-medium tracking-tight text-white/80 hover:text-white transition-colors">
+      Portafolio
+    </a>
+  </div>
+
+  <div class="flex flex-col gap-4 pt-6 border-t border-white/10">
+    <a href="mailto:hello@orbitaleap.com" class="w-full py-4 bg-white text-black text-center rounded-xl text-sm font-medium uppercase tracking-wider block">
+      Hablemos
+    </a>
+    <p class="text-xs text-white/40 text-center font-light pt-2">
+      hello@orbitaleap.com • +34 623 94 75 98
+    </p>
+  </div>
+</div>
+
+<script>
+  let lastScroll = 0;
+  let scrollTimeout: number;
+  const navbar = document.getElementById('navbar');
+
+  window.addEventListener('scroll', () => {
+    const currentScroll = window.pageYOffset;
+    
+    if (scrollTimeout) {
+      clearTimeout(scrollTimeout);
+    }
+
+    if (currentScroll <= 0) {
+      navbar?.classList.remove('-translate-y-full');
+      navbar?.classList.add('py-6');
+      navbar?.classList.remove('py-3');
+      return;
+    } else {
+      navbar?.classList.remove('py-6');
+      navbar?.classList.add('py-3');
+    }
+    
+    if (currentScroll > lastScroll && !navbar?.classList.contains('-translate-y-full') && currentScroll > 100) {
+      navbar?.classList.add('-translate-y-full');
+    } else if (currentScroll < lastScroll && navbar?.classList.contains('-translate-y-full')) {
+      navbar?.classList.remove('-translate-y-full');
+    }
+    
+    lastScroll = currentScroll;
+
+    scrollTimeout = window.setTimeout(() => {
+      navbar?.classList.remove('-translate-y-full');
+    }, 400);
+  });
+
+  const navLinks = document.querySelectorAll('.nav-link');
+  const spySections = document.querySelectorAll('section[id]');
+
+  const spyObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        navLinks.forEach(link => {
+          const indicator = link.querySelector('.nav-indicator') as HTMLElement;
+          if (link.getAttribute('data-nav') === id) {
+            link.classList.add('active-link');
+            if (indicator) indicator.style.transform = 'scaleX(1)';
+          } else {
+            link.classList.remove('active-link');
+            if (indicator) indicator.style.transform = 'scaleX(0)';
+          }
+        });
+      }
+    });
+  }, {
+    rootMargin: "-25% 0px -55% 0px"
+  });
+
+  spySections.forEach(sec => spyObserver.observe(sec));
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const isLight = entry.target.getAttribute('data-theme') === 'light';
+        const logo = document.getElementById('nav-logo') as HTMLImageElement;
+        if (isLight) {
+          navbar?.classList.add('theme-light');
+          if (logo) logo.src = '/brand/ol_imagotipo-hk.svg';
+        } else {
+          navbar?.classList.remove('theme-light');
+          if (logo) logo.src = '/brand/ol_imagotipo-hw.svg';
+        }
+      }
+    });
+  }, {
+    rootMargin: "-10% 0px -85% 0px"
+  });
+
+  document.querySelectorAll('section').forEach(section => {
+    observer.observe(section);
+  });
+
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const mobileMenuClose = document.getElementById('mobile-menu-close');
+  const mobileDrawer = document.getElementById('mobile-menu-drawer');
+  const mobileLinks = document.querySelectorAll('.mobile-nav-link');
+
+  function openMobileMenu() {
+    mobileDrawer?.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-[-10px]');
+    mobileDrawer?.classList.add('opacity-100', 'pointer-events-auto', 'translate-y-0');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMobileMenu() {
+    mobileDrawer?.classList.add('opacity-0', 'pointer-events-none', 'translate-y-[-10px]');
+    mobileDrawer?.classList.remove('opacity-100', 'pointer-events-auto', 'translate-y-0');
+    document.body.style.overflow = '';
+  }
+
+  mobileMenuBtn?.addEventListener('click', openMobileMenu);
+  mobileMenuClose?.addEventListener('click', closeMobileMenu);
+  mobileLinks.forEach(link => link.addEventListener('click', closeMobileMenu));
+</script>

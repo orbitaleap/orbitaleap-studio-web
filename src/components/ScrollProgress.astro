@@ -1,0 +1,75 @@
+---
+const morseLetters = [
+  ['dash', 'dot', 'dot'], // D
+  ['dot', 'dash', 'dot'], // R
+  ['dot'], // E
+  ['dot', 'dash'], // A
+  ['dash', 'dash'], // M
+  'space', // word gap
+  ['dash', 'dot', 'dot', 'dot'], // B
+  ['dot'], // E
+  ['dash', 'dot', 'dash', 'dash'], // Y
+  ['dash', 'dash', 'dash'], // O
+  ['dash', 'dot'], // N
+  ['dash', 'dot', 'dot'] // D
+];
+
+const renderSymbol = (type: string) => {
+  if (type === 'dot') return '<div class="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-current shrink-0"></div>';
+  if (type === 'dash') return '<div class="w-1 h-[12px] md:w-1.5 md:h-[18px] rounded-full bg-current shrink-0"></div>';
+  return '';
+};
+---
+
+<div class="fixed top-1/2 right-4 md:right-8 xl:right-12 -translate-y-1/2 z-[100] hidden sm:flex flex-col items-center mix-blend-difference" id="morse-tracker" aria-hidden="true">
+  <!-- Faint Background Track -->
+  <div class="flex flex-col items-center gap-4 md:gap-5 text-white/20">
+    {morseLetters.map(letter => {
+      if (letter === 'space') return <div class="h-2 md:h-4 shrink-0"></div>;
+      return (
+        <div class="flex flex-col items-center gap-1.5 md:gap-2">
+          {Array.isArray(letter) && letter.map(sym => <Fragment set:html={renderSymbol(sym)} />)}
+        </div>
+      );
+    })}
+  </div>
+
+  <!-- Bright Scroll Fill (Masked) -->
+  <div class="absolute top-0 left-0 w-full overflow-hidden text-white" id="morse-mask" style="height: 0%;">
+    <div class="flex flex-col items-center gap-4 md:gap-5">
+      {morseLetters.map(letter => {
+        if (letter === 'space') return <div class="h-2 md:h-4 shrink-0"></div>;
+        return (
+          <div class="flex flex-col items-center gap-1.5 md:gap-2">
+            {Array.isArray(letter) && letter.map(sym => <Fragment set:html={renderSymbol(sym)} />)}
+          </div>
+        );
+      })}
+    </div>
+  </div>
+</div>
+
+<script>
+  // High-performance scroll tracking
+  let ticking = false;
+  const mask = document.getElementById('morse-mask');
+
+  const updateProgress = () => {
+    if (!mask) return;
+    const scrollTotal = document.documentElement.scrollHeight - window.innerHeight;
+    // Prevent division by zero and cap between 0 and 1
+    const progress = scrollTotal > 0 ? Math.max(0, Math.min(1, window.scrollY / scrollTotal)) : 0;
+    mask.style.height = `${progress * 100}%`;
+    ticking = false;
+  };
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      window.requestAnimationFrame(updateProgress);
+      ticking = true;
+    }
+  }, { passive: true });
+
+  // Initial call on load
+  updateProgress();
+</script>

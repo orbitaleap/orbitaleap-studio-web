@@ -1,0 +1,1036 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import ContactModal from '../components/ContactModal.astro';
+
+const services = [
+  { 
+    id: '01', 
+    slug: 'branding-e-identidad', 
+    title: 'Branding e identidad', 
+    desc: 'Damos vida a la imagen de tu proyecto. Creamos marcas, logotipos y guías de estilo que transmiten profesionalismo y destacan en tu sector desde el primer momento.', 
+    colorFrom: '#a855f7', 
+    colorTo: '#ec4899',
+    impact: 'Identidad sólida & valor percibido',
+    deliverables: ['Identidad visual & Isotipo', 'Manual de marca', 'Paleta cromática & Tipografía', 'Assets gráficos para producción']
+  },
+  { 
+    id: '02', 
+    slug: 'experiencia-ui-ux', 
+    title: 'Experiencia UI/UX', 
+    desc: 'Interfaces intuitivas y fáciles de usar. Diseñamos pantallas y flujos donde tus usuarios navegan de forma sencilla y encuentran lo que buscan sin complicaciones.', 
+    colorFrom: '#f43f5e', 
+    colorTo: '#fb923c',
+    impact: 'Navegación intuitiva & alta conversión',
+    deliverables: ['Diseño de páginas & pantallas', 'Prototipos visuales navegables', 'Arquitectura de información', 'Adaptación móvil & responsive']
+  },
+  { 
+    id: '03', 
+    slug: 'desarrollo-app-web', 
+    title: 'Desarrollo Web & Apps', 
+    desc: 'Páginas web, tiendas online y aplicaciones móviles. Programamos sitios rápidos, modernos y adaptados a móviles, creados a medida para crecer con tu proyecto.', 
+    colorFrom: '#e879f9', 
+    colorTo: '#6366f1',
+    impact: 'Velocidad de carga & experiencia impecable',
+    deliverables: ['Webs corporativas & Landing pages', 'Tiendas online & E-commerce', 'Aplicaciones móviles iOS & Android', 'SEO & Optimización de velocidad']
+  },
+  { 
+    id: '04', 
+    slug: 'consultoria-estrategica', 
+    title: 'Consultoría & Asesoramiento', 
+    desc: 'Te guiamos en la toma de decisiones. Analizamos tu idea o tu sistema actual para recomendarte las mejores herramientas, optimizar costes y evitar problemas técnicos.', 
+    colorFrom: '#ffaa40', 
+    colorTo: '#9c40ff',
+    impact: 'Decisiones claras & ahorro de costes',
+    deliverables: ['Auditoría de tu web o sistema', 'Recomendación de tecnología', 'Plan de desarrollo & etapas', 'Asesoramiento técnico cercano']
+  },
+  { 
+    id: '05', 
+    slug: 'desarrollo-cloud-native', 
+    title: 'Servidores & Infraestructura', 
+    desc: 'Bases de datos y servidores preparados para responder siempre. Nos aseguramos de que tu plataforma funcione de manera fluida y segura sin importar el volumen de visitas.', 
+    colorFrom: '#38bdf8', 
+    colorTo: '#818cf8',
+    impact: 'Máxima estabilidad & seguridad 24/7',
+    deliverables: ['Bases de datos rápidas & seguras', 'Servidores en la nube', 'Integración de pasarelas de pago', 'APIs & Conexión de servicios']
+  },
+  { 
+    id: '06', 
+    slug: 'integraciones-devops', 
+    title: 'Mantenimiento & Soporte', 
+    desc: 'Tu tecnología siempre al día. Automatizamos actualizaciones y mantenemos tu web o app protegida para que tú solo te preocupes por hacer crecer tu negocio.', 
+    colorFrom: '#2dd4bf', 
+    colorTo: '#3b82f6',
+    impact: 'Cero preocupaciones & soporte continuo',
+    deliverables: ['Actualizaciones automatizadas', 'Backups & Copias de seguridad', 'Monitorización de estabilidad', 'Soporte técnico directo']
+  }
+];
+
+const team = [
+  { role: 'CEO & Founder', name: 'Juan Carlos González' },
+  { role: 'Designer & Co-Founder', name: 'Manuel Gomes' },
+  { role: 'Jefe de Marketing', name: 'Ivo Torres' },
+];
+
+const methodology = [
+  {
+    stage: '01',
+    title: 'Entendemos tu proyecto',
+    desc: "Analizamos tus objetivos y necesidades reales antes de ponernos a diseñar o programar.",
+    how: [
+      "Reunión inicial para definir objetivos, público objetivo y alcance.",
+      "Planificación transparente de fases, plazos y presupuesto sin sorpresas."
+    ],
+    expect: "Hoja de ruta clara con objetivos bien definidos y calendario de entregas."
+  },
+  {
+    stage: '02',
+    title: 'Diseñamos la experiencia',
+    desc: "Creamos prototipos visuales interactivos para que veas exactamente cómo quedará tu web o app.",
+    how: [
+      "Diseño visual de pantallas, estructura de contenidos y paleta de colores.",
+      "Prototipos navegables para que puedas probar el diseño antes de construirlo."
+    ],
+    expect: "Bocetos visuales completos y prototipo interactivo aprobado por ti."
+  },
+  {
+    stage: '03',
+    title: 'Desarrollamos a medida',
+    desc: "Programamos tu solución con código rápido y seguro, realizando pruebas en todos los dispositivos.",
+    how: [
+      "Programación limpia optimizada para buscadores (SEO) y teléfonos móviles.",
+      "Pruebas de velocidad, usabilidad y seguridad antes del lanzamiento."
+    ],
+    expect: "Tu web o aplicación lista en un entorno de pruebas privado para tu revisión."
+  },
+  {
+    stage: '04',
+    title: 'Lanzamiento & Acompañamiento',
+    desc: "Publicamos tu proyecto, lo dejamos 100% operativo y seguimos a tu lado para lo que necesites.",
+    how: [
+      "Paso a producción, configuración de dominio y correo corporativo.",
+      "Soporte técnico cercano y acompañamiento para futuras mejoras."
+    ],
+    expect: "Producto publicado y funcionado con soporte técnico continuo."
+  }
+];
+
+const projects = [
+  { 
+    id: '01',
+    title: 'Nova Platform', 
+    category: 'POINT OF SALE / SAAS PLATFORM',
+    desc: 'TPV inteligente y arquitectura de baja latencia para el sector de la hostelería de nueva generación.', 
+    image: '/images/portfolio/mars.jpg',
+    tags: ['Next.js', 'PostgreSQL', 'UI/UX', 'Cloud Native'],
+    year: '2025'
+  },
+  { 
+    id: '02',
+    title: 'Horizon', 
+    category: 'HOSPITALITY / BRANDING & WEB',
+    desc: 'Transformación digital, plataforma de reservas y sistema visual completo para el sector hospitality.', 
+    image: '/images/portfolio/moon.jpg',
+    tags: ['Design System', 'Astro', 'UI/UX', 'SEO'],
+    year: '2024'
+  },
+  { 
+    id: '03',
+    title: 'BIG BURGER MAD', 
+    category: 'RETAIL / BRANDING & RETAIL',
+    desc: 'Branding con carácter, identidad visual disruptiva y arquitectura digital para franquicia retail.', 
+    image: '/images/portfolio/mountains.jpg',
+    tags: ['Identidad Visual', 'E-commerce', 'Mobile UX'],
+    year: '2024'
+  },
+  { 
+    id: '04',
+    title: '180º Roasters', 
+    category: 'SPECIALTY COFFEE / E-COMMERCE',
+    desc: 'Experiencia e-commerce minimalista y narrativa de marca para el mercado de specialty coffee.', 
+    image: '/images/portfolio/saltflat.jpg',
+    tags: ['Shopify Headless', 'Branding', 'Web Performance'],
+    year: '2024'
+  }
+];
+---
+
+<Layout title="Orbital Leap - Plataformas escalables y consultoría">
+  <Navbar />
+
+  <main class="relative w-full bg-brand-bg">
+    
+    <section id="hero-section" class="sticky top-0 h-screen w-full flex flex-col justify-center pt-24 px-6 md:px-12 xl:px-24 overflow-hidden bg-[#111111] z-0">
+      
+      <div class="hero-parallax-bg absolute inset-0 w-full h-full z-0 overflow-hidden bg-[#111111]" style="background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.09) 1.2px, transparent 0), linear-gradient(to right, rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.025) 1px, transparent 1px); background-size: 36px 36px, 36px 36px, 36px 36px;">
+        <canvas id="orbs-canvas" class="absolute inset-0 w-full h-full pointer-events-none opacity-70 z-0"></canvas>
+      </div>
+      
+      <div class="hero-parallax-content relative z-10 w-full max-w-screen-2xl mx-auto will-change-transform">
+        <h1 class="font-sans text-4xl sm:text-6xl md:text-7xl lg:text-[5rem] font-medium tracking-tighter leading-[0.95] mb-6 text-brand-light">
+          <div class="overflow-hidden py-2"><div class="hero-line">Diseño & desarrollo</div></div>
+          <div class="overflow-hidden py-2"><div class="hero-line">digital a medida.</div></div>
+        </h1>
+        
+        <p class="text-base md:text-xl text-brand-light/60 font-sans max-w-2xl font-light leading-relaxed">
+          Diseñamos y desarrollamos productos digitales a medida. Desde la web de tu proyecto hasta aplicaciones empresariales complejas, con atención al detalle y un rendimiento impecable.
+        </p>
+      </div>
+      
+      <div id="cursor-ring" class="fixed z-50 pointer-events-none opacity-0 will-change-transform" style="top:0;left:0;width:110px;height:110px;margin-left:-55px;margin-top:-55px;">
+        <svg viewBox="0 0 110 110" width="110" height="110" style="overflow:visible">
+          <defs>
+            <path id="ring-path" d="M 55,55 m -38,0 a 38,38 0 1,1 76,0 a 38,38 0 1,1 -76,0" />
+          </defs>
+          <text font-family="'Inter', sans-serif" font-size="8.5" font-weight="300" fill="rgba(255,255,255,0.75)" letter-spacing="3.5">
+            <textPath href="#ring-path">· DESPLAZA PARA EXPLORAR · DESPLAZA PARA EXPLORAR ·</textPath>
+          </text>
+        </svg>
+      </div>
+    </section>
+
+    <section id="servicios" class="relative z-10 min-h-screen flex flex-col justify-center py-20 md:py-24 px-6 md:px-12 xl:px-24 bg-[#111111]">
+      <div class="max-w-screen-2xl mx-auto w-full">
+        <div class="mb-12 md:mb-16 section-header">
+          <h2 class="font-sans text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-medium text-brand-light tracking-tighter leading-none mb-6">
+            Especialización & servicios.
+          </h2>
+          <div class="w-full h-px bg-white/[0.1]"></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 w-full items-start" id="services-interactive">
+          <div class="lg:col-span-5 flex flex-col items-start gap-3 sm:gap-4">
+            {services.map((service, index) => (
+              <button
+                type="button"
+                data-service-index={index}
+                class={`service-tab-btn text-left group relative inline-flex items-center justify-between px-6 py-3.5 rounded-xl border border-transparent transition-all duration-500 cursor-pointer overflow-hidden ${index === 0 ? 'active-service-tab border-white/20' : ''}`}
+                style={`--color-from: ${service.colorFrom}; --color-to: ${service.colorTo};`}
+              >
+                <div class={`border-beam-wrapper pointer-events-none absolute inset-0 z-20 transition-opacity duration-500 overflow-hidden ${index === 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                  <svg class="w-full h-full" fill="none">
+                    <rect width="100%" height="100%" rx="12" pathLength="1000" stroke={`url(#tab-gradient-${index})`} stroke-width="2.5" class="magic-border-beam-svg" />
+                    <defs>
+                      <linearGradient id={`tab-gradient-${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color={service.colorFrom} stop-opacity="1" />
+                        <stop offset="40%" stop-color={service.colorTo} stop-opacity="0.9" />
+                        <stop offset="70%" stop-color="#00FFF0" stop-opacity="0.7" />
+                        <stop offset="100%" stop-color={service.colorFrom} stop-opacity="0" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+
+                <h3 class="service-title-text relative z-10 font-sans text-2xl sm:text-3xl md:text-4xl lg:text-[2.6rem] font-medium tracking-tight whitespace-nowrap text-white/30 transition-all duration-500">
+                  {service.title}
+                </h3>
+              </button>
+            ))}
+          </div>
+
+          <div class="lg:col-span-7 sticky top-28 w-full min-h-[380px] relative">
+            {services.map((service, index) => (
+              <div 
+                id={`service-content-${index}`} 
+                class={`service-content-panel absolute inset-0 w-full h-fit bg-[#161616] border border-white/12 rounded-2xl p-7 md:p-9 transition-all duration-300 ease-out overflow-hidden shadow-2xl backdrop-blur-xl ${index === 0 ? 'opacity-100 pointer-events-auto scale-100' : 'opacity-0 pointer-events-none scale-[0.98]'}`}
+                style={`--color-from: ${service.colorFrom}; --color-to: ${service.colorTo};`}
+              >
+                <!-- Card Internal Grain Texture Overlay -->
+                <div 
+                  class="absolute inset-0 w-full h-full pointer-events-none opacity-20 z-0"
+                  style="background-image: url('data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E');"
+                ></div>
+
+                <!-- Ambient Color Glow Backdrop (Original Faint Softened) -->
+                <div 
+                  class="absolute -top-20 -right-20 w-80 h-80 rounded-full blur-3xl opacity-10 pointer-events-none"
+                  style={`background: radial-gradient(circle, ${service.colorFrom} 0%, transparent 70%);`}
+                ></div>
+
+                <div class="relative z-10 flex flex-col gap-5">
+                  <!-- Large One-Line Title inside Card -->
+                  <h3 class="font-sans text-2xl md:text-3xl lg:text-4xl font-medium tracking-tight text-white whitespace-nowrap overflow-hidden text-ellipsis">
+                    {service.title}
+                  </h3>
+
+                  <!-- Horizontal Divisor Line -->
+                  <div class="w-full h-px bg-white/10"></div>
+
+                  <p class="font-sans text-brand-light/80 font-light text-base md:text-lg leading-relaxed">
+                    {service.desc}
+                  </p>
+                  <div>
+                    <span class="font-sans text-xs text-brand-light/40 uppercase tracking-widest block mb-3 font-medium">ENTREGABLES CONCRETOS</span>
+                    <div class="flex flex-wrap gap-2">
+                      {service.deliverables.map(del => (
+                        <span class="font-sans text-xs px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-brand-light/80 font-light">
+                          {del}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="metodologia" data-theme="light" class="relative bg-[#F9F9F9] text-black w-full overflow-hidden border-t border-black/[0.05]">
+      <div id="methodology-pin" class="h-screen w-full flex flex-col relative">
+        
+        <!-- Sticky Top Header -->
+        <div class="absolute left-0 top-0 w-full p-6 md:px-12 xl:px-24 pt-16 md:pt-24 z-20 pointer-events-none">
+          <div class="flex items-center gap-6 md:gap-8 w-full max-w-screen-2xl mx-auto">
+            <div class="relative w-20 h-20 md:w-28 md:h-28 shrink-0">
+              <svg viewBox="0 0 100 100" class="w-full h-full animate-[spin_15s_linear_infinite]">
+                <path id="circlePath" d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0" fill="transparent" />
+                <text class="text-[13px] font-sans font-medium uppercase fill-black/60">
+                  <textPath href="#circlePath" startOffset="0" textLength="232.4" lengthAdjust="spacing">
+                    NUESTRA METODOLOGÍA • NUESTRA METODOLOGÍA • 
+                  </textPath>
+                </text>
+              </svg>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <img src="/brand/ol_isotipo-k.svg" alt="" aria-hidden="true" class="w-8 h-8 opacity-80" />
+              </div>
+            </div>
+            <div>
+              <h2 class="font-sans text-4xl md:text-5xl xl:text-6xl font-normal tracking-tighter leading-[0.9] text-black">Nuestra metodología.</h2>
+            </div>
+          </div>
+        </div>
+
+        <div class="w-full h-full flex items-end pb-20 md:pb-32 overflow-x-auto md:overflow-visible no-scrollbar snap-x snap-mandatory">
+          <div id="methodology-scroll" class="flex flex-row items-stretch h-[65vh] px-6 md:px-[6vw] xl:px-[12vw] w-max gap-8 md:gap-20">
+          {methodology.map((stage, i) => (
+            <div class={`flex flex-col w-[85vw] md:w-[35vw] shrink-0 group relative z-10 snap-center ${i % 2 === 0 ? 'mt-auto mb-4 md:mb-8' : 'mb-auto mt-6 md:mt-12'}`}>
+              <!-- Stage Header -->
+              <div class="mb-10">
+                <span class="font-sans text-black/40 text-xs font-medium tracking-[0.2em] uppercase mb-6 block">Fase {stage.stage}</span>
+                <h3 class="font-sans text-4xl md:text-5xl tracking-tight mb-6 text-black">{stage.title}</h3>
+                <p class="font-sans text-black/60 font-light text-base md:text-lg leading-relaxed max-w-md">{stage.desc}</p>
+              </div>
+
+              <!-- Collapsible Content Structure -->
+              <div class="flex flex-col w-full max-w-xl mt-4">
+                
+                <!-- How Accordion -->
+                <div class="border-t border-black/10">
+                  <button type="button" class="methodology-accordion-header w-full py-5 flex justify-between items-center text-left cursor-pointer group pointer-events-auto">
+                    <span class="font-sans text-xs tracking-[0.15em] uppercase text-black/60 group-hover:text-black transition-colors font-medium">¿Cómo lo hacemos?</span>
+                    <span class="methodology-accordion-icon font-mono text-sm text-black/40 group-hover:text-black transition-colors">+</span>
+                  </button>
+                  <div class="methodology-accordion-content h-0 overflow-hidden transition-all duration-300 ease-out">
+                    <div class="pb-6 pt-1">
+                      <ul class="flex flex-col gap-3">
+                        {stage.how.map((item, index) => (
+                          <li class="font-sans text-black/80 font-light text-sm md:text-base leading-relaxed flex">
+                            <span class="text-black/30 font-mono text-xs mr-3 mt-0.5">{index + 1}.</span> 
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- What to expect Accordion -->
+                <div class="border-t border-black/10 border-b border-black/10">
+                  <button type="button" class="methodology-accordion-header w-full py-5 flex justify-between items-center text-left cursor-pointer group pointer-events-auto">
+                    <span class="font-sans text-xs tracking-[0.15em] uppercase text-black/60 group-hover:text-black transition-colors font-medium">¿Qué recibirás?</span>
+                    <span class="methodology-accordion-icon font-mono text-sm text-black/40 group-hover:text-black transition-colors">+</span>
+                  </button>
+                  <div class="methodology-accordion-content h-0 overflow-hidden transition-all duration-300 ease-out">
+                    <div class="pb-6 pt-1">
+                      <p class="font-sans text-black/80 font-light text-sm md:text-base leading-relaxed">{stage.expect}</p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          ))}
+        </div>
+        </div>
+
+        <!-- Bottom Timeline Bar (Progressive Fill) -->
+        <div class="absolute bottom-8 md:bottom-12 left-0 w-full px-6 md:px-12 xl:px-24 flex flex-col gap-3 z-20 pointer-events-none">
+          <div class="flex justify-between font-sans text-xs md:text-sm text-black font-semibold uppercase tracking-[0.2em]">
+            <span>Inicio</span>
+            <span>Lanzamiento</span>
+          </div>
+          <!-- Track & Filling Line -->
+          <div class="relative w-full h-[2px] bg-black/15 overflow-hidden rounded-full">
+            <div id="methodology-progress" class="absolute inset-0 bg-black w-full h-full origin-left scale-x-0"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="portfolio" data-theme="light" class="relative py-28 md:py-36 px-6 md:px-12 xl:px-24 bg-[#F9F9F9] text-black border-t border-black/[0.06]">
+      <div class="max-w-screen-2xl mx-auto">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+          
+          <!-- LEFT COLUMN: Sticky Header & Interactive Index -->
+          <div class="lg:col-span-4 lg:sticky lg:top-28 flex flex-col gap-8">
+            <div>
+              <span class="font-sans text-xs text-black/40 uppercase tracking-[0.2em] font-medium block mb-4">03 — PORTAFOLIO</span>
+              <h2 class="font-sans text-4xl sm:text-5xl lg:text-6xl font-medium text-black tracking-tight leading-[1.05]">
+                Proyectos seleccionados.
+              </h2>
+            </div>
+
+            <p class="font-sans text-black/60 font-light text-base leading-relaxed max-w-sm">
+              Una muestra seleccionada de nuestros últimos desarrollos web, plataformas nativas e identidades digitales.
+            </p>
+
+            <!-- Project Index Links -->
+            <div class="hidden lg:flex flex-col gap-3 pt-4 border-t border-black/10">
+              {projects.map((project, idx) => (
+                <a 
+                  href={`#project-card-${idx}`} 
+                  class="font-sans text-xs tracking-wider uppercase text-black/40 hover:text-black transition-all flex items-center justify-between group py-1.5 font-medium"
+                >
+                  <span class="group-hover:translate-x-1 transition-transform">{project.id} / {project.title}</span>
+                  <span class="opacity-0 group-hover:opacity-100 transition-opacity">↗</span>
+                </a>
+              ))}
+            </div>
+
+            <a href="#" class="font-sans text-xs text-black/60 hover:text-black uppercase tracking-[0.2em] transition-colors inline-flex items-center gap-2 group pt-2 font-medium">
+              <span>VER TODOS LOS PROYECTOS</span>
+              <svg class="w-3.5 h-3.5 stroke-current group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
+            </a>
+          </div>
+
+          <!-- RIGHT COLUMN: Staggered Large Media Cards Stack -->
+          <div class="lg:col-span-8 flex flex-col gap-14 md:gap-20">
+            {projects.map((project, idx) => (
+              <div 
+                id={`project-card-${idx}`} 
+                class="group relative bg-white border border-black/[0.08] hover:border-black/25 rounded-3xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)]"
+              >
+                <!-- 16:9 Full-Bleed Image Container (Zero Margin to Top, Left & Right Borders) -->
+                <div class="relative w-full aspect-[16/9] overflow-hidden bg-black/5 border-b border-black/[0.06]">
+                  <img 
+                    src={project.image} 
+                    alt={project.title} 
+                    class="w-full h-full object-cover" 
+                  />
+                  
+                  <!-- Floating Category Badge Top Left -->
+                  <div class="absolute top-5 left-5 flex items-center gap-2.5 bg-white/90 backdrop-blur-md border border-black/10 px-3.5 py-1.5 rounded-full shadow-sm">
+                    <span class="font-sans text-xs font-semibold text-black/80">{project.id}</span>
+                    <span class="w-1 h-1 rounded-full bg-black/30"></span>
+                    <span class="font-sans text-[11px] text-black/60 uppercase tracking-wider font-medium">{project.category}</span>
+                  </div>
+
+                  <!-- Floating Year Badge Top Right -->
+                  <div class="absolute top-5 right-5 bg-white/90 backdrop-blur-md border border-black/10 px-3 py-1.5 rounded-full shadow-sm">
+                    <span class="font-sans text-xs text-black/70 font-medium">{project.year}</span>
+                  </div>
+                </div>
+
+                <!-- Card Content Block (Padded) -->
+                <div class="p-7 sm:p-9 flex flex-col gap-6">
+                  
+                  <!-- Title & Description Block -->
+                  <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div class="flex flex-col gap-3 max-w-xl">
+                      <h3 class="font-sans text-3xl sm:text-4xl lg:text-5xl font-medium text-black tracking-tight">
+                        {project.title}
+                      </h3>
+
+                      <p class="font-sans text-black/60 font-light text-base sm:text-lg leading-relaxed">
+                        {project.desc}
+                      </p>
+                    </div>
+
+                    <!-- Square/Rect Arrow Action Button -->
+                    <div class="w-14 h-14 rounded-2xl border border-black/15 bg-black/[0.02] group-hover:bg-black group-hover:text-white flex items-center justify-center text-black transition-all duration-300 shrink-0 self-end md:self-auto">
+                      <svg class="w-5 h-5 stroke-current group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/></svg>
+                    </div>
+                  </div>
+
+                  <!-- Tech Deliverables Badges -->
+                  <div class="pt-3 flex flex-wrap gap-2.5 border-t border-black/[0.06]">
+                    {project.tags.map(tag => (
+                      <span class="font-sans text-xs px-3.5 py-1.5 rounded-lg bg-black/[0.03] border border-black/10 text-black/70 font-light">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                </div>
+
+              </div>
+            ))}
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <Footer />
+  <ContactModal />
+
+  <script>
+    import { gsap } from 'gsap';
+    import { ScrollTrigger } from 'gsap/ScrollTrigger';
+    import { MODE_DRAWS } from 'thinking-orbs';
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Cinematic Movie Intro Particle Engine: Cosmic Vortex -> Gravitational Snap -> Orbital Leap Isotipo Emblem
+    const canvas = document.getElementById('orbs-canvas') as HTMLCanvasElement;
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        const NUM_PARTICLES = 900;
+        let particles: { 
+          x: number; 
+          y: number; 
+          targetX: number; 
+          targetY: number; 
+          vortexAngle: number;
+          vortexRadius: number;
+          speed: number;
+          radius: number; 
+          color: string;
+          glowColor: string;
+          phase: number;
+        }[] = [];
+
+        let logoTargets: { x: number; y: number }[] = [];
+        let animationFrameId: number;
+        const startTime = performance.now();
+
+        const pathData1 = "M1623.49,0c-398.8,0-724.27,312.9-745.22,706.11h338.05c21.65,0,39.12,17.46,39.12,39.83s-17.46,39.12-39.12,39.12h-338.05c20.96,393.21,346.42,706.79,745.22,706.79s745.94-334.55,745.94-745.91S2035.57,0,1623.49,0Z";
+        const pathData2 = "M546.18,706.11h331.76c-19.56-224.88-208.15-400.88-437.92-400.88C196.96,305.22,0,502.17,0,745.94s196.96,440,440.02,440c229.77,0,418.36-176.01,437.92-400.88h-331.76c-22.35,0-39.81-17.46-39.81-39.12s17.46-39.83,39.81-39.83Z";
+
+        function generateLogoTargets(width: number, height: number) {
+          const svgNS = "http://www.w3.org/2000/svg";
+          const p1 = document.createElementNS(svgNS, "path");
+          const p2 = document.createElementNS(svgNS, "path");
+          p1.setAttribute("d", pathData1);
+          p2.setAttribute("d", pathData2);
+
+          const l1 = p1.getTotalLength();
+          const l2 = p2.getTotalLength();
+          const totalL = l1 + l2;
+          const count1 = Math.round((l1 / totalL) * NUM_PARTICLES);
+          const count2 = NUM_PARTICLES - count1;
+
+          const viewBoxW = 2369.43;
+          const viewBoxH = 1491.85;
+          const logoScale = Math.min(width / viewBoxW, height / viewBoxH) * 0.45;
+          const logoOffsetX = (width - viewBoxW * logoScale) / 2;
+          const logoOffsetY = (height - viewBoxH * logoScale) / 2;
+
+          logoTargets = [];
+          for (let i = 0; i < count1; i++) {
+            const pt = p1.getPointAtLength((i / count1) * l1);
+            logoTargets.push({ x: pt.x * logoScale + logoOffsetX, y: pt.y * logoScale + logoOffsetY });
+          }
+          for (let i = 0; i < count2; i++) {
+            const pt = p2.getPointAtLength((i / count2) * l2);
+            logoTargets.push({ x: pt.x * logoScale + logoOffsetX, y: pt.y * logoScale + logoOffsetY });
+          }
+        }
+
+        function initParticles() {
+          const rect = canvas.getBoundingClientRect();
+          const width = rect.width;
+          const height = rect.height;
+          const cx = width / 2;
+          const cy = height / 2;
+
+          generateLogoTargets(width, height);
+
+          particles = [];
+          for (let i = 0; i < NUM_PARTICLES; i++) {
+            const target = logoTargets[i] || { x: cx, y: cy };
+            const vAngle = Math.random() * Math.PI * 2;
+            const vRad = Math.random() * Math.max(width, height) * 0.8 + 200;
+            
+            particles.push({
+              x: cx + Math.cos(vAngle) * vRad,
+              y: cy + Math.sin(vAngle) * vRad,
+              targetX: target.x,
+              targetY: target.y,
+              vortexAngle: vAngle,
+              vortexRadius: vRad,
+              speed: Math.random() * 0.02 + 0.01,
+              radius: Math.random() * 0.6 + 0.6,
+              color: 'rgba(255, 255, 255, 0.65)',
+              glowColor: 'rgba(255, 255, 255, 0.2)',
+              phase: Math.random() * Math.PI * 2
+            });
+          }
+        }
+
+        function resizeCanvas(isFirst = false) {
+          const rect = canvas.getBoundingClientRect();
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = rect.width * dpr;
+          canvas.height = rect.height * dpr;
+
+          if (isFirst) {
+            // Full init only on first load
+            initParticles();
+          } else {
+            // On subsequent resizes: only recalculate logo targets and update particle targets in-place
+            // Never reset particle positions — avoids the disappear glitch
+            const rect2 = canvas.getBoundingClientRect();
+            generateLogoTargets(rect2.width, rect2.height);
+            for (let i = 0; i < particles.length; i++) {
+              if (logoTargets[i]) {
+                particles[i].targetX = logoTargets[i].x;
+                particles[i].targetY = logoTargets[i].y;
+              }
+            }
+          }
+        }
+
+        resizeCanvas(true);
+        window.addEventListener('resize', () => resizeCanvas(false));
+
+        let mouseX = -1000;
+        let mouseY = -1000;
+        window.addEventListener('mousemove', (e) => {
+          const rect = canvas.getBoundingClientRect();
+          mouseX = e.clientX - rect.left;
+          mouseY = e.clientY - rect.top;
+        });
+
+        const INTRO_DURATION = 8000; // 8 seconds total — no loop
+
+        function animate(now: number) {
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          const width = canvas.width / dpr;
+          const height = canvas.height / dpr;
+          const cx = width / 2;
+          const cy = height / 2;
+
+          // elapsed clamped — never restarts
+          const elapsed = Math.min(now - startTime, INTRO_DURATION);
+
+          // Clear canvas each frame
+          ctx.save();
+          ctx.scale(dpr, dpr);
+          ctx.clearRect(0, 0, width, height);
+
+          // PHASE LOGIC (plays once):
+          // Phase 1 (0ms    - 2200ms): Cosmic Vortex Spiral inward
+          // Phase 2 (2200ms - 3600ms): Gravitational Snap to Logo
+          // Phase 3 (3600ms - 8000ms): Logo holds with gentle breathing pulse
+
+          for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+
+            if (elapsed < 2200) {
+              // PHASE 1: Cosmic Vortex Spiral
+              p.vortexAngle += p.speed;
+              p.vortexRadius *= 0.992;
+              p.x = cx + Math.cos(p.vortexAngle) * p.vortexRadius;
+              p.y = cy + Math.sin(p.vortexAngle) * p.vortexRadius;
+            } else {
+              // PHASE 2 & 3: Snap & hold logo — ease in over 1400ms then stay
+              const easeProgress = Math.min(1, (elapsed - 2200) / 1400);
+              const smoothEase = 1 - Math.pow(1 - easeProgress, 3);
+
+              // Gentle breathing pulse once locked
+              const breathe = easeProgress >= 1 ? Math.sin(now * 0.002 + p.phase) * 0.8 : 0;
+              const curTargetX = p.targetX + breathe;
+              const curTargetY = p.targetY + breathe;
+
+              p.x += (curTargetX - p.x) * 0.08 * smoothEase;
+              p.y += (curTargetY - p.y) * 0.08 * smoothEase;
+
+              // Mouse interactive repulsion
+              const dx = mouseX - p.x;
+              const dy = mouseY - p.y;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              if (dist < 120) {
+                const force = (120 - dist) / 120;
+                p.x -= (dx / dist) * force * 18;
+                p.y -= (dy / dist) * force * 18;
+              }
+            }
+
+            // Draw Particle Dot
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.shadowBlur = 0;
+            ctx.fill();
+          }
+
+          ctx.restore();
+          if (isHeroInView) {
+            animationFrameId = requestAnimationFrame(animate);
+          } else {
+            animationFrameId = 0;
+          }
+        }
+
+        let isHeroInView = true;
+        const heroEl = document.getElementById('hero-section');
+        if (heroEl && 'IntersectionObserver' in window) {
+          const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+              isHeroInView = entry.isIntersecting;
+              if (isHeroInView && !animationFrameId) {
+                animationFrameId = requestAnimationFrame(animate);
+              }
+            });
+          }, { threshold: 0.05 });
+          observer.observe(heroEl);
+        } else {
+          animationFrameId = requestAnimationFrame(animate);
+        }
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const tl = gsap.timeline({ defaults: { ease: "expo.out" } });
+      
+      tl.fromTo(".hero-line", 
+        { yPercent: 100 }, 
+        { yPercent: 0, duration: 2, stagger: 0.15 }
+      )
+      .fromTo(".hero-bottom", 
+        { y: 30, opacity: 0 }, 
+        { y: 0, opacity: 1, duration: 2 }, 
+        "-=1.5"
+      );
+
+      // Cursor rotating ring (Hardware Accelerated & Responsive)
+      const heroSection = document.querySelector('#hero-section') as HTMLElement;
+      const cursorRing = document.getElementById('cursor-ring') as HTMLElement;
+      if (cursorRing && heroSection) {
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+        let curX = mouseX, curY = mouseY;
+        let rotation = 0;
+        let isHovered = false;
+        let animationFrameId: number;
+
+        heroSection.addEventListener('mouseenter', () => {
+          isHovered = true;
+          cursorRing.style.opacity = '1';
+          cursorRing.style.transition = 'opacity 0.3s ease';
+          if (!animationFrameId) spinRing();
+        });
+
+        heroSection.addEventListener('mouseleave', () => {
+          isHovered = false;
+          cursorRing.style.opacity = '0';
+        });
+
+        window.addEventListener('mousemove', (e) => {
+          mouseX = e.clientX;
+          mouseY = e.clientY;
+        }, { passive: true });
+
+        function spinRing() {
+          if (!isHovered) {
+            animationFrameId = 0;
+            return;
+          }
+          // Responsive lerp (0.35) for instant, lag-free cursor tracking
+          curX += (mouseX - curX) * 0.35;
+          curY += (mouseY - curY) * 0.35;
+          rotation += 0.4;
+          
+          cursorRing.style.transform = `translate3d(${curX}px, ${curY}px, 0) rotate(${rotation}deg)`;
+          animationFrameId = requestAnimationFrame(spinRing);
+        }
+      }
+
+      // Hero-to-Services Cinematic Scroll Parallax (Pinned Sticky Curtain Reveal)
+      gsap.to(".hero-parallax-content", {
+        yPercent: -50,
+        opacity: 0,
+        scale: 0.9,
+        ease: "none",
+        scrollTrigger: {
+          trigger: "#servicios",
+          start: "top bottom",
+          end: "top top",
+          scrub: true
+        }
+      });
+
+      gsap.to(".hero-parallax-bg", {
+        yPercent: -25,
+        opacity: 0.2,
+        ease: "none",
+        scrollTrigger: {
+          trigger: "#servicios",
+          start: "top bottom",
+          end: "top top",
+          scrub: true
+        }
+      });
+
+
+      // Progressive Letter-by-Letter Blur Reveal Function
+      function splitTextToChars(element) {
+        if (element.children.length > 0) return null; // Safe guard
+        const text = element.textContent.trim();
+        if (!text) return null;
+        
+        element.innerHTML = '';
+        const chars = [];
+        
+        // Wrap words to preserve line breaking
+        const words = text.split(' ');
+        words.forEach((word, wordIndex) => {
+          const wordSpan = document.createElement('span');
+          wordSpan.style.display = 'inline-block';
+          wordSpan.style.whiteSpace = 'nowrap';
+          
+          [...word].forEach(char => {
+            const charSpan = document.createElement('span');
+            charSpan.innerText = char;
+            charSpan.style.opacity = '0';
+            charSpan.style.filter = 'blur(12px)';
+            charSpan.style.display = 'inline-block';
+            charSpan.style.willChange = 'opacity, filter';
+            wordSpan.appendChild(charSpan);
+            chars.push(charSpan);
+          });
+          
+          element.appendChild(wordSpan);
+          
+          if (wordIndex < words.length - 1) {
+            const spaceSpan = document.createElement('span');
+            spaceSpan.innerHTML = '&nbsp;';
+            element.appendChild(spaceSpan);
+          }
+        });
+        
+        return chars;
+      }
+
+      // Fade out scroll indicator on scroll
+      gsap.to('#scroll-indicator', {
+        opacity: 0,
+        scrollTrigger: {
+          trigger: "body",
+          start: "top top",
+          end: "top -150px",
+          scrub: true
+        }
+      });
+
+      // Remove character blur JS logic to keep typography 100% crisp
+
+      // Generic container fade-up (without text blur, just layout movement)
+      gsap.utils.toArray('.fade-up').forEach((el: any) => {
+        gsap.fromTo(el, 
+          { y: 40, opacity: 0 },
+          {
+            scrollTrigger: {
+              trigger: el,
+              start: "top 85%",
+              toggleActions: "play none none reverse"
+            },
+            y: 0,
+            opacity: 1,
+            duration: 1.5,
+            ease: "expo.out"
+          }
+        );
+      });
+
+      // Dual-Container Interactive Services Pinned Parallax Scroll Sequence
+      const tabBtns = document.querySelectorAll('.service-tab-btn');
+      const contentPanels = document.querySelectorAll('.service-content-panel');
+      let currentActiveIndex = 0;
+
+      function switchServiceTab(targetIndex: number) {
+        if (currentActiveIndex === targetIndex && contentPanels[targetIndex] && contentPanels[targetIndex].classList.contains('opacity-100')) return;
+        currentActiveIndex = targetIndex;
+
+        tabBtns.forEach((btn, idx) => {
+          const borderWrapper = btn.querySelector('.border-beam-wrapper');
+          if (idx === targetIndex) {
+            btn.classList.add('border-white/20', 'active-service-tab');
+            if (borderWrapper) {
+              borderWrapper.classList.remove('opacity-0');
+              borderWrapper.classList.add('opacity-100');
+            }
+          } else {
+            btn.classList.remove('border-white/20', 'active-service-tab');
+            if (borderWrapper) {
+              borderWrapper.classList.remove('opacity-100');
+              borderWrapper.classList.add('opacity-0');
+            }
+          }
+        });
+
+        contentPanels.forEach((panel, idx) => {
+          if (idx === targetIndex) {
+            panel.classList.remove('opacity-0', 'pointer-events-none', 'scale-[0.98]');
+            panel.classList.add('opacity-100', 'pointer-events-auto', 'scale-100');
+          } else {
+            panel.classList.remove('opacity-100', 'pointer-events-auto', 'scale-100');
+            panel.classList.add('opacity-0', 'pointer-events-none', 'scale-[0.98]');
+          }
+        });
+      }
+
+      tabBtns.forEach((btn: any) => {
+        const index = parseInt(btn.getAttribute('data-service-index') || '0');
+        btn.addEventListener('mouseenter', () => switchServiceTab(index));
+        btn.addEventListener('click', () => switchServiceTab(index));
+      });
+
+
+
+      // Horizontal Scroll Methodology Section (Desktop Only via matchMedia)
+      const mm = gsap.matchMedia();
+      const methodologyPin = document.querySelector('#methodology-pin');
+      const methodologyScroll = document.querySelector('#methodology-scroll');
+      const methodologyProgress = document.querySelector('#methodology-progress');
+      
+      if (methodologyPin && methodologyScroll) {
+        mm.add("(min-width: 768px)", () => {
+          gsap.set(methodologyScroll, { willChange: "transform" });
+
+          const methodologyTl = gsap.timeline({
+            scrollTrigger: {
+              trigger: methodologyPin,
+              pin: true,
+              scrub: 1,
+              end: () => `+=${methodologyScroll.scrollWidth - window.innerWidth}`
+            }
+          });
+
+          methodologyTl.to(methodologyScroll, {
+            x: () => -(methodologyScroll.scrollWidth - window.innerWidth),
+            ease: "none",
+            force3D: true
+          }, 0);
+
+          if (methodologyProgress) {
+            methodologyTl.to(methodologyProgress, {
+              scaleX: 1,
+              ease: "none"
+            }, 0);
+          }
+        });
+      }
+
+      // Native Parallax Footer Animation sequence
+      const footer = document.querySelector('#contacto');
+      const footerCtaText = document.querySelector('#footer-cta-text');
+      const footerCtaBtn = document.querySelector('#footer-cta-btn');
+
+      if (footer && footerCtaText && footerCtaBtn) {
+        // Split text into characters with white-to-blue gradient tinting (matching DevOps reference)
+        const text = footerCtaText.innerText;
+        footerCtaText.innerHTML = '';
+        const totalChars = text.length;
+
+        // Signature service gradient (from Integraciones DevOps): Pure White (#FFFFFF) -> Mint Teal (#2DD4BF) -> Electric Blue (#3B82F6)
+        function getGradientColor(t: number) {
+          if (t <= 0.5) {
+            const localT = t / 0.5;
+            const r = Math.round(255 + (45 - 255) * localT);
+            const g = Math.round(255 + (212 - 255) * localT);
+            const b = Math.round(255 + (191 - 255) * localT);
+            return `rgb(${r}, ${g}, ${b})`;
+          } else {
+            const localT = (t - 0.5) / 0.5;
+            const r = Math.round(45 + (59 - 45) * localT);
+            const g = Math.round(212 + (130 - 212) * localT);
+            const b = Math.round(191 + (246 - 191) * localT);
+            return `rgb(${r}, ${g}, ${b})`;
+          }
+        }
+
+        const targetColors: string[] = [];
+
+        [...text].forEach((char, idx) => {
+          const span = document.createElement('span');
+          span.innerText = char === ' ' ? '\u00A0' : char;
+          span.style.opacity = '0.2'; // Muted initial opacity
+          span.style.color = 'rgba(255, 255, 255, 0.2)'; // Muted initial color
+          span.style.display = 'inline-block';
+          span.style.willChange = 'color, opacity';
+          footerCtaText.appendChild(span);
+
+          targetColors.push(getGradientColor(idx / Math.max(1, totalChars - 1)));
+        });
+
+        const charSpans = footerCtaText.querySelectorAll('span');
+
+        const footerTl = gsap.timeline({
+          scrollTrigger: {
+            trigger: footerCtaText,
+            start: "top 85%", 
+            end: "bottom 45%", 
+            scrub: 0.8
+          }
+        });
+
+        // 1. Scale container text smoothly from 0.75 to 1
+        footerTl.fromTo(footerCtaText,
+          { scale: 0.75, y: 40 },
+          { scale: 1, y: 0, duration: 1, ease: "power2.out" },
+          0
+        );
+
+        // 2. Fill color & opacity letter-by-letter as you scroll
+        charSpans.forEach((span, idx) => {
+          const color = targetColors[idx];
+          footerTl.to(span, {
+            color: color,
+            opacity: 1,
+            duration: 0.15,
+            ease: "none"
+          }, 0.05 + idx * 0.04);
+        });
+
+        // 3. Fade in the email CTA button elegantly as text locks in
+        footerTl.fromTo(footerCtaBtn,
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" },
+          0.7
+        );
+      }
+
+      // Lightweight Accordions for Methodology Rows
+      const accHeaders = document.querySelectorAll('.methodology-accordion-header');
+      accHeaders.forEach(header => {
+        header.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const content = header.nextElementSibling as HTMLElement;
+          const icon = header.querySelector('.methodology-accordion-icon');
+          if (!content || !icon) return;
+
+          const isOpen = content.style.height !== '0px' && content.style.height !== '';
+
+          if (isOpen) {
+            content.style.height = '0px';
+            icon.textContent = '+';
+          } else {
+            content.style.height = content.scrollHeight + 'px';
+            icon.textContent = '-';
+          }
+        });
+      });
+
+    });
+  </script>
+</Layout>

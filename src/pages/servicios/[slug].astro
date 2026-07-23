@@ -1,0 +1,269 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import Footer from '../../components/Footer.astro';
+
+export async function getStaticPaths() {
+  const serviceDetails = [
+    {
+      slug: 'branding-e-identidad',
+      id: '01',
+      title: 'Branding e Identidad',
+      headline: 'Construimos marcas memorables con visión de largo plazo.',
+      desc: 'Diseñamos identidades visuales potentes, sistemas de marca escalables y guías de estilo rigurosas que posicionan a tu empresa en lo más alto de su industria.',
+      colorFrom: '#a855f7',
+      colorTo: '#ec4899',
+      metrics: [
+        { label: 'Tiempo de Entrega', val: '4-6 Semanas' },
+        { label: 'Formato Entregable', val: 'Design Tokens & Vector Assets' },
+        { label: 'Soporte de Marca', val: 'Guía de Estilo Viva' }
+      ],
+      capabilities: [
+        { title: 'ADN & Posicionamiento', desc: 'Definición de voz, propuesta de valor única y arquitectura de mensaje para audiencias clave.' },
+        { title: 'Sistema Visual & Tipografía', desc: 'Desarrollo de paletas cromáticas, jerarquía tipográfica e isotipo distintivo.' },
+        { title: 'Design Tokens & UI Kit', desc: 'Traducción directa de las guías de marca a código ejecutable para equipos de ingeniería.' },
+        { title: 'Brand Guidelines & Collateral', desc: 'Documentación viva de aplicación de marca para medios impresos, digitales y presentaciones.' }
+      ],
+      tools: ['Figma', 'Adobe Illustrator', 'Tokens Studio', 'Style Dictionary'],
+      faq: [
+        { q: '¿Qué entregables recibimos al finalizar el proyecto?', a: 'Entregamos un Brand Book interactivo, todos los archivos vectoriales exportados (.SVG, .EPS), componentes de Figma organizados y Design Tokens exportados para desarrolladores.' },
+        { q: '¿Cuál es la duración media de un proyecto de branding?', a: 'Un proceso completo de identidad suele tomar entre 4 y 6 semanas desde la fase de descubrimiento hasta el handoff final.' },
+        { q: '¿Nos pertenecen los derechos de la marca?', a: '100% sí. Al completar el proyecto, todos los derechos de propiedad intelectual pasan a ser propiedad exclusiva de tu empresa.' }
+      ]
+    },
+    {
+      slug: 'experiencia-ui-ux',
+      id: '02',
+      title: 'Experiencia UI/UX',
+      headline: 'Interfaces fluidas diseñadas para maximizar la conversión.',
+      desc: 'Transformamos flujos complejos en experiencias de usuario intuitivas y atractivas. Combinamos investigación de usuarios con prototipado de alta fidelidad.',
+      colorFrom: '#f43f5e',
+      colorTo: '#fb923c',
+      metrics: [
+        { label: 'Enfoque Principal', val: 'Conversión & Retención' },
+        { label: 'Fidelidad Prototipo', val: 'Interactivo 60fps' },
+        { label: 'Compatibilidad', val: 'Multi-dispositivo' }
+      ],
+      capabilities: [
+        { title: 'Investigación & Wireframing', desc: 'Mapeo de flujos de usuario, arquitectura de información y bocetado estructural rápido.' },
+        { title: 'Diseño UI de Alta Fidelidad', desc: 'Creación de pantallas con estética refinada, cuidando la micro-interacción y la claridad.' },
+        { title: 'Design Systems Reutilizables', desc: 'Construcción de librerías de componentes accesibles y escalables en Figma.' },
+        { title: 'Testing & Prototipado Navegable', desc: 'Validación de flujos clave mediante prototipos interactivos antes de tirar una sola línea de código.' }
+      ],
+      tools: ['Figma', 'Protopie', 'Rive', 'Storybook', 'Stitches'],
+      faq: [
+        { q: '¿Cómo garantizáis que el diseño sea fácil de desarrollar?', a: 'Trabajamos mano a mano con ingeniería desde el día 1, usando un Design System compartido que refleja componentes reales.' },
+        { q: '¿Incluye prototipos animados?', a: 'Sí, entregamos prototipos interactivos con animaciones de micro-interacción para validar la experiencia en vivo.' }
+      ]
+    },
+    {
+      slug: 'desarrollo-app-web',
+      id: '03',
+      title: 'Desarrollo APP/WEB',
+      headline: 'Ingeniería de software nativa para plataformas de alto impacto.',
+      desc: 'Construimos aplicaciones web y móviles rápidas, seguras y de código limpio con las tecnologías modernas que utilizan las Big Tech.',
+      colorFrom: '#e879f9',
+      colorTo: '#6366f1',
+      metrics: [
+        { label: 'Rendimiento', val: 'Lightroom Score 95+' },
+        { label: 'Plataformas', val: 'Web, iOS & Android' },
+        { label: 'Arquitectura', val: 'Modular & Tipada' }
+      ],
+      capabilities: [
+        { title: 'Desarrollo Frontend Moderno', desc: 'Aplicaciones ultra-rápidas construidas con React, Next.js, Astro y TypeScript.' },
+        { title: 'Aplicaciones Móviles Nativas', desc: 'Desarrollo nativo iOS/Android para experiencias con animaciones a 60fps sin stuttering.' },
+        { title: 'Optimización de Rendimiento', desc: 'Carga instantánea, lazy loading inteligente y máxima puntuación en Core Web Vitals.' },
+        { title: 'Integración de APIs & CMS', desc: 'Conexión transparente con CMS headless, pasarelas de pago y servicios de terceros.' }
+      ],
+      tools: ['React', 'Next.js', 'Astro', 'TypeScript', 'Tailwind CSS', 'Swift', 'Kotlin'],
+      faq: [
+        { q: '¿Utilizáis soluciones no-code como Webflow o Framer?', a: 'No. En Orbital Leap programamos en código nativo de alta calidad para garantizar rendimiento, seguridad y control total sin limitaciones de plataforma.' },
+        { q: '¿El sitio web estará optimizado para buscadores (SEO)?', a: 'Sí, todas nuestras aplicaciones web incluyen optimización SEO técnica, metadatos dinámicos y etiquetado semántico por defecto.' }
+      ]
+    },
+    {
+      slug: 'consultoria-estrategica',
+      id: '04',
+      title: 'Consultoría Estratégica',
+      headline: 'Arquitectura tecnológica y hoja de ruta para escalar sin fricción.',
+      desc: 'Auditamos tu infraestructura actual, resolvemos cuellos de botella de ingeniería y diseñamos la estrategia técnica para los próximos 5 años.',
+      colorFrom: '#ffaa40',
+      colorTo: '#9c40ff',
+      metrics: [
+        { label: 'Formato', val: 'Auditoría + Blueprint' },
+        { label: 'Enfoque', val: 'Escalabilidad & ROI' },
+        { label: 'Soporte', val: 'Directivo / CTO' }
+      ],
+      capabilities: [
+        { title: 'Auditoría de Código e Infraestructura', desc: 'Identificación de deuda técnica, vulnerabilidades de seguridad y puntos de fallo único.' },
+        { title: 'Selección de Stack Tecnológico', desc: 'Recomendaciones independientes sobre lenguajes, frameworks y proveedores cloud.' },
+        { title: 'Optimización de Costes Cloud', desc: 'Reducción del gasto en servidores optimizando consultas, cachés y arquitecturas serverless.' },
+        { title: 'Roadmap de Ingeniería', desc: 'Planificación por fases para migración de sistemas heredados a arquitecturas modernas.' }
+      ],
+      tools: ['AWS', 'GCP', 'PostgreSQL', 'Docker', 'Grafana', 'Kubernetes'],
+      faq: [
+        { q: '¿Para qué tamaño de empresa está pensada la consultoría?', a: 'Desde startups que preparan su ronda Serie A hasta empresas consolidadas que necesitan modernizar su stack tecnológico.' },
+        { q: '¿Podéis trabajar con nuestro equipo técnico actual?', a: 'Absolutamente. Actuamos como un partner estratégico o CTO bajo demanda para acompañar a tu equipo interno.' }
+      ]
+    },
+    {
+      slug: 'desarrollo-cloud-native',
+      id: '05',
+      title: 'Desarrollo Cloud-Native',
+      headline: 'Sistemas backend distribuidos de máxima disponibilidad.',
+      desc: 'Diseñamos e implementamos backends elásticos, APIs de alta velocidad y arquitecturas de microservicios preparadas para soportar millones de peticiones.',
+      colorFrom: '#38bdf8',
+      colorTo: '#818cf8',
+      metrics: [
+        { label: 'Disponibilidad', val: '99.99% Uptime SLA' },
+        { label: 'Arquitectura', val: 'Serverless / Microservicios' },
+        { label: 'Bases de Datos', val: 'SQL & NoSQL Distribuidas' }
+      ],
+      capabilities: [
+        { title: 'Diseño de APIs RESTful & GraphQL', desc: 'Endpoints seguros, documentados y optimizados para responder en milisegundos.' },
+        { title: 'Bases de Datos Escalables', desc: 'Modelado relacional y no relacional optimizado para alta concurrencia de lecturas y escrituras.' },
+        { title: 'Event-Driven Architectures', desc: 'Implementación de colas de mensajes y flujos asíncronos con Kafka o RabbitMQ.' },
+        { title: 'Seguridad & Autenticación', desc: 'Cifrado de datos en reposo y en tránsito, integración de OAuth2 y roles RBAC.' }
+      ],
+      tools: ['Node.js', 'Go', 'Python', 'PostgreSQL', 'Redis', 'Docker', 'AWS Lambda'],
+      faq: [
+        { q: '¿Cómo aseguráis la escalabilidad ante picos de tráfico?', a: 'Diseñamos arquitecturas con auto-scaling nativo y capas de caché inteligente que absorben incrementos de carga de forma transparente.' }
+      ]
+    },
+    {
+      slug: 'integraciones-devops',
+      id: '06',
+      title: 'Integraciones DevOps',
+      headline: 'Despliegues continuos sin interrupciones y monitoreo en tiempo real.',
+      desc: 'Automatizamos tus ciclos de desarrollo mediante pipelines CI/CD robustos, infraestructura como código y monitorización proactiva de salud del sistema.',
+      colorFrom: '#2dd4bf',
+      colorTo: '#3b82f6',
+      metrics: [
+        { label: 'Frecuencia Despliegue', val: 'Cero Downtime' },
+        { label: 'Automatización', val: '100% Infra as Code' },
+        { label: 'Monitorización', val: '24/7 Real-Time Alerts' }
+      ],
+      capabilities: [
+        { title: 'Pipelines CI/CD Automatizados', desc: 'Pruebas automáticas, compilación y paso a producción instantáneo con GitHub Actions.' },
+        { title: 'Infraestructura como Código (IaC)', desc: 'Gestión reproducible de servidores y redes mediante Terraform o CloudFormation.' },
+        { title: 'Monitorización & Alertas 24/7', desc: 'Dashboards en tiempo real para visualizar consumo de recursos y detectar anomalías.' },
+        { title: 'Estrategias de Backup & DR', desc: 'Planes automatizados de copia de seguridad y recuperación ante desastres.' }
+      ],
+      tools: ['GitHub Actions', 'Terraform', 'Docker', 'Kubernetes', 'Datadog', 'Prometheus'],
+      faq: [
+        { q: '¿Nos ayuda a reducir errores en los lanzamientos a producción?', a: 'Sí, los pipelines automatizados ejecutan suites de pruebas previas y permiten despliegues canary o blue-green con rollback instantáneo.' }
+      ]
+    }
+  ];
+
+  return serviceDetails.map(service => ({
+    params: { slug: service.slug },
+    props: { service }
+  }));
+}
+
+const { service } = Astro.props;
+---
+
+<Layout title={`${service.title} - Orbital Leap`}>
+  <Navbar />
+
+  <main class="relative w-full bg-brand-bg pt-32 pb-24 px-6 md:px-12 xl:px-24 overflow-hidden">
+    
+    <!-- Ambient Background Glow -->
+    <div 
+      class="absolute top-0 right-1/4 w-[600px] h-[600px] opacity-15 rounded-full blur-[140px] pointer-events-none"
+      style={`background: radial-gradient(circle, ${service.colorFrom} 0%, ${service.colorTo} 100%);`}
+    ></div>
+
+    <div class="max-w-screen-2xl mx-auto">
+
+      <!-- Breadcrumb & Tag -->
+      <div class="flex items-center gap-4 mb-8">
+        <a href="/#servicios" class="inline-flex items-center text-xs font-mono text-brand-light/50 hover:text-brand-light transition-colors uppercase tracking-widest">
+          ← Volver a Servicios
+        </a>
+        <span class="text-white/20">|</span>
+        <span class="font-mono text-xs text-brand-light/40 uppercase tracking-widest">FASE {service.id}</span>
+      </div>
+
+      <!-- Hero Section -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-end mb-24 pb-16 border-b border-white/10">
+        <div class="lg:col-span-8">
+          <h1 class="font-sans text-5xl md:text-7xl font-normal tracking-tighter text-brand-light leading-[1.05] mb-6">
+            {service.headline}
+          </h1>
+          <p class="font-sans text-brand-light/60 text-lg md:text-2xl font-light leading-relaxed max-w-3xl">
+            {service.desc}
+          </p>
+        </div>
+
+        <div class="lg:col-span-4 flex flex-col gap-6">
+          <a href="#contacto" class="w-full inline-flex items-center justify-center bg-white text-black font-sans font-medium px-8 py-4 rounded-full hover:bg-white/90 transition-all duration-300 shadow-[0_0_30px_rgba(255,255,255,0.1)]">
+            Solicitar propuesta de {service.title}
+          </a>
+        </div>
+      </div>
+
+      <!-- Metrics Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-32">
+        {service.metrics.map(m => (
+          <div class="bg-white/[0.02] border border-white/10 rounded-2xl p-8 backdrop-blur-sm">
+            <span class="font-mono text-xs text-brand-light/40 uppercase tracking-widest block mb-2">{m.label}</span>
+            <span class="font-sans text-2xl md:text-3xl text-brand-light font-normal tracking-tight">{m.val}</span>
+          </div>
+        ))}
+      </div>
+
+      <!-- Capabilities Section -->
+      <div class="mb-32">
+        <div class="mb-12">
+          <span class="font-mono text-xs text-brand-light/40 uppercase tracking-widest block mb-2">QUÉ ABARCAMOS</span>
+          <h2 class="font-sans text-3xl md:text-5xl font-normal text-brand-light tracking-tight">Capacidades y Entregables</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {service.capabilities.map((cap, idx) => (
+            <div class="group relative bg-black/60 border border-white/10 rounded-2xl p-8 md:p-10 hover:border-white/20 transition-all duration-500">
+              <span class="font-mono text-xs text-brand-light/30 block mb-6">0{idx + 1}.</span>
+              <h3 class="font-sans text-2xl font-normal text-brand-light mb-3">{cap.title}</h3>
+              <p class="font-sans text-brand-light/50 font-light text-base leading-relaxed">{cap.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- Tools & Stack -->
+      <div class="mb-32 bg-white/[0.02] border border-white/10 rounded-2xl p-8 md:p-12">
+        <span class="font-mono text-xs text-brand-light/40 uppercase tracking-widest block mb-6">STACK Y HERRAMIENTAS</span>
+        <div class="flex flex-wrap gap-4">
+          {service.tools.map(tool => (
+            <span class="font-mono text-sm px-5 py-2.5 rounded-full bg-white/5 border border-white/10 text-brand-light/80">
+              {tool}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <!-- FAQ Section -->
+      {service.faq && (
+        <div class="mb-32 max-w-3xl">
+          <span class="font-mono text-xs text-brand-light/40 uppercase tracking-widest block mb-4">DUDAS FRECUENTES</span>
+          <h2 class="font-sans text-3xl md:text-4xl font-normal text-brand-light tracking-tight mb-12">Preguntas sobre {service.title}</h2>
+          
+          <div class="flex flex-col gap-6">
+            {service.faq.map(item => (
+              <div class="border-b border-white/10 pb-6">
+                <h3 class="font-sans text-xl text-brand-light mb-2">{item.q}</h3>
+                <p class="font-sans text-brand-light/50 font-light text-base leading-relaxed">{item.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
