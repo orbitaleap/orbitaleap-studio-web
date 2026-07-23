@@ -190,7 +190,7 @@ const projects = [
       </div>
     </section>
 
-    <section id="servicios" class="relative z-10 min-h-screen flex flex-col justify-center py-20 md:py-24 px-6 md:px-12 xl:px-24 bg-[#111111]">
+    <section id="servicios" class="relative z-10 py-16 md:py-24 lg:py-32 px-6 md:px-12 xl:px-24 bg-[#111111]">
       <div class="max-w-screen-2xl mx-auto w-full">
         <div class="mb-12 md:mb-16 section-header">
           <h2 class="font-sans text-4xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-medium text-brand-light tracking-tighter leading-none mb-6">
@@ -199,7 +199,45 @@ const projects = [
           <div class="w-full h-px bg-white/[0.1]"></div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 w-full items-start" id="services-interactive">
+        <!-- MOBILE ACCORDION SYSTEM (< lg) -->
+        <div class="flex flex-col gap-4 lg:hidden w-full" id="services-mobile-accordion">
+          {services.map((service, index) => (
+            <div class="mobile-service-item border border-white/12 rounded-2xl bg-[#161616] overflow-hidden transition-all duration-300">
+              <button 
+                type="button" 
+                data-mobile-index={index}
+                class="mobile-service-toggle w-full p-5 sm:p-6 flex items-center justify-between text-left cursor-pointer group"
+              >
+                <h3 class="font-sans text-xl sm:text-2xl font-medium text-white group-hover:text-brand-light transition-colors">
+                  {service.title}
+                </h3>
+                <span class="mobile-service-icon w-8 h-8 rounded-full border border-white/15 flex items-center justify-center text-white/60 font-mono text-sm transition-transform duration-300 shrink-0 ml-3">
+                  {index === 0 ? '−' : '+'}
+                </span>
+              </button>
+
+              <div class={`mobile-service-body transition-all duration-300 ease-out overflow-hidden px-5 sm:px-6 ${index === 0 ? 'max-h-[600px] pb-6' : 'max-h-0 pb-0'}`}>
+                <div class="w-full h-px bg-white/10 mb-4"></div>
+                <p class="font-sans text-brand-light/80 font-light text-base leading-relaxed mb-5">
+                  {service.desc}
+                </p>
+                <div>
+                  <span class="font-sans text-[11px] text-brand-light/40 uppercase tracking-widest block mb-2.5 font-medium">ENTREGABLES CONCRETOS</span>
+                  <div class="flex flex-wrap gap-2">
+                    {service.deliverables.map(del => (
+                      <span class="font-sans text-xs px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-brand-light/80 font-light">
+                        {del}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <!-- DESKTOP INTERACTIVE SPLIT GRID (>= lg) -->
+        <div class="hidden lg:grid grid-cols-12 gap-8 lg:gap-12 w-full items-start" id="services-interactive">
           <div class="lg:col-span-5 flex flex-col items-start gap-3 sm:gap-4">
             {services.map((service, index) => (
               <button
@@ -236,25 +274,21 @@ const projects = [
                 class={`service-content-panel absolute inset-0 w-full h-fit bg-[#161616] border border-white/12 rounded-2xl p-7 md:p-9 transition-all duration-300 ease-out overflow-hidden shadow-2xl backdrop-blur-xl ${index === 0 ? 'opacity-100 pointer-events-auto scale-100' : 'opacity-0 pointer-events-none scale-[0.98]'}`}
                 style={`--color-from: ${service.colorFrom}; --color-to: ${service.colorTo};`}
               >
-                <!-- Card Internal Grain Texture Overlay -->
                 <div 
                   class="absolute inset-0 w-full h-full pointer-events-none opacity-20 z-0"
                   style="background-image: url('data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.85\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E');"
                 ></div>
 
-                <!-- Ambient Color Glow Backdrop (Original Faint Softened) -->
                 <div 
                   class="absolute -top-20 -right-20 w-80 h-80 rounded-full blur-3xl opacity-10 pointer-events-none"
                   style={`background: radial-gradient(circle, ${service.colorFrom} 0%, transparent 70%);`}
                 ></div>
 
                 <div class="relative z-10 flex flex-col gap-5">
-                  <!-- Large One-Line Title inside Card -->
                   <h3 class="font-sans text-2xl md:text-3xl lg:text-4xl font-medium tracking-tight text-white whitespace-nowrap overflow-hidden text-ellipsis">
                     {service.title}
                   </h3>
 
-                  <!-- Horizontal Divisor Line -->
                   <div class="w-full h-px bg-white/10"></div>
 
                   <p class="font-sans text-brand-light/80 font-light text-base md:text-lg leading-relaxed">
@@ -889,10 +923,37 @@ const projects = [
         });
       }
 
-      tabBtns.forEach((btn: any) => {
-        const index = parseInt(btn.getAttribute('data-service-index') || '0');
+      tabBtns.forEach((btn, index) => {
         btn.addEventListener('mouseenter', () => switchServiceTab(index));
         btn.addEventListener('click', () => switchServiceTab(index));
+      });
+
+      // Mobile Services Accordion Toggle Logic
+      const mobileToggles = document.querySelectorAll('.mobile-service-toggle');
+      const mobileBodies = document.querySelectorAll('.mobile-service-body');
+      const mobileIcons = document.querySelectorAll('.mobile-service-icon');
+
+      mobileToggles.forEach((btn, idx) => {
+        btn.addEventListener('click', () => {
+          mobileBodies.forEach((body, i) => {
+            if (i === idx) {
+              const isOpen = !body.classList.contains('max-h-0');
+              if (isOpen) {
+                body.classList.add('max-h-0', 'pb-0');
+                body.classList.remove('max-h-[600px]', 'pb-6');
+                if (mobileIcons[i]) mobileIcons[i].textContent = '+';
+              } else {
+                body.classList.remove('max-h-0', 'pb-0');
+                body.classList.add('max-h-[600px]', 'pb-6');
+                if (mobileIcons[i]) mobileIcons[i].textContent = '−';
+              }
+            } else {
+              body.classList.add('max-h-0', 'pb-0');
+              body.classList.remove('max-h-[600px]', 'pb-6');
+              if (mobileIcons[i]) mobileIcons[i].textContent = '+';
+            }
+          });
+        });
       });
 
 
