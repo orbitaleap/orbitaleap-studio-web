@@ -8,27 +8,52 @@ interface Props {
   lang?: string;
 }
 
-const { title, description = "Orbital Leap - Software Development & Consulting", lang = "es" } = Astro.props;
+const { 
+  title, 
+  description = "Orbital Leap - Estudio de diseño y desarrollo digital. Creamos páginas web, plataformas y aplicaciones a medida.", 
+  lang = "es" 
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://orbitaleap.com");
+const ogImage = new URL("/brand/ol_imagotipo-hw.svg", canonicalURL);
 ---
 
 <!doctype html>
-<html lang={lang}>
+<html lang={lang} class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#111111" />
+
+    <!-- Favicon & Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <link rel="canonical" href={canonicalURL} />
+
+    <!-- OpenGraph / Social Metadata -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+
+    <!-- Twitter Card Metadata -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Product+Sans:wght@400;500;700&family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-    <title>{title}</title>
   </head>
-  <body class="bg-brand-bg text-brand-light min-h-screen flex flex-col relative">
+  <body class="bg-brand-bg text-brand-light min-h-screen flex flex-col relative selection:bg-white selection:text-black">
     <ScrollProgress />
     
-    <!-- Progressive Top Edge Blur (Single High-Performance GPU Layer) -->
     <div class="fixed top-0 inset-x-0 h-20 pointer-events-none z-40 backdrop-blur-md [mask-image:linear-gradient(to_bottom,black_0%,transparent_100%)]"></div>
-
-
 
     <slot />
 
@@ -37,8 +62,6 @@ const { title, description = "Orbital Leap - Software Development & Consulting",
       import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
       gsap.registerPlugin(ScrollTrigger);
-
-      // Removed Lenis temporarily to isolate the source of the scroll lag.
     </script>
   </body>
 </html>
