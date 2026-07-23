@@ -312,10 +312,74 @@ const projects = [
       </div>
     </section>
 
-    <section id="metodologia" data-theme="light" class="relative bg-[#F9F9F9] text-black w-full overflow-hidden border-t border-black/[0.05]">
-      <div id="methodology-pin" class="h-screen w-full flex flex-col relative">
-        
-        <!-- Sticky Top Header -->
+    <!-- Methodology Section -->
+    <section id="metodologia" data-theme="light" class="relative bg-[#F9F9F9] text-black w-full border-t border-black/[0.05]">
+      
+      <!-- MOBILE VERTICAL COLUMN LAYOUT (< md) -->
+      <div class="block md:hidden px-6 py-16 w-full">
+        <div class="flex items-center gap-4 mb-10">
+          <div class="relative w-14 h-14 shrink-0">
+            <svg viewBox="0 0 100 100" class="w-full h-full animate-[spin_15s_linear_infinite]">
+              <path id="circlePathMobile" d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0" fill="transparent" />
+              <text class="text-[13px] font-sans font-medium uppercase fill-black/60">
+                <textPath href="#circlePathMobile" startOffset="0" textLength="232.4" lengthAdjust="spacing">
+                  NUESTRA METODOLOGÍA • NUESTRA METODOLOGÍA • 
+                </textPath>
+              </text>
+            </svg>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <img src="/brand/ol_isotipo-k.svg" alt="" aria-hidden="true" class="w-6 h-6 opacity-80" />
+            </div>
+          </div>
+          <h2 class="font-sans text-3xl font-medium tracking-tighter leading-tight text-black">Nuestra metodología.</h2>
+        </div>
+
+        <div class="flex flex-col gap-10 w-full">
+          {methodology.map((stage) => (
+            <div class="flex flex-col w-full border-b border-black/10 pb-8">
+              <span class="font-sans text-black/40 text-xs font-medium tracking-[0.2em] uppercase mb-3 block">Fase {stage.stage}</span>
+              <h3 class="font-sans text-2xl font-medium tracking-tight mb-3 text-black">{stage.title}</h3>
+              <p class="font-sans text-black/60 font-light text-base leading-relaxed mb-5">{stage.desc}</p>
+
+              <div class="flex flex-col w-full">
+                <div class="border-t border-black/10">
+                  <button type="button" class="methodology-accordion-header w-full py-4 flex justify-between items-center text-left cursor-pointer group">
+                    <span class="font-sans text-xs tracking-[0.15em] uppercase text-black/60 font-medium">¿Cómo lo hacemos?</span>
+                    <span class="methodology-accordion-icon font-mono text-sm text-black/40">+</span>
+                  </button>
+                  <div class="methodology-accordion-content h-0 overflow-hidden transition-all duration-300 ease-out">
+                    <div class="pb-4 pt-1">
+                      <ul class="flex flex-col gap-2.5">
+                        {stage.how.map((item, index) => (
+                          <li class="font-sans text-black/80 font-light text-sm leading-relaxed flex">
+                            <span class="text-black/30 font-mono text-xs mr-2.5 mt-0.5">{index + 1}.</span> 
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="border-t border-black/10 border-b border-black/10">
+                  <button type="button" class="methodology-accordion-header w-full py-4 flex justify-between items-center text-left cursor-pointer group">
+                    <span class="font-sans text-xs tracking-[0.15em] uppercase text-black/60 font-medium">¿Qué recibirás?</span>
+                    <span class="methodology-accordion-icon font-mono text-sm text-black/40">+</span>
+                  </button>
+                  <div class="methodology-accordion-content h-0 overflow-hidden transition-all duration-300 ease-out">
+                    <div class="pb-4 pt-1">
+                      <p class="font-sans text-black/80 font-light text-sm leading-relaxed">{stage.expect}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- DESKTOP PINNED HORIZONTAL SCROLL LAYOUT (>= md) -->
+      <div id="methodology-pin" class="hidden md:flex h-screen w-full flex-col relative overflow-hidden">
         <div class="absolute left-0 top-0 w-full p-6 md:px-12 xl:px-24 pt-16 md:pt-24 z-20 pointer-events-none">
           <div class="flex items-center gap-6 md:gap-8 w-full max-w-screen-2xl mx-auto">
             <div class="relative w-20 h-20 md:w-28 md:h-28 shrink-0">
@@ -337,21 +401,17 @@ const projects = [
           </div>
         </div>
 
-        <div class="w-full h-full flex items-end pb-20 md:pb-32 overflow-x-auto md:overflow-visible no-scrollbar snap-x snap-mandatory">
+        <div class="w-full h-full flex items-end pb-32">
           <div id="methodology-scroll" class="flex flex-row items-stretch h-[65vh] px-6 md:px-[6vw] xl:px-[12vw] w-max gap-8 md:gap-20">
           {methodology.map((stage, i) => (
-            <div class={`flex flex-col w-[85vw] md:w-[35vw] shrink-0 group relative z-10 snap-center ${i % 2 === 0 ? 'mt-auto mb-4 md:mb-8' : 'mb-auto mt-6 md:mt-12'}`}>
-              <!-- Stage Header -->
+            <div class={`flex flex-col w-[85vw] md:w-[35vw] shrink-0 group relative z-10 ${i % 2 === 0 ? 'mt-auto mb-8' : 'mb-auto mt-12'}`}>
               <div class="mb-10">
                 <span class="font-sans text-black/40 text-xs font-medium tracking-[0.2em] uppercase mb-6 block">Fase {stage.stage}</span>
                 <h3 class="font-sans text-4xl md:text-5xl tracking-tight mb-6 text-black">{stage.title}</h3>
                 <p class="font-sans text-black/60 font-light text-base md:text-lg leading-relaxed max-w-md">{stage.desc}</p>
               </div>
 
-              <!-- Collapsible Content Structure -->
               <div class="flex flex-col w-full max-w-xl mt-4">
-                
-                <!-- How Accordion -->
                 <div class="border-t border-black/10">
                   <button type="button" class="methodology-accordion-header w-full py-5 flex justify-between items-center text-left cursor-pointer group pointer-events-auto">
                     <span class="font-sans text-xs tracking-[0.15em] uppercase text-black/60 group-hover:text-black transition-colors font-medium">¿Cómo lo hacemos?</span>
@@ -371,7 +431,6 @@ const projects = [
                   </div>
                 </div>
                 
-                <!-- What to expect Accordion -->
                 <div class="border-t border-black/10 border-b border-black/10">
                   <button type="button" class="methodology-accordion-header w-full py-5 flex justify-between items-center text-left cursor-pointer group pointer-events-auto">
                     <span class="font-sans text-xs tracking-[0.15em] uppercase text-black/60 group-hover:text-black transition-colors font-medium">¿Qué recibirás?</span>
@@ -383,20 +442,17 @@ const projects = [
                     </div>
                   </div>
                 </div>
-
               </div>
             </div>
           ))}
         </div>
         </div>
 
-        <!-- Bottom Timeline Bar (Progressive Fill) -->
         <div class="absolute bottom-8 md:bottom-12 left-0 w-full px-6 md:px-12 xl:px-24 flex flex-col gap-3 z-20 pointer-events-none">
           <div class="flex justify-between font-sans text-xs md:text-sm text-black font-semibold uppercase tracking-[0.2em]">
             <span>Inicio</span>
             <span>Lanzamiento</span>
           </div>
-          <!-- Track & Filling Line -->
           <div class="relative w-full h-[2px] bg-black/15 overflow-hidden rounded-full">
             <div id="methodology-progress" class="absolute inset-0 bg-black w-full h-full origin-left scale-x-0"></div>
           </div>
