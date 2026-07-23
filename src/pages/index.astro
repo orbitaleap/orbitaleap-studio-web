@@ -202,13 +202,37 @@ const projects = [
         <!-- MOBILE ACCORDION SYSTEM (< lg) -->
         <div class="flex flex-col gap-4 lg:hidden w-full" id="services-mobile-accordion">
           {services.map((service, index) => (
-            <div class="mobile-service-item border border-white/12 rounded-2xl bg-[#161616] overflow-hidden transition-all duration-300">
+            <div 
+              class={`mobile-service-item relative border rounded-2xl bg-[#161616] overflow-hidden transition-all duration-500 ${index === 0 ? 'active-mobile-service border-white/20' : 'border-white/12'}`}
+              style={`--color-from: ${service.colorFrom}; --color-to: ${service.colorTo};`}
+            >
+              <!-- Animated Border Beam SVG Overlay -->
+              <div class={`border-beam-wrapper pointer-events-none absolute inset-0 z-20 transition-opacity duration-500 overflow-hidden ${index === 0 ? 'opacity-100' : 'opacity-0'}`}>
+                <svg class="w-full h-full" fill="none">
+                  <rect width="100%" height="100%" rx="16" pathLength="1000" stroke={`url(#mobile-tab-gradient-${index})`} stroke-width="2.5" class="magic-border-beam-svg" />
+                  <defs>
+                    <linearGradient id={`mobile-tab-gradient-${index}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color={service.colorFrom} stop-opacity="1" />
+                      <stop offset="40%" stop-color={service.colorTo} stop-opacity="0.9" />
+                      <stop offset="70%" stop-color="#00FFF0" stop-opacity="0.7" />
+                      <stop offset="100%" stop-color={service.colorFrom} stop-opacity="0" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+
+              <!-- Ambient Color Glow Backdrop -->
+              <div 
+                class="absolute -top-16 -right-16 w-64 h-64 rounded-full blur-3xl opacity-15 pointer-events-none z-0"
+                style={`background: radial-gradient(circle, ${service.colorFrom} 0%, transparent 70%);`}
+              ></div>
+
               <button 
                 type="button" 
                 data-mobile-index={index}
-                class="mobile-service-toggle w-full p-5 sm:p-6 flex items-center justify-between text-left cursor-pointer group"
+                class="mobile-service-toggle relative z-10 w-full p-5 sm:p-6 flex items-center justify-between text-left cursor-pointer group"
               >
-                <h3 class="font-sans text-xl sm:text-2xl font-medium text-white group-hover:text-brand-light transition-colors">
+                <h3 class="service-title-text font-sans text-xl sm:text-2xl font-medium text-white/50 transition-all duration-500">
                   {service.title}
                 </h3>
                 <span class="mobile-service-icon w-8 h-8 rounded-full border border-white/15 flex items-center justify-center text-white/60 font-mono text-sm transition-transform duration-300 shrink-0 ml-3">
@@ -216,7 +240,7 @@ const projects = [
                 </span>
               </button>
 
-              <div class={`mobile-service-body transition-all duration-300 ease-out overflow-hidden px-5 sm:px-6 ${index === 0 ? 'max-h-[600px] pb-6' : 'max-h-0 pb-0'}`}>
+              <div class={`mobile-service-body relative z-10 transition-all duration-300 ease-out overflow-hidden px-5 sm:px-6 ${index === 0 ? 'max-h-[600px] pb-6' : 'max-h-0 pb-0'}`}>
                 <div class="w-full h-px bg-white/10 mb-4"></div>
                 <p class="font-sans text-brand-light/80 font-light text-base leading-relaxed mb-5">
                   {service.desc}
@@ -987,28 +1011,51 @@ const projects = [
       });
 
       // Mobile Services Accordion Toggle Logic
+      const mobileItems = document.querySelectorAll('.mobile-service-item');
       const mobileToggles = document.querySelectorAll('.mobile-service-toggle');
       const mobileBodies = document.querySelectorAll('.mobile-service-body');
       const mobileIcons = document.querySelectorAll('.mobile-service-icon');
 
       mobileToggles.forEach((btn, idx) => {
         btn.addEventListener('click', () => {
-          mobileBodies.forEach((body, i) => {
+          mobileItems.forEach((item, i) => {
+            const body = mobileBodies[i];
+            const icon = mobileIcons[i];
+            const borderBeam = item.querySelector('.border-beam-wrapper');
+
             if (i === idx) {
               const isOpen = !body.classList.contains('max-h-0');
               if (isOpen) {
                 body.classList.add('max-h-0', 'pb-0');
                 body.classList.remove('max-h-[600px]', 'pb-6');
-                if (mobileIcons[i]) mobileIcons[i].textContent = '+';
+                item.classList.remove('active-mobile-service', 'border-white/20');
+                item.classList.add('border-white/12');
+                if (borderBeam) {
+                  borderBeam.classList.remove('opacity-100');
+                  borderBeam.classList.add('opacity-0');
+                }
+                if (icon) icon.textContent = '+';
               } else {
                 body.classList.remove('max-h-0', 'pb-0');
                 body.classList.add('max-h-[600px]', 'pb-6');
-                if (mobileIcons[i]) mobileIcons[i].textContent = '−';
+                item.classList.add('active-mobile-service', 'border-white/20');
+                item.classList.remove('border-white/12');
+                if (borderBeam) {
+                  borderBeam.classList.remove('opacity-0');
+                  borderBeam.classList.add('opacity-100');
+                }
+                if (icon) icon.textContent = '−';
               }
             } else {
               body.classList.add('max-h-0', 'pb-0');
               body.classList.remove('max-h-[600px]', 'pb-6');
-              if (mobileIcons[i]) mobileIcons[i].textContent = '+';
+              item.classList.remove('active-mobile-service', 'border-white/20');
+              item.classList.add('border-white/12');
+              if (borderBeam) {
+                borderBeam.classList.remove('opacity-100');
+                borderBeam.classList.add('opacity-0');
+              }
+              if (icon) icon.textContent = '+';
             }
           });
         });

@@ -83,6 +83,7 @@ body::after {
 /* Smooth Gradient Text Fill & Capsule Pill Border (Exact Reference Match) */
 .service-tab-btn:hover .service-title-text,
 .service-tab-btn.active-service-tab .service-title-text,
+.mobile-service-item.active-mobile-service .service-title-text,
 .service-item:hover .service-title-text {
   background-image: linear-gradient(
     90deg, 
