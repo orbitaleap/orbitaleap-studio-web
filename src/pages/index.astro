@@ -168,17 +168,17 @@ const projects = [
       </div>
       
       <div class="hero-parallax-content relative z-10 w-full max-w-screen-2xl mx-auto will-change-transform">
-        <h1 class="font-sans text-4xl sm:text-6xl md:text-7xl lg:text-[5rem] font-medium tracking-tighter leading-[0.95] mb-6 text-brand-light">
-          <div class="overflow-hidden py-2"><div class="hero-line">Diseño & desarrollo</div></div>
-          <div class="overflow-hidden py-2"><div class="hero-line">digital a medida.</div></div>
+        <h1 class="font-sans text-[2.75rem] sm:text-6xl md:text-7xl lg:text-[5.5rem] font-medium tracking-tighter leading-[0.98] mb-6 text-brand-light">
+          <div class="overflow-hidden py-1"><div class="hero-line">Diseño & desarrollo</div></div>
+          <div class="overflow-hidden py-1"><div class="hero-line">digital a medida.</div></div>
         </h1>
         
-        <p class="text-base md:text-xl text-brand-light/60 font-sans max-w-2xl font-light leading-relaxed">
+        <p class="text-lg sm:text-xl md:text-2xl text-brand-light/70 font-sans max-w-2xl font-light leading-relaxed">
           Diseñamos y desarrollamos productos digitales a medida. Desde la web de tu proyecto hasta aplicaciones empresariales complejas, con atención al detalle y un rendimiento impecable.
         </p>
       </div>
       
-      <div id="cursor-ring" class="fixed z-50 pointer-events-none opacity-0 will-change-transform" style="top:0;left:0;width:110px;height:110px;margin-left:-55px;margin-top:-55px;">
+      <div id="cursor-ring" class="hidden md:block fixed z-50 pointer-events-none opacity-0 will-change-transform" style="top:0;left:0;width:110px;height:110px;margin-left:-55px;margin-top:-55px;">
         <svg viewBox="0 0 110 110" width="110" height="110" style="overflow:visible">
           <defs>
             <path id="ring-path" d="M 55,55 m -38,0 a 38,38 0 1,1 76,0 a 38,38 0 1,1 -76,0" />
@@ -744,14 +744,16 @@ const projects = [
               p.x += (curTargetX - p.x) * 0.08 * smoothEase;
               p.y += (curTargetY - p.y) * 0.08 * smoothEase;
 
-              // Mouse interactive repulsion
-              const dx = mouseX - p.x;
-              const dy = mouseY - p.y;
-              const dist = Math.sqrt(dx * dx + dy * dy);
-              if (dist < 120) {
-                const force = (120 - dist) / 120;
-                p.x -= (dx / dist) * force * 18;
-                p.y -= (dy / dist) * force * 18;
+              // Mouse interactive repulsion (Desktop with fine pointer only)
+              if (window.matchMedia('(pointer: fine)').matches && window.innerWidth >= 768) {
+                const dx = mouseX - p.x;
+                const dy = mouseY - p.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 120) {
+                  const force = (120 - dist) / 120;
+                  p.x -= (dx / dist) * force * 18;
+                  p.y -= (dy / dist) * force * 18;
+                }
               }
             }
 
@@ -805,7 +807,7 @@ const projects = [
       // Cursor rotating ring (Hardware Accelerated & Responsive)
       const heroSection = document.querySelector('#hero-section') as HTMLElement;
       const cursorRing = document.getElementById('cursor-ring') as HTMLElement;
-      if (cursorRing && heroSection) {
+      if (cursorRing && heroSection && window.matchMedia('(pointer: fine)').matches) {
         let mouseX = window.innerWidth / 2;
         let mouseY = window.innerHeight / 2;
         let curX = mouseX, curY = mouseY;
