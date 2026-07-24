@@ -1,0 +1,462 @@
+---
+import { Icon } from 'astro-icon/components';
+import Layout from '../layouts/Layout.astro';
+import Footer from '../components/Footer.astro';
+import ContactModal from '../components/ContactModal.astro';
+
+const singleServices = [
+  { name: 'Logotipo', desc: 'Logo vectorial en todos los formatos + paleta de colores.', priceSplit: '290€', priceUpfront: '230€', discount: '−20%' },
+  { name: 'Web Sencilla / Landing Page', desc: 'Una página clara, rápida y adaptada a móvil con formulario de contacto.', priceSplit: '550€', priceUpfront: '440€', discount: '−20%' },
+  { name: 'Identidad de Marca Completa', desc: 'Logo, tipografías, guía de colores, versiones para redes y manual básico.', priceSplit: '690€', priceUpfront: '550€', discount: '−20%' }
+];
+
+const combinedPacks = [
+  { name: 'Pack Emprendedor', sub: 'Logo + Web Sencilla', desc: 'Todo lo necesario para arrancar con una imagen profesional desde el primer día.', priceSplit: '790€', priceUpfront: '630€', discount: '−20%', featured: false },
+  { name: 'Pack Marca & Web Pro', sub: 'Branding + Web Multipágina', desc: 'Identidad de marca completa y sitio web profesional con SEO inicial incluido.', priceSplit: '1.800€', priceUpfront: '1.350€', discount: '−25%', featured: true },
+  { name: 'Pack Plataforma / Tienda', sub: 'Marca + Ecommerce o App', desc: 'Diseño de marca y plataforma web con pasarela de pago o aplicación a medida.', priceSplit: '3.200€', priceUpfront: '2.240€', discount: '−30%', featured: false }
+];
+
+const monthlyPlans = [
+  { name: 'Mantenimiento & Hosting', price: '49€', unit: '/ mes', annual: '390€ / año', discount: '−20%', detail: 'Hosting, copias de seguridad y 1h/mes de cambios menores.' },
+  { name: 'Partner Estudio', price: '690€', unit: '/ mes', annual: '6.200€ / año', discount: '−25%', detail: '3h/mes de soporte web, hasta 2 landings al mes y 8 piezas de diseño.' },
+  { name: 'Full Partner & Redes', price: '1.950€', unit: '/ mes', annual: '16.380€ / año', discount: '−30%', detail: 'Gestión de redes sociales + diseño y desarrollo ilimitados (1 tarea activa).' }
+];
+---
+
+<Layout
+  title="Diseño y Desarrollo de Webs y Apps | Orbital Leap Studio"
+  description="Creamos la página web o app que necesita tu empresa. Respuesta en menos de 24 horas."
+  noindex
+>
+  <main class="bg-[#0A0A0A] text-black overflow-x-hidden">
+
+    <style>
+      /* ── Type ── */
+      .display    { font-size: clamp(2.4rem, 7vw, 5.5rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.04; }
+      .display-sm { font-size: clamp(1.75rem, 4.5vw, 3rem); font-weight: 700; letter-spacing: -0.025em; line-height: 1.08; }
+      .label-caps { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+
+      /* ── Buttons ── */
+      .btn-black   { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:#000;color:#fff;border:1.5px solid #000;border-radius:9999px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:background 0.18s,border-color 0.18s; }
+      .btn-black:hover { background:#222;border-color:#222; }
+      .btn-outline { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:transparent;color:#000;border:1.5px solid rgba(0,0,0,0.22);border-radius:9999px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:border-color 0.18s,background 0.18s; }
+      .btn-outline:hover { border-color:rgba(0,0,0,0.45);background:rgba(0,0,0,0.03); }
+      .btn-white   { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:#fff;color:#000;border:1.5px solid #fff;border-radius:9999px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:background 0.18s,border-color 0.18s; }
+      .btn-white:hover  { background:#e8e8e8;border-color:#e8e8e8; }
+      .btn-outline-w { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,0.25);border-radius:9999px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:border-color 0.18s,background 0.18s; }
+      .btn-outline-w:hover { border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.06); }
+
+      /* ── Fields ── */
+      .field { width:100%;padding:0.875rem 1rem;border-radius:12px;border:1.5px solid rgba(0,0,0,0.11);background:#fff;font-family:inherit;font-size:0.875rem;color:#000;transition:border-color 0.18s,box-shadow 0.18s; }
+      .field::placeholder { color:rgba(0,0,0,0.28); }
+      .field:focus { outline:none;border-color:#000;box-shadow:0 0 0 3px rgba(0,0,0,0.05); }
+
+      /* ── Section stacking — rounded top cards ── */
+      .stack-card {
+        position: relative;
+        border-radius: 32px 32px 0 0;
+        margin-top: -32px;
+        z-index: 1;
+      }
+      .stack-card + .stack-card { z-index: 2; }
+      .stack-card + .stack-card + .stack-card { z-index: 3; }
+
+      /* ── Pricing rows (dark section) ── */
+      .pricing-row { border-bottom:1px solid rgba(255,255,255,0.08);transition:background 0.15s; }
+      .pricing-row:hover { background:rgba(255,255,255,0.02); }
+
+      /* ── Pack cards (dark section) ── */
+      .pack-card { border:1.5px solid rgba(255,255,255,0.1);border-radius:24px;background:rgba(255,255,255,0.03);transition:border-color 0.18s,background 0.18s; }
+      .pack-card:hover { border-color:rgba(255,255,255,0.24);background:rgba(255,255,255,0.05); }
+      .pack-card-featured { border:2px solid #fff;background:rgba(255,255,255,0.05); }
+
+      /* ── Test card ── */
+      .test-card { border:1.5px solid rgba(0,0,0,0.1);border-radius:24px;background:#fff;transition:border-color 0.18s; }
+      .test-card:hover { border-color:rgba(0,0,0,0.28); }
+
+      /* ── Form card ── */
+      .form-card  { border:1.5px solid rgba(0,0,0,0.09);border-radius:24px;background:#fff;overflow:hidden; }
+
+      /* ── Form toggle ── */
+      #form-section { max-height:0;opacity:0;overflow:hidden;transition:max-height 0.32s ease,opacity 0.25s; }
+      #form-section.open { max-height:760px;opacity:1; }
+
+      /* ── Ghost section numerals (dark section) ── */
+      .sec-num { font-size:clamp(4rem,12vw,8rem);font-weight:800;letter-spacing:-0.04em;line-height:0.88;color:rgba(255,255,255,0.055);user-select:none;pointer-events:none; }
+
+      /* ── Parallax hero content ── */
+      #hero-parallax { will-change: transform; }
+    </style>
+
+    <!-- ═══ FIXED HEADER ═══ -->
+    <header class="fixed top-0 left-0 w-full z-50 px-6 md:px-12 py-4 bg-[#F7F7F5]/90 backdrop-blur-2xl border-b border-black/[0.06]">
+      <nav class="flex justify-between items-center max-w-screen-xl mx-auto">
+        <a href="/"><img src="/brand/ol_imagotipo-hk.svg" alt="Orbital Leap" class="h-7 w-auto" /></a>
+        <div class="flex items-center gap-3">
+          <a href="/test-autodiagnostico" class="hidden sm:block label-caps text-black/45 hover:text-black transition-colors px-3 py-2">Test Gratuito</a>
+          <button type="button" data-open-contact class="btn-black">Escríbenos</button>
+        </div>
+      </nav>
+    </header>
+
+    <!-- ═══════════════════════════════════════
+         HERO — OFF-WHITE
+    ═══════════════════════════════════════ -->
+    <section class="relative bg-[#F7F7F5] pt-32 pb-40 md:pt-44 md:pb-56 px-6 md:px-12 xl:px-20 overflow-hidden">
+
+      <!-- Parallax content wrapper -->
+      <div id="hero-parallax" class="max-w-screen-xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+
+        <!-- Left -->
+        <div class="lg:col-span-7 flex flex-col pt-2">
+          <span class="label-caps text-black/35 mb-8 block">Diseño & Desarrollo · España</span>
+
+          <h1 class="display text-black mb-8">
+            Creamos la web o app que necesita tu negocio.
+          </h1>
+
+          <p class="font-sans text-black/55 text-lg font-light leading-relaxed max-w-lg mb-10">
+            Diseño, programación y puesta en marcha. Hablamos contigo directamente y te explicamos cada paso sin tecnicismos.
+          </p>
+
+          <div class="flex flex-wrap gap-3 mb-14">
+            <a href="/test-autodiagnostico" class="btn-black">
+              <Icon name="ph:target-bold" class="w-4 h-4" />
+              Test Gratuito (2 min)
+            </a>
+            <button type="button" data-open-contact class="btn-outline">Pedir Presupuesto</button>
+          </div>
+
+          <div class="flex gap-10 pt-10 border-t border-black/[0.08]">
+            <div>
+              <span class="font-sans text-3xl font-bold text-black block">&lt;24h</span>
+              <span class="label-caps text-black/35 mt-1 block">Respuesta</span>
+            </div>
+            <div>
+              <span class="font-sans text-3xl font-bold text-black block">100%</span>
+              <span class="label-caps text-black/35 mt-1 block">Código tuyo</span>
+            </div>
+            <div>
+              <span class="font-sans text-3xl font-bold text-black block">−30%</span>
+              <span class="label-caps text-black/35 mt-1 block">Al pagar hoy</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Test-first + collapsible form -->
+        <div class="lg:col-span-5 flex flex-col gap-4 lg:pt-4">
+
+          <!-- Test card -->
+          <a href="/test-autodiagnostico" class="test-card block p-7 no-underline group">
+            <div class="flex items-start gap-4">
+              <span class="w-9 h-9 rounded-full border border-black/10 flex items-center justify-center shrink-0 text-black/70">
+                <Icon name="ph:target" class="w-4 h-4" />
+              </span>
+              <div>
+                <span class="label-caps text-black/35 block mb-1.5">Recomendado · 2 minutos</span>
+                <h2 class="font-sans text-xl font-bold text-black mb-2 tracking-tight leading-snug">Haz el test gratuito primero</h2>
+                <p class="font-sans text-sm text-black/55 font-light leading-relaxed">
+                  6 preguntas y te decimos exactamente qué necesitas y cuánto cuesta.
+                </p>
+              </div>
+            </div>
+            <div class="mt-5 pt-4 border-t border-black/[0.07] flex items-center justify-between">
+              <span class="label-caps text-black/30 flex items-center gap-3">
+                <span class="inline-flex items-center gap-1"><Icon name="ph:check-bold" class="w-3 h-3" />Gratis</span>
+                <span class="inline-flex items-center gap-1"><Icon name="ph:check-bold" class="w-3 h-3" />Inmediato</span>
+                <span class="inline-flex items-center gap-1"><Icon name="ph:check-bold" class="w-3 h-3" />Sin compromiso</span>
+              </span>
+              <span class="font-sans text-sm font-bold text-black">→</span>
+            </div>
+          </a>
+
+          <!-- Divider -->
+          <div class="flex items-center gap-3">
+            <div class="flex-1 h-px bg-black/[0.09]"></div>
+            <span class="label-caps text-black/30">o escríbenos directamente</span>
+            <div class="flex-1 h-px bg-black/[0.09]"></div>
+          </div>
+
+          <!-- Collapsible form -->
+          <div class="form-card">
+            <button id="form-toggle-btn" type="button" class="w-full flex items-center justify-between gap-3 px-6 py-5 text-left cursor-pointer hover:bg-black/[0.015] transition-colors">
+              <div>
+                <span class="font-sans text-base font-bold text-black tracking-tight">Cuéntanos qué necesitas</span>
+                <p class="font-sans text-xs text-black/40 font-light mt-0.5">Presupuesto en &lt;24 horas, sin compromiso.</p>
+              </div>
+              <span id="form-toggle-icon" class="font-sans text-xl text-black/25 font-light leading-none select-none">+</span>
+            </button>
+            <div id="form-section">
+              <form id="hero-contact-form" class="flex flex-col gap-4 px-6 pb-6 border-t border-black/[0.06] pt-5">
+                <div class="hidden" aria-hidden="true">
+                  <input type="text" name="website_url" tabindex="-1" autocomplete="off" />
+                </div>
+                <div>
+                  <label class="label-caps text-black/40 block mb-1.5">Tu nombre</label>
+                  <input type="text" name="name" required placeholder="Ej. María García" class="field" />
+                </div>
+                <div>
+                  <label class="label-caps text-black/40 block mb-1.5">Correo electrónico</label>
+                  <input type="email" name="email" required placeholder="hola@empresa.com" class="field" />
+                </div>
+                <div>
+                  <label class="label-caps text-black/40 block mb-1.5">WhatsApp o teléfono</label>
+                  <input type="tel" name="phone" required placeholder="600 000 000" class="field" />
+                </div>
+                <div>
+                  <label class="label-caps text-black/40 block mb-1.5">¿Qué tienes en mente?</label>
+                  <textarea name="message" rows="3" required placeholder="Cuéntanos brevemente tu proyecto o qué quieres mejorar." class="field resize-none"></textarea>
+                </div>
+                <div class="flex items-start gap-3">
+                  <input type="checkbox" id="landing-consent" name="consent" required class="mt-0.5 w-4 h-4 shrink-0 rounded border-black/20 accent-black cursor-pointer" />
+                  <label for="landing-consent" class="font-sans text-xs text-black/50 font-light leading-relaxed cursor-pointer select-none">
+                    Acepto el tratamiento de mis datos según la <a href="/privacidad" class="text-black underline underline-offset-2 hover:text-black/70">Política de Privacidad</a> de Orbital Leap.
+                  </label>
+                </div>
+                <button type="submit" id="hero-submit-btn" class="btn-black w-full">
+                  <span id="hero-submit-label" class="inline-flex items-center gap-2">Enviar Consulta →</span>
+                  <canvas id="hero-submit-orb" class="hidden" width="18" height="18" aria-hidden="true"></canvas>
+                </button>
+                <p id="hero-status-msg" class="text-xs text-center font-sans hidden"></p>
+                <p class="label-caps text-center text-black/25 flex items-center justify-center gap-1.5">
+                  <Icon name="ph:lock-simple-fill" class="w-3 h-3" />Privado. Sin spam.
+                </p>
+              </form>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         PRICING — DARK CARD (stacked over hero)
+    ═══════════════════════════════════════ -->
+    <section class="stack-card bg-[#0A0A0A] py-20 md:py-28 px-6 md:px-12 xl:px-20">
+      <div class="max-w-screen-xl mx-auto">
+
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-16">
+          <div>
+            <span class="label-caps text-white/55 block mb-3">Precios & Servicios</span>
+            <h2 class="display-sm text-white">Tarifas claras,<br />sin sorpresas.</h2>
+          </div>
+          <p class="font-sans text-base text-white/70 font-light max-w-xs leading-relaxed">
+            Paga en dos plazos o abona el total hoy y obtén hasta un <strong class="font-semibold text-white">30% de descuento</strong>.
+          </p>
+        </div>
+
+        <!-- 01 -->
+        <div class="mb-16">
+          <div class="flex items-end gap-5 mb-8 pb-5 border-b border-white/[0.08]">
+            <span class="sec-num" aria-hidden="true">01</span>
+            <div class="pb-2">
+              <h3 class="font-sans text-xl font-bold text-white tracking-tight">A la carta</h3>
+              <p class="font-sans text-base text-white/65 font-light">Empieza solo con lo que necesitas ahora mismo.</p>
+            </div>
+          </div>
+          <div class="border-t border-white/[0.08]">
+            {singleServices.map((s) => (
+              <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-6 px-2">
+                <div>
+                  <h4 class="font-sans text-base font-bold text-white tracking-tight">{s.name}</h4>
+                  <p class="font-sans text-base text-white/65 font-light mt-0.5 max-w-sm">{s.desc}</p>
+                </div>
+                <div class="flex items-center gap-6 shrink-0">
+                  <div class="text-right">
+                    <span class="label-caps text-white/50 block">2 plazos</span>
+                    <span class="font-sans text-base font-medium text-white/60">{s.priceSplit}</span>
+                  </div>
+                  <div class="text-right pl-5 border-l border-white/[0.1]">
+                    <span class="label-caps text-white/60 block">{s.discount} al contado</span>
+                    <span class="font-sans text-2xl font-bold text-white">{s.priceUpfront}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <!-- 02 -->
+        <div class="mb-16">
+          <div class="flex items-end gap-5 mb-8 pb-5 border-b border-white/[0.08]">
+            <span class="sec-num" aria-hidden="true">02</span>
+            <div class="pb-2">
+              <h3 class="font-sans text-xl font-bold text-white tracking-tight">Packs todo incluido</h3>
+              <p class="font-sans text-base text-white/65 font-light">Marca y web en un proyecto. Más cohesión, más ahorro.</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {combinedPacks.map((pack) => (
+              <div class={`p-7 flex flex-col justify-between ${pack.featured ? 'pack-card pack-card-featured' : 'pack-card'}`}>
+                <div>
+                  <span class="label-caps text-white/55 block mb-2">{pack.sub}</span>
+                  <h4 class="font-sans text-lg font-bold text-white tracking-tight mb-2">{pack.name}</h4>
+                  <p class="font-sans text-base text-white/70 font-light leading-relaxed">{pack.desc}</p>
+                </div>
+                <div class="mt-6 pt-5 border-t border-white/[0.08]">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="label-caps text-white/50">2 plazos</span>
+                    <span class="font-sans text-sm text-white/55 font-medium">{pack.priceSplit}</span>
+                  </div>
+                  <div class="flex items-center justify-between mb-5">
+                    <span class="label-caps text-white/65">{pack.discount} al contado</span>
+                    <span class="font-sans text-3xl font-bold text-white">{pack.priceUpfront}</span>
+                  </div>
+                  <button type="button" data-open-contact class={`w-full cursor-pointer ${pack.featured ? 'btn-white' : 'btn-outline-w'}`}>
+                    Contratar →
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <!-- 03 -->
+        <div>
+          <div class="flex items-end gap-5 mb-8 pb-5 border-b border-white/[0.08]">
+            <span class="sec-num" aria-hidden="true">03</span>
+            <div class="pb-2">
+              <h3 class="font-sans text-xl font-bold text-white tracking-tight">Servicios mensuales</h3>
+              <p class="font-sans text-base text-white/65 font-light">Tu equipo de diseño y desarrollo de confianza, mes a mes.</p>
+            </div>
+          </div>
+          <div class="border-t border-white/[0.08]">
+            {monthlyPlans.map((plan) => (
+              <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-7 px-2">
+                <div>
+                  <h4 class="font-sans text-base font-bold text-white tracking-tight">{plan.name}</h4>
+                  <p class="font-sans text-base text-white/65 font-light mt-0.5 max-w-md">{plan.detail}</p>
+                </div>
+                <div class="flex items-center gap-6 shrink-0">
+                  <div class="text-right">
+                    <span class="font-sans text-2xl font-bold text-white">{plan.price}</span>
+                    <span class="label-caps text-white/50 block">{plan.unit}</span>
+                  </div>
+                  <div class="text-right pl-5 border-l border-white/[0.1]">
+                    <span class="label-caps text-white/60 block">{plan.discount} anual</span>
+                    <span class="font-sans text-base font-bold text-white">{plan.annual}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════
+         CLOSING CTA — DARK CARD (stacked over pricing)
+    ═══════════════════════════════════════ -->
+    <section class="stack-card bg-[#111111] py-20 md:py-28 px-6 md:px-12 xl:px-20">
+      <div class="max-w-screen-xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-10">
+        <div>
+          <span class="label-caps text-white/55 block mb-4">Orbital Leap Studio</span>
+          <h2 class="display-sm text-white max-w-xl">¿Listo para empezar?</h2>
+          <p class="font-sans text-white/70 text-lg font-light mt-4 max-w-md leading-relaxed">
+            Escríbenos hoy y te enviamos un presupuesto concreto. Sin reuniones innecesarias.
+          </p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 shrink-0">
+          <button type="button" data-open-contact class="btn-white">Hablar con el Estudio →</button>
+          <a href="/test-autodiagnostico" class="btn-outline-w">Test Gratuito</a>
+        </div>
+      </div>
+
+      <!-- Footer inside dark CTA card -->
+      <Footer compact />
+    </section>
+
+    <ContactModal />
+  </main>
+</Layout>
+
+<script>
+  import { mountOrb } from '../lib/thinking-orb';
+
+  // ── Parallax hero ──
+  const heroParallax = document.getElementById('hero-parallax');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let ticking = false;
+
+  if (!reduceMotion) {
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          if (heroParallax) {
+            const offset = window.scrollY * 0.12;
+            heroParallax.style.transform = `translateY(${offset}px)`;
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive: true });
+  }
+
+  // ── Form toggle ──
+  const toggleBtn = document.getElementById('form-toggle-btn');
+  const formSection = document.getElementById('form-section');
+  const toggleIcon = document.getElementById('form-toggle-icon');
+
+  toggleBtn?.addEventListener('click', () => {
+    const isOpen = formSection?.classList.contains('open');
+    formSection?.classList.toggle('open', !isOpen);
+    if (toggleIcon) toggleIcon.textContent = isOpen ? '+' : '×';
+  });
+
+  // ── Form submit ──
+  const form  = document.getElementById('hero-contact-form') as HTMLFormElement;
+  const btn   = document.getElementById('hero-submit-btn') as HTMLButtonElement;
+  const label = document.getElementById('hero-submit-label') as HTMLElement;
+  const orbCanvas = document.getElementById('hero-submit-orb') as HTMLCanvasElement;
+  const msg   = document.getElementById('hero-status-msg') as HTMLElement;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!btn || !msg || !label || !orbCanvas) return;
+
+    btn.disabled = true;
+    label.classList.add('hidden');
+    orbCanvas.classList.remove('hidden');
+    const orb = mountOrb(orbCanvas, { size: 18, color: '#ffffff', label: 'Enviando tu consulta' });
+
+    const fd = new FormData(form);
+    try {
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: fd.get('name'), email: fd.get('email'),
+          phone: fd.get('phone'), company: 'Consulta desde Landing',
+          message: `[CONSULTA LANDING]\n\n${fd.get('message')}`,
+          consent: fd.get('consent') === 'on',
+          website_url: fd.get('website_url'),
+        })
+      });
+      const data = await res.json();
+      orb.setState('resolving');
+
+      if (res.ok) {
+        msg.innerText = '✓ Recibido. Te contactamos en menos de 24h.';
+        msg.className = 'text-xs text-center font-sans text-black/60 mt-1 block';
+        form.reset();
+      } else {
+        msg.innerText = `✕ ${data.error || 'No se pudo enviar.'}`;
+        msg.className = 'text-xs text-center font-sans text-red-600 mt-1 block';
+      }
+    } catch {
+      orb.setState('resolving');
+      msg.innerText = '✕ Error de conexión.';
+      msg.className = 'text-xs text-center font-sans text-red-600 mt-1 block';
+    } finally {
+      setTimeout(() => {
+        orb.destroy();
+        orbCanvas.classList.add('hidden');
+        label.classList.remove('hidden');
+        btn.disabled = false;
+      }, reduceMotion ? 0 : 700);
+    }
+  });
+</script>

@@ -1,0 +1,152 @@
+---
+// CookieBanner.astro — GDPR compliant cookie consent
+// Stored in localStorage as 'ol_cookie_consent' = 'accepted' | 'rejected'
+---
+
+<div id="cookie-banner" class="cookie-banner" role="dialog" aria-label="Aviso de cookies" aria-modal="false">
+  <div class="cookie-inner">
+    <div class="cookie-text">
+      <p class="cookie-title">Usamos cookies</p>
+      <p class="cookie-desc">
+        Usamos cookies propias para el funcionamiento de este sitio. No compartimos datos con terceros ni usamos cookies de publicidad.
+        <a href="/cookies" class="cookie-link">Política de cookies</a> ·
+        <a href="/privacidad" class="cookie-link">Privacidad</a>
+      </p>
+    </div>
+    <div class="cookie-actions">
+      <button id="cookie-reject" type="button" class="cookie-btn-outline">Solo esenciales</button>
+      <button id="cookie-accept" type="button" class="cookie-btn-solid">Aceptar</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  .cookie-banner {
+    position: fixed;
+    bottom: 1.25rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: calc(100% - 2.5rem);
+    max-width: 56rem;
+    background: #fff;
+    border: 1.5px solid rgba(0,0,0,0.12);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    padding: 1.25rem 1.5rem;
+    display: none; /* shown by JS only if no consent stored */
+    animation: slideUp 0.3s ease;
+  }
+  .cookie-banner.visible { display: block; }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  .cookie-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  @media (min-width: 640px) {
+    .cookie-inner { flex-direction: row; align-items: center; justify-content: space-between; gap: 2rem; }
+  }
+
+  .cookie-text { flex: 1; }
+
+  .cookie-title {
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #000;
+    margin: 0 0 0.25rem;
+    letter-spacing: -0.01em;
+  }
+
+  .cookie-desc {
+    font-family: inherit;
+    font-size: 0.8125rem;
+    color: rgba(0,0,0,0.52);
+    font-weight: 400;
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  .cookie-link {
+    color: #000;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .cookie-link:hover { text-decoration: none; }
+
+  .cookie-actions {
+    display: flex;
+    gap: 0.625rem;
+    shrink: 0;
+    flex-wrap: wrap;
+  }
+
+  .cookie-btn-outline {
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.625rem 1.125rem;
+    border-radius: 9999px;
+    border: 1.5px solid rgba(0,0,0,0.2);
+    background: transparent;
+    color: #000;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: border-color 0.18s, background 0.18s;
+  }
+  .cookie-btn-outline:hover { border-color: rgba(0,0,0,0.45); background: rgba(0,0,0,0.03); }
+
+  .cookie-btn-solid {
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.625rem 1.25rem;
+    border-radius: 9999px;
+    border: 1.5px solid #000;
+    background: #000;
+    color: #fff;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.18s, border-color 0.18s;
+  }
+  .cookie-btn-solid:hover { background: #222; border-color: #222; }
+</style>
+
+<script>
+  const CONSENT_KEY = 'ol_cookie_consent';
+  const banner = document.getElementById('cookie-banner');
+  const acceptBtn = document.getElementById('cookie-accept');
+  const rejectBtn = document.getElementById('cookie-reject');
+
+  function hideBanner() {
+    if (banner) {
+      banner.classList.remove('visible');
+    }
+  }
+
+  // Show only if no consent stored yet
+  if (banner && !localStorage.getItem(CONSENT_KEY)) {
+    banner.classList.add('visible');
+  }
+
+  acceptBtn?.addEventListener('click', () => {
+    localStorage.setItem(CONSENT_KEY, 'accepted');
+    hideBanner();
+  });
+
+  rejectBtn?.addEventListener('click', () => {
+    localStorage.setItem(CONSENT_KEY, 'rejected');
+    hideBanner();
+  });
+</script>

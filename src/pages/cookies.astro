@@ -1,0 +1,110 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout
+  title="Política de Cookies | Orbital Leap Studio"
+  description="Información sobre el uso de cookies en el sitio web de Orbital Leap Studio."
+>
+  <main class="bg-[#F7F7F5] min-h-screen">
+
+    <header class="px-6 md:px-12 py-5 border-b border-black/[0.06] bg-[#F7F7F5]/90 backdrop-blur-xl">
+      <nav class="max-w-screen-lg mx-auto flex items-center justify-between">
+        <a href="/"><img src="/brand/ol_imagotipo-k.svg" alt="Orbital Leap" class="h-7 w-auto" /></a>
+        <a href="/" class="font-sans text-xs text-black/50 hover:text-black transition-colors">← Volver</a>
+      </nav>
+    </header>
+
+    <article class="max-w-screen-md mx-auto px-6 py-16 md:py-24 font-sans">
+
+      <div class="mb-12">
+        <span class="text-[11px] font-semibold uppercase tracking-widest text-black/35 block mb-3">Legal</span>
+        <h1 class="text-4xl font-bold text-black tracking-tight mb-3">Política de Cookies</h1>
+        <p class="text-sm text-black/45">Última actualización: julio de 2025</p>
+      </div>
+
+      <div class="prose prose-black max-w-none text-black/75 leading-relaxed space-y-8 text-base">
+
+        <section>
+          <h2 class="text-xl font-bold text-black mb-3">1. ¿Qué son las cookies?</h2>
+          <p>
+            Las cookies son pequeños archivos de texto que un sitio web guarda en tu navegador cuando lo visitas. Sirven para que el sitio recuerde tus preferencias o funcione correctamente entre visitas.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-bold text-black mb-3">2. Cookies que utilizamos</h2>
+          <p>Este sitio solo utiliza cookies estrictamente necesarias para su funcionamiento:</p>
+
+          <div class="mt-4 overflow-hidden rounded-xl border border-black/[0.08]">
+            <table class="w-full text-sm">
+              <thead class="bg-black/[0.03] border-b border-black/[0.08]">
+                <tr>
+                  <th class="text-left px-4 py-3 font-semibold text-black text-xs uppercase tracking-wider">Cookie</th>
+                  <th class="text-left px-4 py-3 font-semibold text-black text-xs uppercase tracking-wider">Tipo</th>
+                  <th class="text-left px-4 py-3 font-semibold text-black text-xs uppercase tracking-wider">Duración</th>
+                  <th class="text-left px-4 py-3 font-semibold text-black text-xs uppercase tracking-wider">Finalidad</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-black/[0.06] bg-white">
+                <tr>
+                  <td class="px-4 py-3 font-mono text-xs text-black/70">ol_cookie_consent</td>
+                  <td class="px-4 py-3 text-black/60">Propia</td>
+                  <td class="px-4 py-3 text-black/60">12 meses</td>
+                  <td class="px-4 py-3 text-black/60">Guarda tu preferencia de consentimiento sobre el uso de cookies.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="mt-4">
+            <strong class="text-black">No usamos cookies de analítica, publicidad, ni de terceros.</strong> No hay píxeles de seguimiento, Google Analytics, Facebook Pixel ni ninguna herramienta similar en este sitio.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-bold text-black mb-3">3. Cómo gestionar o eliminar las cookies</h2>
+          <p>Puedes gestionar o eliminar las cookies en cualquier momento desde la configuración de tu navegador. Aquí tienes los enlaces directos para los navegadores más comunes:</p>
+          <ul class="list-disc pl-5 space-y-1 mt-3">
+            <li><a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener noreferrer" class="text-black underline underline-offset-2">Google Chrome</a></li>
+            <li><a href="https://support.mozilla.org/es/kb/habilitar-y-deshabilitar-cookies-que-los-sitios-we" target="_blank" rel="noopener noreferrer" class="text-black underline underline-offset-2">Mozilla Firefox</a></li>
+            <li><a href="https://support.apple.com/es-es/guide/safari/sfri11471/mac" target="_blank" rel="noopener noreferrer" class="text-black underline underline-offset-2">Safari</a></li>
+            <li><a href="https://support.microsoft.com/es-es/windows/eliminar-y-administrar-cookies-168dab11-0753-043d-7c16-ede5947fc64d" target="_blank" rel="noopener noreferrer" class="text-black underline underline-offset-2">Microsoft Edge</a></li>
+          </ul>
+          <p class="mt-3">
+            También puedes retirar tu consentimiento en cualquier momento haciendo clic en el siguiente botón. Esto eliminará la cookie de preferencia de tu navegador y volverá a aparecer el aviso de cookies en tu próxima visita.
+          </p>
+          <button id="reset-consent-btn" type="button"
+            class="mt-3 inline-flex items-center font-sans font-semibold text-xs uppercase tracking-widest border border-black/20 rounded-full px-5 py-2.5 text-black bg-transparent cursor-pointer hover:border-black/45 hover:bg-black/[0.03] transition-colors">
+            Retirar mi consentimiento
+          </button>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-bold text-black mb-3">4. Cambios en esta política</h2>
+          <p>
+            Podemos actualizar esta política si cambia la forma en que usamos las cookies. La versión vigente siempre estará disponible en esta misma página.
+          </p>
+        </section>
+
+      </div>
+
+      <div class="mt-16 pt-8 border-t border-black/[0.08] flex gap-4 flex-wrap">
+        <a href="/privacidad" class="font-sans text-sm text-black/50 hover:text-black underline underline-offset-2 transition-colors">Política de Privacidad</a>
+        <a href="/" class="font-sans text-sm text-black/50 hover:text-black transition-colors">← Volver al inicio</a>
+      </div>
+
+    </article>
+
+    <Footer />
+  </main>
+</Layout>
+
+<script>
+  const btn = document.getElementById('reset-consent-btn');
+  btn?.addEventListener('click', () => {
+    localStorage.removeItem('ol_cookie_consent');
+    alert('Tu preferencia de cookies ha sido eliminada. El aviso aparecerá de nuevo en tu próxima visita.');
+  });
+</script>
