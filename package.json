@@ -8,8 +8,10 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro"
+    "preview": "npm run build && wrangler dev",
+    "astro": "astro",
+    "generate-types": "wrangler types",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.1.4",
@@ -25,5 +27,8 @@
     "resend": "^6.18.0",
     "tailwindcss": "^4.3.2",
     "thinking-orbs": "^0.1.1"
+  },
+  "devDependencies": {
+    "wrangler": "^4.114.0"
   }
 }
