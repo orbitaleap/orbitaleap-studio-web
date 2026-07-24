@@ -46,12 +46,10 @@ const monthlyPlans = [
       .btn-outline-w { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,0.25);border-radius:9999px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:border-color 0.18s,background 0.18s; }
       .btn-outline-w:hover { border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.06); }
 
-      /* ── Card CTA buttons: rounded-rect matching the card's own corner
-         radius instead of a full pill, which read disjointed against it ── */
-      .btn-card-solid { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:#fff;color:#000;border:1.5px solid #fff;border-radius:14px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:background 0.18s,border-color 0.18s; }
-      .btn-card-solid:hover { background:#e8e8e8;border-color:#e8e8e8; }
-      .btn-card-outline { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,0.25);border-radius:14px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:border-color 0.18s,background 0.18s; }
-      .btn-card-outline:hover { border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.06); }
+      /* ── Card CTA: plain text link, no button box — a boxed CTA on every
+         single card read as generic "SaaS pricing template" ── */
+      .card-link-btn { background:none;border:none;padding:0;font-family:inherit;font-size:0.875rem;font-weight:700;color:#fff;letter-spacing:0.01em;transition:color 0.18s; }
+      .card-link-btn:hover { color:rgba(255,255,255,0.7); }
 
       /* ── Fields ── */
       .field { width:100%;padding:0.875rem 1rem;border-radius:12px;border:1.5px solid rgba(0,0,0,0.11);background:#fff;font-family:inherit;font-size:0.875rem;color:#000;transition:border-color 0.18s,box-shadow 0.18s; }
@@ -392,9 +390,11 @@ const monthlyPlans = [
                       <span class="font-sans text-3xl font-bold text-white">{pack.priceUpfront}</span>
                     </span>
                   </span>
-                  <button type="button" data-open-contact class={`w-full cursor-pointer ${pack.featured ? 'btn-card-solid' : 'btn-card-outline'}`}>
-                    Contratar →
-                  </button>
+                  <div class="pt-4 border-t border-white/[0.08] text-right">
+                    <button type="button" data-open-contact class="card-link-btn cursor-pointer">
+                      Contratar →
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
