@@ -5,7 +5,10 @@ import cloudflare from '@astrojs/cloudflare';
 
 // https://astro.build/config
 export default defineConfig({
-  adapter: cloudflare(),
+  output: 'static',
+  adapter: cloudflare({
+    imageService: 'passthrough'
+  }),
   i18n: {
     defaultLocale: 'es',
     locales: ['es', 'en'],
