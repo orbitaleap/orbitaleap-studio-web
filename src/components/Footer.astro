@@ -1,4 +1,6 @@
 ---
+import { Icon } from 'astro-icon/components';
+
 interface Props {
   /** Drops the full-bleed "¿Listo para dar el salto?" CTA and the in-page
    * section nav. Use on pages that already end with their own closing CTA
@@ -30,9 +32,7 @@ const dotPattern = light
 
       <a href="mailto:hello@orbitaleap.com" id="footer-cta-btn" class="group relative inline-flex items-center gap-4 bg-white border border-white rounded-xl px-9 py-4 md:px-11 md:py-5 text-base md:text-lg font-medium overflow-hidden transition-all duration-[400ms]">
         <span class="relative z-10 text-white mix-blend-difference">hello@orbitaleap.com</span>
-        <svg class="w-5 h-5 stroke-current text-white relative z-10 mix-blend-difference group-hover:rotate-45 transition-transform duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/>
-        </svg>
+        <Icon name="ph:arrow-up-right-bold" class="w-5 h-5 text-white relative z-10 mix-blend-difference group-hover:rotate-45 transition-transform duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]" />
         <div class="absolute inset-0 bg-[#111111] translate-y-full group-hover:translate-y-0 transition-transform duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]"></div>
       </a>
     </div>
@@ -72,8 +72,8 @@ const dotPattern = light
     <div class="lg:col-span-2 flex flex-col gap-4">
       <span class={`font-sans text-xs ${light ? 'text-black/40' : 'text-white/40'} uppercase tracking-widest font-medium`}>Redes Sociales</span>
       <ul class={`flex flex-col gap-3 font-sans text-sm ${light ? 'text-black/70' : 'text-white/70'}`}>
-        <li><a href="https://linkedin.com/company/orbitaleap" target="_blank" rel="noopener noreferrer" class={`${light ? 'hover:text-black' : 'hover:text-white'} transition-colors`}>LinkedIn ↗</a></li>
-        <li><a href="https://instagram.com/orbitaleap" target="_blank" rel="noopener noreferrer" class={`${light ? 'hover:text-black' : 'hover:text-white'} transition-colors`}>Instagram ↗</a></li>
+        <li><a href="https://www.linkedin.com/company/orbital-leap/" target="_blank" rel="noopener noreferrer" class={`inline-flex items-center gap-1 ${light ? 'hover:text-black' : 'hover:text-white'} transition-colors`}>LinkedIn <Icon name="ph:arrow-up-right-bold" class="w-3 h-3" /></a></li>
+        <li><a href="https://www.instagram.com/orbitaleap/" target="_blank" rel="noopener noreferrer" class={`inline-flex items-center gap-1 ${light ? 'hover:text-black' : 'hover:text-white'} transition-colors`}>Instagram <Icon name="ph:arrow-up-right-bold" class="w-3 h-3" /></a></li>
       </ul>
     </div>
 

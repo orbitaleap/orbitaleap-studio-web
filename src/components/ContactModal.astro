@@ -1,4 +1,5 @@
 ---
+import { Icon } from 'astro-icon/components';
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAACoSt6_i55YN9YBM";
 ---
 
@@ -10,9 +11,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
     
     <!-- Top Corner Close Button -->
     <button type="button" id="close-modal-btn" aria-label="Cerrar formulario" class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-white/70 hover:text-white transition-all cursor-pointer">
-      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-      </svg>
+      <Icon name="ph:x-bold" class="w-5 h-5" />
     </button>
 
     <!-- Header Block -->
@@ -24,8 +23,9 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
       <p class="font-sans text-white/60 font-light text-sm sm:text-base mt-2">
         Cuéntanos qué necesitas construir. Te responderemos en menos de 24 horas.
       </p>
-      <a href="/test-autodiagnostico" class="font-sans text-sm text-white/50 mt-3 inline-block underline underline-offset-2 hover:text-white/80 transition-colors">
-        ¿No sabes qué necesitas? Haz nuestro test gratuito de 2 minutos →
+      <a href="/test-autodiagnostico" class="font-sans text-sm text-white/50 mt-3 inline-flex items-center gap-1.5 underline underline-offset-2 hover:text-white/80 transition-colors">
+        ¿No sabes qué necesitas? Haz nuestro test gratuito de 2 minutos
+        <Icon name="ph:arrow-right-bold" class="w-3.5 h-3.5" />
       </a>
     </div>
 
@@ -136,9 +136,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
       >
         <span id="submit-btn-content" class="inline-flex items-center gap-2">
           <span id="submit-btn-text">Enviar mensaje</span>
-          <svg class="w-4 h-4 stroke-current" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/>
-          </svg>
+          <Icon name="ph:arrow-up-right-bold" class="w-4 h-4" />
         </span>
         <canvas id="submit-btn-orb" class="hidden" width="20" height="20" aria-hidden="true"></canvas>
       </button>

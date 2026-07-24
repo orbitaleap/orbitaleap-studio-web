@@ -84,7 +84,7 @@ import Footer from '../components/Footer.astro';
             onclick="nextStep(1)"
             class="btn-white w-full sm:w-auto cursor-pointer"
           >
-            Empezar el Test →
+            Empezar el Test <Icon name="ph:arrow-right-bold" class="w-4 h-4" />
           </button>
         </div>
 
@@ -92,7 +92,7 @@ import Footer from '../components/Footer.astro';
         <div id="step-1" class="quiz-step hidden flex-col">
           <div class="flex items-center justify-between mb-6">
             <button type="button" onclick="prevStep(1)" class="font-mono text-xs text-white/60 hover:text-white flex items-center gap-1 transition-colors cursor-pointer">
-              <span>←</span> <span>Volver</span>
+              <Icon name="ph:arrow-left-bold" class="w-3.5 h-3.5" /> <span>Volver</span>
             </button>
 
             <div class="flex items-center gap-3">
@@ -114,22 +114,22 @@ import Footer from '../components/Footer.astro';
           <div class="flex flex-col gap-3">
             <button onclick="selectOption(1, 'A')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Estoy empezando desde cero, necesito lanzar mi primer producto</span>
-              <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
+              <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
 
             <button onclick="selectOption(1, 'B')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Llevo tiempo operando pero mi web o imagen se ha quedado antigua</span>
-              <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
+              <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
 
             <button onclick="selectOption(1, 'C')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Tengo un negocio en crecimiento y necesito automatizar o crear una app</span>
-              <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
+              <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
 
             <button onclick="selectOption(1, 'D')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Necesito una renovación integral (marca, web y arquitectura técnica)</span>
-              <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
+              <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
           </div>
         </div>
@@ -138,7 +138,7 @@ import Footer from '../components/Footer.astro';
         <div id="step-2" class="quiz-step hidden flex-col">
           <div class="flex items-center justify-between mb-6">
             <button type="button" onclick="prevStep(2)" class="font-mono text-xs text-white/60 hover:text-white flex items-center gap-1 transition-colors cursor-pointer">
-              <span>←</span> <span>Volver</span>
+              <Icon name="ph:arrow-left-bold" class="w-3.5 h-3.5" /> <span>Volver</span>
             </button>
 
             <div class="flex items-center gap-3">
@@ -160,17 +160,17 @@ import Footer from '../components/Footer.astro';
           <div class="flex flex-col gap-3">
             <button onclick="selectOption(2, 'A')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">No tengo nada, partimos de una hoja en blanco</span>
-              <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
+              <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
 
             <button onclick="selectOption(2, 'B')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Tengo algo muy básico que improvisé pero no me representa</span>
-              <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
+              <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
 
             <button onclick="selectOption(2, 'C')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Sí, tengo marca sólida y manual de diseño corporativo</span>
-              <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
+              <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
           </div>
         </div>
@@ -179,7 +179,7 @@ import Footer from '../components/Footer.astro';
         <div id="step-3" class="quiz-step hidden flex-col">
           <div class="flex items-center justify-between mb-6">
             <button type="button" onclick="prevStep(3)" class="font-mono text-xs text-white/60 hover:text-white flex items-center gap-1 transition-colors cursor-pointer">
-              <span>←</span> <span>Volver</span>
+              <Icon name="ph:arrow-left-bold" class="w-3.5 h-3.5" /> <span>Volver</span>
             </button>
 
             <div class="flex items-center gap-3">
@@ -201,17 +201,17 @@ import Footer from '../components/Footer.astro';
           <div class="flex flex-col gap-3">
             <button onclick="selectOption(3, 'A')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">No tengo página web ni app</span>
-              <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
+              <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
 
             <button onclick="selectOption(3, 'B')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Tengo una web antigua o hecha con plantilla que va lenta</span>
-              <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
+              <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
 
             <button onclick="selectOption(3, 'C')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Tengo web pero necesito una app móvil o panel privado a medida</span>
-              <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
+              <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
           </div>
         </div>
@@ -220,7 +220,7 @@ import Footer from '../components/Footer.astro';
         <div id="step-4" class="quiz-step hidden flex-col">
           <div class="flex items-center justify-between mb-6">
             <button type="button" onclick="prevStep(4)" class="font-mono text-xs text-white/60 hover:text-white flex items-center gap-1 transition-colors cursor-pointer">
-              <span>←</span> <span>Volver</span>
+              <Icon name="ph:arrow-left-bold" class="w-3.5 h-3.5" /> <span>Volver</span>
             </button>
 
             <div class="flex items-center gap-3">
@@ -242,17 +242,17 @@ import Footer from '../components/Footer.astro';
           <div class="flex flex-col gap-3">
             <button onclick="selectOption(4, 'A')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Conseguir clientes y transmitir una imagen profesional</span>
-              <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
+              <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
 
             <button onclick="selectOption(4, 'B')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Lanzar una aplicación móvil o software SaaS al mercado</span>
-              <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
+              <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
 
             <button onclick="selectOption(4, 'C')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Renovar completamente mi tecnología para escalar ventas</span>
-              <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
+              <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
           </div>
         </div>
@@ -261,7 +261,7 @@ import Footer from '../components/Footer.astro';
         <div id="step-5" class="quiz-step hidden flex-col">
           <div class="flex items-center justify-between mb-6">
             <button type="button" onclick="prevStep(5)" class="font-mono text-xs text-white/60 hover:text-white flex items-center gap-1 transition-colors cursor-pointer">
-              <span>←</span> <span>Volver</span>
+              <Icon name="ph:arrow-left-bold" class="w-3.5 h-3.5" /> <span>Volver</span>
             </button>
 
             <div class="flex items-center gap-3">
@@ -283,22 +283,22 @@ import Footer from '../components/Footer.astro';
           <div class="flex flex-col gap-3">
             <button onclick="selectOption(5, 'A')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Menos de 3.000 € (Proyecto inicial)</span>
-              <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
+              <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
 
             <button onclick="selectOption(5, 'B')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Entre 3.000 € y 7.500 € (Plataforma profesional)</span>
-              <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
+              <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
 
             <button onclick="selectOption(5, 'C')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Entre 7.500 € y 15.000 € (App móvil o sistema a medida)</span>
-              <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
+              <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
 
             <button onclick="selectOption(5, 'D')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Más de 15.000 € (Solución enterprise a gran escala)</span>
-              <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
+              <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
           </div>
         </div>
@@ -307,7 +307,7 @@ import Footer from '../components/Footer.astro';
         <div id="step-6" class="quiz-step hidden flex-col">
           <div class="flex items-center justify-between mb-6">
             <button type="button" onclick="prevStep(6)" class="font-mono text-xs text-white/60 hover:text-white flex items-center gap-1 transition-colors cursor-pointer">
-              <span>←</span> <span>Volver</span>
+              <Icon name="ph:arrow-left-bold" class="w-3.5 h-3.5" /> <span>Volver</span>
             </button>
 
             <div class="flex items-center gap-3">
@@ -358,7 +358,7 @@ import Footer from '../components/Footer.astro';
             </div>
 
             <button type="submit" id="quiz-submit-btn" class="btn-white w-full cursor-pointer mt-1">
-              Ver Mi Diagnóstico Personalizado →
+              Ver Mi Diagnóstico Personalizado <Icon name="ph:arrow-right-bold" class="w-4 h-4" />
             </button>
 
             <p class="text-center font-sans text-[11px] text-white/40 mt-1 flex items-center justify-center gap-1.5">
@@ -388,11 +388,11 @@ import Footer from '../components/Footer.astro';
 
           <div class="flex flex-col sm:flex-row gap-3">
             <a id="wa-link" href="#" target="_blank" class="btn-white flex-1 sm:flex-none">
-              <Icon name="ph:whatsapp-logo-bold" class="w-4 h-4" />Hablar por WhatsApp →
+              <Icon name="ph:whatsapp-logo-bold" class="w-4 h-4" />Hablar por WhatsApp <Icon name="ph:arrow-right-bold" class="w-4 h-4" />
             </a>
 
             <button onclick="location.reload()" class="btn-outline-w cursor-pointer">
-              ← Repetir Test
+              <Icon name="ph:arrow-left-bold" class="w-4 h-4" /> Repetir Test
             </button>
           </div>
         </div>
@@ -406,6 +406,10 @@ import Footer from '../components/Footer.astro';
 </Layout>
 
 <script>
+  // Phosphor's check-bold path data — inlined since this builds dynamic
+  // markup in vanilla JS, where the Icon component (build-time only) isn't available.
+  const PH_CHECK_ICON = '<svg class="w-4 h-4 shrink-0" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="m232.49 80.49l-128 128a12 12 0 0 1-17 0l-56-56a12 12 0 1 1 17-17L96 183L215.51 63.51a12 12 0 0 1 17 17Z"/></svg>';
+
   let answers: Record<number, string> = {};
 
   (window as any).nextStep = (step: number) => {
@@ -458,7 +462,7 @@ import Footer from '../components/Footer.astro';
       if (resDeliv) {
         resDeliv.innerHTML = items.map(it => `
           <div class="flex items-center gap-3 text-sm text-white/90">
-            <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            ${PH_CHECK_ICON}
             <span>${it}</span>
           </div>`).join('');
       }
