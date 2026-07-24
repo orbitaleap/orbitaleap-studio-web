@@ -11,9 +11,21 @@ const singleServices = [
 ];
 
 const combinedPacks = [
-  { name: 'Pack Emprendedor', sub: 'Diseño de Logotipo y Desarrollo Web', desc: 'Todo lo necesario para arrancar con una imagen profesional desde el primer día.', priceSplit: '790€', priceUpfront: '630€', discount: '−20%', featured: false },
-  { name: 'Pack Marca & Web Pro', sub: 'Branding + Web Multipágina', desc: 'Identidad de marca completa y sitio web profesional con SEO inicial incluido.', priceSplit: '1.800€', priceUpfront: '1.350€', discount: '−25%', featured: true },
-  { name: 'Pack Plataforma / Tienda', sub: 'Marca + Ecommerce o App', desc: 'Diseño de marca y plataforma web con pasarela de pago o aplicación a medida.', priceSplit: '3.200€', priceUpfront: '2.240€', discount: '−30%', featured: false }
+  {
+    name: 'Pack Emprendedor', sub: 'Diseño de Logotipo y Desarrollo Web', desc: 'Todo lo necesario para arrancar con una imagen profesional desde el primer día.',
+    priceSplit: '790€', priceUpfront: '630€', discount: '−20%', featured: false,
+    features: ['Logo vectorial + paleta de colores', 'Web de 4-5 secciones adaptada a móvil', 'Formulario de contacto integrado'],
+  },
+  {
+    name: 'Pack Marca & Web Pro', sub: 'Branding + Web Multipágina', desc: 'Identidad de marca completa y sitio web profesional con SEO inicial incluido.',
+    priceSplit: '1.800€', priceUpfront: '1.350€', discount: '−25%', featured: true,
+    features: ['Identidad de marca completa + manual básico', 'Sitio web multipágina a medida', 'SEO inicial incluido', 'Versiones para redes sociales'],
+  },
+  {
+    name: 'Pack Plataforma / Tienda', sub: 'Marca + Ecommerce o App', desc: 'Diseño de marca y plataforma web con pasarela de pago o aplicación a medida.',
+    priceSplit: '3.200€', priceUpfront: '2.240€', discount: '−30%', featured: false,
+    features: ['Diseño de marca completo', 'Ecommerce o app a medida', 'Pasarela de pago integrada', 'Panel de administración'],
+  },
 ];
 
 const monthlyPlans = [
@@ -497,7 +509,15 @@ const monthlyPlans = [
                 <div class="relative">
                   <span class="label-caps text-white/55 block mb-2">{pack.sub}</span>
                   <h4 class="font-sans text-lg font-bold text-white tracking-tight mb-2">{pack.name}</h4>
-                  <p class="font-sans text-base text-white/70 font-light leading-relaxed">{pack.desc}</p>
+                  <p class="font-sans text-base text-white/70 font-light leading-relaxed mb-4">{pack.desc}</p>
+                  <ul class="flex flex-col gap-2">
+                    {pack.features.map((f) => (
+                      <li class="flex items-start gap-2 font-sans text-sm text-white/70 font-light">
+                        <Icon name="ph:check-bold" class="w-4 h-4 text-white/40 shrink-0 mt-0.5" />
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
                 <div class="relative mt-6 pt-5 border-t border-white/[0.08]">
                   <span class="price-split block mb-5">
