@@ -77,6 +77,19 @@ const monthlyPlans = [
       /* ── Form card ── */
       .form-card  { border:1.5px solid rgba(0,0,0,0.09);border-radius:24px;background:#fff;overflow:hidden; }
 
+      /* ── Discount badge: only true when paying 100% upfront ── */
+      .discount-badge { display:inline-flex;align-items:center;gap:0.3em;background:rgba(45,212,191,0.12);color:#2dd4bf;border:1px solid rgba(45,212,191,0.35);border-radius:9999px;padding:0.2rem 0.65rem; }
+
+      /* ── Billing toggle: 2 Plazos / Pago único — drives every price below ── */
+      .billing-toggle-btn { font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.02em;color:rgba(255,255,255,0.55);background:transparent;border:none;border-radius:9999px;padding:0.6rem 1.25rem;cursor:pointer;display:inline-flex;align-items:center;transition:background 0.18s,color 0.18s; }
+      .billing-toggle-btn:hover { color:rgba(255,255,255,0.85); }
+      .billing-toggle-btn.active { background:#fff;color:#000; }
+      .billing-toggle-btn.active:hover { color:#000; }
+
+      /* ── Price visibility: exactly one of these shows per row, driven by #pricing-content[data-billing] ── */
+      #pricing-content[data-billing="split"] .price-full { display:none; }
+      #pricing-content[data-billing="full"] .price-split { display:none; }
+
       /* ── Ghost section numerals (dark section) ── */
       .sec-num { font-size:clamp(4rem,12vw,8rem);font-weight:800;letter-spacing:-0.04em;line-height:0.88;color:rgba(255,255,255,0.055);user-select:none;pointer-events:none; }
 
@@ -188,7 +201,7 @@ const monthlyPlans = [
               <Icon name="ph:target" class="w-3.5 h-3.5" />
             </span>
             <span class="flex-1 font-sans text-sm text-black/60 font-light leading-snug">
-              <strong class="font-semibold text-black">¿Prefieres un test?</strong> 6 preguntas, 2 minutos, sin compromiso.
+              <strong class="font-semibold text-black">¿No sabes por dónde empezar?</strong> Responde 6 preguntas en 2 minutos y te decimos qué necesitas.
             </span>
             <span class="font-sans text-sm font-bold text-black shrink-0">→</span>
           </a>
@@ -202,16 +215,24 @@ const monthlyPlans = [
          PRICING — DARK CARD (stacked over hero)
     ═══════════════════════════════════════ -->
     <section class="stack-card bg-[#0A0A0A] py-20 md:py-28 px-6 md:px-12 xl:px-20">
-      <div class="max-w-screen-xl mx-auto">
+      <div id="pricing-content" data-billing="split" class="max-w-screen-xl mx-auto">
 
-        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-16">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-10">
           <div>
             <span class="label-caps text-white/55 block mb-3">Precios & Servicios</span>
             <h2 class="display-sm text-white">Tarifas claras,<br />sin sorpresas.</h2>
           </div>
           <p class="font-sans text-base text-white/70 font-light max-w-xs leading-relaxed">
-            Paga en dos plazos o abona el total hoy y obtén hasta un <strong class="font-semibold text-white">30% de descuento</strong>.
+            El descuento solo aplica pagando todo de una vez.
           </p>
+        </div>
+
+        <!-- Billing toggle — controls every price below -->
+        <div id="billing-toggle" class="inline-flex items-center gap-1 p-1 rounded-full border border-white/15 bg-white/5 mb-16" role="tablist" aria-label="Forma de pago">
+          <button type="button" data-billing-option="split" role="tab" aria-selected="true" class="billing-toggle-btn active">2 Plazos</button>
+          <button type="button" data-billing-option="full" role="tab" aria-selected="false" class="billing-toggle-btn">
+            Pago único <span class="discount-badge label-caps ml-1">Ahorra hasta 30%</span>
+          </button>
         </div>
 
         <!-- 01 -->
@@ -230,15 +251,18 @@ const monthlyPlans = [
                   <h4 class="font-sans text-base font-bold text-white tracking-tight">{s.name}</h4>
                   <p class="font-sans text-base text-white/65 font-light mt-0.5 max-w-sm">{s.desc}</p>
                 </div>
-                <div class="flex items-center gap-6 shrink-0">
-                  <div class="text-right">
-                    <span class="label-caps text-white/50 block">2 plazos</span>
-                    <span class="font-sans text-base font-medium text-white/60">{s.priceSplit}</span>
-                  </div>
-                  <div class="text-right pl-5 border-l border-white/[0.1]">
-                    <span class="label-caps text-white/60 block">{s.discount} al contado</span>
-                    <span class="font-sans text-2xl font-bold text-white">{s.priceUpfront}</span>
-                  </div>
+                <div class="text-right shrink-0">
+                  <span class="price-split">
+                    <span class="label-caps text-white/45 block mb-1">2 plazos</span>
+                    <span class="font-sans text-2xl font-bold text-white">{s.priceSplit}</span>
+                  </span>
+                  <span class="price-full">
+                    <span class="discount-badge label-caps mb-1">{s.discount} pago único</span>
+                    <span class="flex items-baseline justify-end gap-2">
+                      <span class="font-sans text-base text-white/35 line-through">{s.priceSplit}</span>
+                      <span class="font-sans text-2xl font-bold text-[#2dd4bf]">{s.priceUpfront}</span>
+                    </span>
+                  </span>
                 </div>
               </div>
             ))}
@@ -249,6 +273,37 @@ const monthlyPlans = [
         <div class="mb-16">
           <div class="flex items-end gap-5 mb-8 pb-5 border-b border-white/[0.08]">
             <span class="sec-num" aria-hidden="true">02</span>
+            <div class="pb-2">
+              <h3 class="font-sans text-xl font-bold text-white tracking-tight">Servicios mensuales</h3>
+              <p class="font-sans text-base text-white/65 font-light">Tu equipo de diseño y desarrollo de confianza, mes a mes.</p>
+            </div>
+          </div>
+          <div class="border-t border-white/[0.08]">
+            {monthlyPlans.map((plan) => (
+              <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-7 px-2">
+                <div>
+                  <h4 class="font-sans text-base font-bold text-white tracking-tight">{plan.name}</h4>
+                  <p class="font-sans text-base text-white/65 font-light mt-0.5 max-w-md">{plan.detail}</p>
+                </div>
+                <div class="text-right shrink-0">
+                  <span class="price-split">
+                    <span class="font-sans text-2xl font-bold text-white">{plan.price}</span>
+                    <span class="label-caps text-white/50 block">{plan.unit}</span>
+                  </span>
+                  <span class="price-full">
+                    <span class="discount-badge label-caps mb-1">{plan.discount} pago único</span>
+                    <span class="font-sans text-xl font-bold text-[#2dd4bf] block">{plan.annual}</span>
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <!-- 03 -->
+        <div>
+          <div class="flex items-end gap-5 mb-8 pb-5 border-b border-white/[0.08]">
+            <span class="sec-num" aria-hidden="true">03</span>
             <div class="pb-2">
               <h3 class="font-sans text-xl font-bold text-white tracking-tight">Packs todo incluido</h3>
               <p class="font-sans text-base text-white/65 font-light">Marca y web en un proyecto. Más cohesión, más ahorro.</p>
@@ -263,48 +318,20 @@ const monthlyPlans = [
                   <p class="font-sans text-base text-white/70 font-light leading-relaxed">{pack.desc}</p>
                 </div>
                 <div class="mt-6 pt-5 border-t border-white/[0.08]">
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="label-caps text-white/50">2 plazos</span>
-                    <span class="font-sans text-sm text-white/55 font-medium">{pack.priceSplit}</span>
-                  </div>
-                  <div class="flex items-center justify-between mb-5">
-                    <span class="label-caps text-white/65">{pack.discount} al contado</span>
-                    <span class="font-sans text-3xl font-bold text-white">{pack.priceUpfront}</span>
-                  </div>
+                  <span class="price-split block mb-5">
+                    <span class="label-caps text-white/50 block mb-1">2 plazos</span>
+                    <span class="font-sans text-3xl font-bold text-white">{pack.priceSplit}</span>
+                  </span>
+                  <span class="price-full block mb-5">
+                    <span class="discount-badge label-caps mb-1">{pack.discount} pago único</span>
+                    <span class="flex items-baseline gap-2">
+                      <span class="font-sans text-base text-white/35 line-through">{pack.priceSplit}</span>
+                      <span class="font-sans text-3xl font-bold text-[#2dd4bf]">{pack.priceUpfront}</span>
+                    </span>
+                  </span>
                   <button type="button" data-open-contact class={`w-full cursor-pointer ${pack.featured ? 'btn-white' : 'btn-outline-w'}`}>
                     Contratar →
                   </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <!-- 03 -->
-        <div>
-          <div class="flex items-end gap-5 mb-8 pb-5 border-b border-white/[0.08]">
-            <span class="sec-num" aria-hidden="true">03</span>
-            <div class="pb-2">
-              <h3 class="font-sans text-xl font-bold text-white tracking-tight">Servicios mensuales</h3>
-              <p class="font-sans text-base text-white/65 font-light">Tu equipo de diseño y desarrollo de confianza, mes a mes.</p>
-            </div>
-          </div>
-          <div class="border-t border-white/[0.08]">
-            {monthlyPlans.map((plan) => (
-              <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-7 px-2">
-                <div>
-                  <h4 class="font-sans text-base font-bold text-white tracking-tight">{plan.name}</h4>
-                  <p class="font-sans text-base text-white/65 font-light mt-0.5 max-w-md">{plan.detail}</p>
-                </div>
-                <div class="flex items-center gap-6 shrink-0">
-                  <div class="text-right">
-                    <span class="font-sans text-2xl font-bold text-white">{plan.price}</span>
-                    <span class="label-caps text-white/50 block">{plan.unit}</span>
-                  </div>
-                  <div class="text-right pl-5 border-l border-white/[0.1]">
-                    <span class="label-caps text-white/60 block">{plan.discount} anual</span>
-                    <span class="font-sans text-base font-bold text-white">{plan.annual}</span>
-                  </div>
                 </div>
               </div>
             ))}
@@ -317,22 +344,22 @@ const monthlyPlans = [
     <!-- ═══════════════════════════════════════
          CLOSING CTA — DARK CARD (stacked over pricing)
     ═══════════════════════════════════════ -->
-    <section class="stack-card bg-[#111111] py-20 md:py-28 px-6 md:px-12 xl:px-20">
-      <div class="max-w-screen-xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-10">
+    <section class="stack-card bg-[#F7F7F5] pt-20 md:pt-28 px-6 md:px-12 xl:px-20">
+      <div class="max-w-screen-xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-10 pb-20 md:pb-28">
         <div>
-          <span class="label-caps text-white/55 block mb-4">Orbital Leap Studio</span>
-          <h2 class="display-sm text-white max-w-xl">¿Listo para empezar?</h2>
-          <p class="font-sans text-white/70 text-lg font-light mt-4 max-w-md leading-relaxed">
+          <span class="label-caps text-black/40 block mb-4">Orbital Leap Studio</span>
+          <h2 class="display-sm text-black max-w-xl">¿Listo para empezar?</h2>
+          <p class="font-sans text-black/60 text-lg font-light mt-4 max-w-md leading-relaxed">
             Escríbenos hoy y te enviamos un presupuesto concreto. Sin reuniones innecesarias.
           </p>
         </div>
         <div class="flex flex-col sm:flex-row gap-3 shrink-0">
-          <button type="button" data-open-contact class="btn-white">Hablar con el Estudio →</button>
-          <a href="/test-autodiagnostico" class="btn-outline-w">Test Gratuito</a>
+          <button type="button" data-open-contact class="btn-black">Hablar con el Estudio →</button>
+          <a href="/test-autodiagnostico" class="btn-outline">Test Gratuito</a>
         </div>
       </div>
 
-      <!-- Footer inside dark CTA card -->
+      <!-- Footer stays dark as its own closing band -->
       <Footer compact />
     </section>
 
@@ -368,6 +395,22 @@ const monthlyPlans = [
       },
     });
   }
+
+  // ── Billing toggle: 2 Plazos / Pago único ──
+  const pricingContent = document.getElementById('pricing-content');
+  const billingToggle = document.getElementById('billing-toggle');
+
+  billingToggle?.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest('[data-billing-option]') as HTMLElement | null;
+    if (!btn || !pricingContent) return;
+    const mode = btn.dataset.billingOption;
+    pricingContent.setAttribute('data-billing', mode ?? 'split');
+    billingToggle.querySelectorAll('[data-billing-option]').forEach((b) => {
+      const isActive = b === btn;
+      b.classList.toggle('active', isActive);
+      b.setAttribute('aria-selected', String(isActive));
+    });
+  });
 
   // ── Form submit ──
   const form  = document.getElementById('hero-contact-form') as HTMLFormElement;
