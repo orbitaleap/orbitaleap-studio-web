@@ -261,9 +261,9 @@ const projects = [
           ))}
         </div>
 
-        <!-- DESKTOP INTERACTIVE SPLIT GRID (>= xl) -->
-        <div class="hidden xl:grid grid-cols-12 gap-8 2xl:gap-12 w-full items-start" id="services-interactive">
-          <div class="xl:col-span-5 flex flex-col items-start gap-3 sm:gap-4 w-full">
+        <!-- DESKTOP INTERACTIVE SPLIT FLEXBOX (>= xl) -->
+        <div class="hidden xl:flex flex-row items-start gap-8 2xl:gap-12 w-full" id="services-interactive">
+          <div class="w-5/12 flex flex-col items-start gap-3.5 shrink-0">
             {services.map((service, index) => (
               <button
                 type="button"
@@ -292,7 +292,7 @@ const projects = [
             ))}
           </div>
 
-          <div class="xl:col-span-7 sticky top-28 w-full min-h-[380px] relative">
+          <div class="w-7/12 sticky top-28 min-h-[380px] relative shrink-0">
             {services.map((service, index) => (
               <div 
                 id={`service-content-${index}`} 
