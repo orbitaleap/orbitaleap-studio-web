@@ -95,15 +95,24 @@ const monthlyPlans = [
 
       /* ── Parallax hero content ── */
       #hero-parallax { will-change: transform; }
+
+      /* ── Header contrast: flipped by scroll-position JS ── */
+      .header-light #header-nav-link { color: rgba(0,0,0,0.45); }
+      .header-light #header-nav-link:hover { color: #000; }
+      .header-dark #header-nav-link { color: rgba(255,255,255,0.5); }
+      .header-dark #header-nav-link:hover { color: #fff; }
+      .header-light { border-bottom-color: rgba(0,0,0,0.06); }
+      .header-dark { border-bottom-color: rgba(255,255,255,0.1); }
     </style>
 
-    <!-- ═══ FIXED HEADER ═══ -->
-    <header class="fixed top-0 left-0 w-full z-50 px-6 md:px-12 py-4 bg-black border-b border-white/[0.08]">
+    <!-- ═══ FIXED HEADER — minimal-tint glass; logo/link/button contrast is
+         flipped by scroll-position JS below (light hero/CTA vs dark pricing/footer) ═══ -->
+    <header id="site-header" class="header-light fixed top-0 left-0 w-full z-50 px-6 md:px-12 py-4 bg-white/[0.04] backdrop-blur-xl border-b border-white/10 transition-[border-color] duration-300">
       <nav class="flex justify-between items-center max-w-screen-xl mx-auto">
-        <a href="/"><img src="/brand/ol_imagotipo-hw.svg" alt="Orbital Leap" class="h-7 w-auto" /></a>
+        <a href="/"><img id="header-logo" src="/brand/ol_imagotipo-hk.svg" alt="Orbital Leap" class="h-7 w-auto" /></a>
         <div class="flex items-center gap-3">
-          <a href="/test-autodiagnostico" class="hidden sm:block label-caps text-white/50 hover:text-white transition-colors px-3 py-2">Test Gratuito</a>
-          <button type="button" data-open-contact class="btn-white">Escríbenos</button>
+          <a href="/test-autodiagnostico" id="header-nav-link" class="hidden sm:block label-caps px-3 py-2 transition-colors">Test Gratuito</a>
+          <button type="button" id="header-cta" data-open-contact class="btn-black">Escríbenos</button>
         </div>
       </nav>
     </header>
@@ -214,7 +223,7 @@ const monthlyPlans = [
     <!-- ═══════════════════════════════════════
          PRICING — DARK CARD (stacked over hero)
     ═══════════════════════════════════════ -->
-    <section class="stack-card bg-[#0A0A0A] py-20 md:py-28 px-6 md:px-12 xl:px-20">
+    <section data-header-dark-zone class="stack-card bg-[#0A0A0A] py-20 md:py-28 px-6 md:px-12 xl:px-20">
       <div id="pricing-content" data-billing="split" class="max-w-screen-xl mx-auto">
 
         <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-10">
@@ -395,6 +404,46 @@ const monthlyPlans = [
       },
     });
   }
+
+  // ── Header contrast: the header sits over both light (hero, closing CTA)
+  // and dark (pricing, footer) sections as the page scrolls. Rather than a
+  // fixed color that only works against one, flip logo/link/button whenever
+  // a dark section is passing directly under the header.
+  const header = document.getElementById('site-header') as HTMLElement;
+  const headerLogo = document.getElementById('header-logo') as HTMLImageElement;
+  const headerCta = document.getElementById('header-cta') as HTMLElement;
+  const darkZones = [
+    ...document.querySelectorAll('[data-header-dark-zone]'),
+    document.getElementById('contacto'),
+  ].filter(Boolean) as HTMLElement[];
+
+  function updateHeaderContrast() {
+    if (!header) return;
+    const probeY = header.offsetHeight / 2;
+    const isDark = darkZones.some((el) => {
+      const r = el.getBoundingClientRect();
+      return r.top <= probeY && r.bottom >= probeY;
+    });
+    header.classList.toggle('header-dark', isDark);
+    header.classList.toggle('header-light', !isDark);
+    if (headerLogo) headerLogo.src = isDark ? '/brand/ol_imagotipo-hw.svg' : '/brand/ol_imagotipo-hk.svg';
+    if (headerCta) {
+      headerCta.classList.toggle('btn-white', isDark);
+      headerCta.classList.toggle('btn-black', !isDark);
+    }
+  }
+
+  let headerTicking = false;
+  window.addEventListener('scroll', () => {
+    if (!headerTicking) {
+      requestAnimationFrame(() => {
+        updateHeaderContrast();
+        headerTicking = false;
+      });
+      headerTicking = true;
+    }
+  }, { passive: true });
+  updateHeaderContrast();
 
   // ── Billing toggle: 2 Plazos / Pago único ──
   const pricingContent = document.getElementById('pricing-content');
