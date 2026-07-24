@@ -608,7 +608,11 @@ const projects = [
     if (canvas) {
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        const NUM_PARTICLES = 900;
+        const isLowSpecOrMobile = window.innerWidth < 768 || 
+          (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        const NUM_PARTICLES = isLowSpecOrMobile ? 180 : 750;
         let particles: { 
           x: number; 
           y: number; 
@@ -693,7 +697,7 @@ const projects = [
 
         function resizeCanvas(isFirst = false) {
           const rect = canvas.getBoundingClientRect();
-          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          const dpr = isLowSpecOrMobile ? 1 : Math.min(window.devicePixelRatio || 1, 2);
           canvas.width = rect.width * dpr;
           canvas.height = rect.height * dpr;
 
@@ -702,7 +706,6 @@ const projects = [
             initParticles();
           } else {
             // On subsequent resizes: only recalculate logo targets and update particle targets in-place
-            // Never reset particle positions — avoids the disappear glitch
             const rect2 = canvas.getBoundingClientRect();
             generateLogoTargets(rect2.width, rect2.height);
             for (let i = 0; i < particles.length; i++) {
@@ -715,7 +718,7 @@ const projects = [
         }
 
         resizeCanvas(true);
-        window.addEventListener('resize', () => resizeCanvas(false));
+        window.addEventListener('resize', () => resizeCanvas(false), { passive: true });
 
         let mouseX = -1000;
         let mouseY = -1000;
@@ -723,12 +726,20 @@ const projects = [
           const rect = canvas.getBoundingClientRect();
           mouseX = e.clientX - rect.left;
           mouseY = e.clientY - rect.top;
-        });
+        }, { passive: true });
 
         const INTRO_DURATION = 8000; // 8 seconds total — no loop
+        let lastFrameTime = 0;
 
         function animate(now: number) {
-          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          // Frame throttle on low-spec/mobile devices (30fps cap to save battery & CPU)
+          if (isLowSpecOrMobile && now - lastFrameTime < 30) {
+            if (isHeroInView) animationFrameId = requestAnimationFrame(animate);
+            return;
+          }
+          lastFrameTime = now;
+
+          const dpr = isLowSpecOrMobile ? 1 : Math.min(window.devicePixelRatio || 1, 2);
           const width = canvas.width / dpr;
           const height = canvas.height / dpr;
           const cx = width / 2;
