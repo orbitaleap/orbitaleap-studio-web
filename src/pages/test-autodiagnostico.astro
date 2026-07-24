@@ -30,11 +30,11 @@ import Footer from '../components/Footer.astro';
       .quiz-input:focus { outline: none; border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,0.08); }
 
       /* Buttons (monochrome, matching /launch) */
-      .btn-black { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:#000;color:#fff;border:1.5px solid #000;border-radius:9999px;padding:0.9rem 2rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:background 0.18s; }
+      .btn-black { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:#000;color:#fff;border:1.5px solid #000;border-radius:8px;padding:0.9rem 2rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:background 0.18s; }
       .btn-black:hover { background:#222; }
-      .btn-white { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:#fff;color:#000;border:1.5px solid #fff;border-radius:9999px;padding:0.9rem 2rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:background 0.18s; }
+      .btn-white { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:#fff;color:#000;border:1.5px solid #fff;border-radius:8px;padding:0.9rem 2rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:background 0.18s; }
       .btn-white:hover { background:#e8e8e8; }
-      .btn-outline-w { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,0.22);border-radius:9999px;padding:0.9rem 1.75rem;font-family:inherit;font-size:0.75rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:border-color 0.18s; }
+      .btn-outline-w { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,0.22);border-radius:8px;padding:0.9rem 1.75rem;font-family:inherit;font-size:0.75rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:border-color 0.18s; }
       .btn-outline-w:hover { border-color:rgba(255,255,255,0.45); }
     </style>
 
@@ -51,7 +51,7 @@ import Footer from '../components/Footer.astro';
 
     <section class="pt-32 pb-20 md:pt-40 md:pb-28 px-4 sm:px-6 max-w-screen-md mx-auto min-h-screen flex flex-col justify-center">
 
-      <div id="quiz-container" class="relative bg-[#141414] border border-white/10 rounded-3xl p-6 sm:p-10 md:p-12 shadow-2xl overflow-hidden">
+      <div id="quiz-container" class="relative bg-[#141414] border border-white/10 rounded-2xl p-6 sm:p-10 md:p-12 shadow-2xl overflow-hidden">
 
         <!-- STEP 0: HERO START -->
         <div id="step-0" class="quiz-step flex flex-col items-start text-left">
@@ -112,22 +112,22 @@ import Footer from '../components/Footer.astro';
           <p class="font-sans text-sm text-white/55 font-light mb-8">Cuéntanos cuál es tu situación actual.</p>
 
           <div class="flex flex-col gap-3">
-            <button onclick="selectOption(1, 'A')" class="quiz-opt text-left p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
+            <button onclick="selectOption(1, 'A')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Estoy empezando desde cero, necesito lanzar mi primer producto</span>
               <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
             </button>
 
-            <button onclick="selectOption(1, 'B')" class="quiz-opt text-left p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
+            <button onclick="selectOption(1, 'B')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Llevo tiempo operando pero mi web o imagen se ha quedado antigua</span>
               <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
             </button>
 
-            <button onclick="selectOption(1, 'C')" class="quiz-opt text-left p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
+            <button onclick="selectOption(1, 'C')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Tengo un negocio en crecimiento y necesito automatizar o crear una app</span>
               <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
             </button>
 
-            <button onclick="selectOption(1, 'D')" class="quiz-opt text-left p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
+            <button onclick="selectOption(1, 'D')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Necesito una renovación integral (marca, web y arquitectura técnica)</span>
               <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
             </button>
@@ -158,17 +158,17 @@ import Footer from '../components/Footer.astro';
           <p class="font-sans text-sm text-white/55 font-light mb-8">Colores, tipografía e identidad visual.</p>
 
           <div class="flex flex-col gap-3">
-            <button onclick="selectOption(2, 'A')" class="quiz-opt text-left p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
+            <button onclick="selectOption(2, 'A')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">No tengo nada, partimos de una hoja en blanco</span>
               <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
             </button>
 
-            <button onclick="selectOption(2, 'B')" class="quiz-opt text-left p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
+            <button onclick="selectOption(2, 'B')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Tengo algo muy básico que improvisé pero no me representa</span>
               <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
             </button>
 
-            <button onclick="selectOption(2, 'C')" class="quiz-opt text-left p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
+            <button onclick="selectOption(2, 'C')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Sí, tengo marca sólida y manual de diseño corporativo</span>
               <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
             </button>
@@ -199,17 +199,17 @@ import Footer from '../components/Footer.astro';
           <p class="font-sans text-sm text-white/55 font-light mb-8">Tu estado tecnológico actual.</p>
 
           <div class="flex flex-col gap-3">
-            <button onclick="selectOption(3, 'A')" class="quiz-opt text-left p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
+            <button onclick="selectOption(3, 'A')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">No tengo página web ni app</span>
               <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
             </button>
 
-            <button onclick="selectOption(3, 'B')" class="quiz-opt text-left p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
+            <button onclick="selectOption(3, 'B')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Tengo una web antigua o hecha con plantilla que va lenta</span>
               <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
             </button>
 
-            <button onclick="selectOption(3, 'C')" class="quiz-opt text-left p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
+            <button onclick="selectOption(3, 'C')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Tengo web pero necesito una app móvil o panel privado a medida</span>
               <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
             </button>
@@ -240,17 +240,17 @@ import Footer from '../components/Footer.astro';
           <p class="font-sans text-sm text-white/55 font-light mb-8">Lo que buscas lograr con este proyecto.</p>
 
           <div class="flex flex-col gap-3">
-            <button onclick="selectOption(4, 'A')" class="quiz-opt text-left p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
+            <button onclick="selectOption(4, 'A')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Conseguir clientes y transmitir una imagen profesional</span>
               <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
             </button>
 
-            <button onclick="selectOption(4, 'B')" class="quiz-opt text-left p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
+            <button onclick="selectOption(4, 'B')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Lanzar una aplicación móvil o software SaaS al mercado</span>
               <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
             </button>
 
-            <button onclick="selectOption(4, 'C')" class="quiz-opt text-left p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
+            <button onclick="selectOption(4, 'C')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Renovar completamente mi tecnología para escalar ventas</span>
               <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
             </button>
@@ -281,22 +281,22 @@ import Footer from '../components/Footer.astro';
           <p class="font-sans text-sm text-white/55 font-light mb-8">Orienta la propuesta ideal para tu caso.</p>
 
           <div class="flex flex-col gap-3">
-            <button onclick="selectOption(5, 'A')" class="quiz-opt text-left p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
+            <button onclick="selectOption(5, 'A')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Menos de 3.000 € (Proyecto inicial)</span>
               <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
             </button>
 
-            <button onclick="selectOption(5, 'B')" class="quiz-opt text-left p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
+            <button onclick="selectOption(5, 'B')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Entre 3.000 € y 7.500 € (Plataforma profesional)</span>
               <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
             </button>
 
-            <button onclick="selectOption(5, 'C')" class="quiz-opt text-left p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
+            <button onclick="selectOption(5, 'C')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Entre 7.500 € y 15.000 € (App móvil o sistema a medida)</span>
               <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
             </button>
 
-            <button onclick="selectOption(5, 'D')" class="quiz-opt text-left p-4 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
+            <button onclick="selectOption(5, 'D')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
               <span class="font-sans text-sm text-white/90">Más de 15.000 € (Solución enterprise a gran escala)</span>
               <span class="opt-arrow font-sans text-sm text-white shrink-0">→</span>
             </button>
@@ -331,22 +331,22 @@ import Footer from '../components/Footer.astro';
           <form id="quiz-unlock-form" class="flex flex-col gap-4">
             <div>
               <label class="block font-sans text-xs text-white/60 font-medium mb-1">Nombre o empresa *</label>
-              <input type="text" id="quiz-name" required placeholder="Tu nombre / Empresa" class="quiz-input w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 font-sans text-sm" />
+              <input type="text" id="quiz-name" required placeholder="Tu nombre / Empresa" class="quiz-input w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 font-sans text-sm" />
             </div>
 
             <div>
               <label class="block font-sans text-xs text-white/60 font-medium mb-1">Email de contacto *</label>
-              <input type="email" id="quiz-email" required placeholder="hola@tuempresa.com" class="quiz-input w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 font-sans text-sm" />
+              <input type="email" id="quiz-email" required placeholder="hola@tuempresa.com" class="quiz-input w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 font-sans text-sm" />
             </div>
 
             <div>
               <label class="block font-sans text-xs text-white/60 font-medium mb-1">Teléfono o WhatsApp *</label>
-              <input type="tel" id="quiz-phone" required placeholder="600 000 000" class="quiz-input w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 font-sans text-sm" />
+              <input type="tel" id="quiz-phone" required placeholder="600 000 000" class="quiz-input w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 font-sans text-sm" />
             </div>
 
             <div>
               <label class="block font-sans text-xs text-white/60 font-medium mb-1">¿Algo más que quieras contarnos? <span class="text-white/30 font-light">(opcional)</span></label>
-              <textarea id="quiz-message" rows="3" placeholder="Cuéntanos más sobre tu proyecto, dudas o plazos que manejas..." class="quiz-input w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 font-sans text-sm resize-none"></textarea>
+              <textarea id="quiz-message" rows="3" placeholder="Cuéntanos más sobre tu proyecto, dudas o plazos que manejas..." class="quiz-input w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 font-sans text-sm resize-none"></textarea>
             </div>
 
             <div class="flex items-start gap-3">
@@ -382,7 +382,7 @@ import Footer from '../components/Footer.astro';
             Analizando tus respuestas...
           </p>
 
-          <div id="res-deliverables" class="bg-white/[0.03] border border-white/10 rounded-2xl p-6 mb-8 flex flex-col gap-3">
+          <div id="res-deliverables" class="bg-white/[0.03] border border-white/10 rounded-xl p-6 mb-8 flex flex-col gap-3">
             <!-- Dynamic bullets inserted here -->
           </div>
 

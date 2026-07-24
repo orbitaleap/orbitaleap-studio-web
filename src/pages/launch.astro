@@ -13,23 +13,23 @@ const singleServices = [
 const combinedPacks = [
   {
     name: 'Pack Emprendedor', sub: 'Diseño de Logotipo y Desarrollo Web', desc: 'Todo lo necesario para arrancar con una imagen profesional desde el primer día.',
-    priceSplit: '790€', priceUpfront: '630€', discount: '−20%', featured: false,
+    priceSplit: '750€', priceUpfront: '600€', discount: '−20%', featured: false,
     features: ['Logo vectorial + paleta de colores', 'Web de 4-5 secciones adaptada a móvil', 'Formulario de contacto integrado'],
   },
   {
     name: 'Pack Marca & Web Pro', sub: 'Branding + Web Multipágina', desc: 'Identidad de marca completa y sitio web profesional con SEO inicial incluido.',
-    priceSplit: '1.800€', priceUpfront: '1.350€', discount: '−25%', featured: true,
+    priceSplit: '1.620€', priceUpfront: '1.215€', discount: '−25%', featured: true,
     features: ['Identidad de marca completa + manual básico', 'Sitio web multipágina a medida', 'SEO inicial incluido', 'Versiones para redes sociales'],
   },
   {
     name: 'Pack Plataforma / Tienda', sub: 'Marca + Ecommerce o App', desc: 'Diseño de marca y plataforma web con pasarela de pago o aplicación a medida.',
-    priceSplit: '3.200€', priceUpfront: '2.240€', discount: '−30%', featured: false,
+    priceSplit: '2.880€', priceUpfront: '2.016€', discount: '−30%', featured: false,
     features: ['Diseño de marca completo', 'Ecommerce o app a medida', 'Pasarela de pago integrada', 'Panel de administración'],
   },
 ];
 
 const monthlyPlans = [
-  { name: 'Mantenimiento & Hosting', price: '49€', unit: '/ mes', annualFull: '588€', annual: '390€ / año', discount: '−20%', detail: 'Hosting, copias de seguridad y 1h/mes de cambios menores.' },
+  { name: 'Mantenimiento & Hosting', price: '49€', unit: '/ mes', annualFull: '588€', annual: '470€ / año', discount: '−20%', detail: 'Hosting, copias de seguridad y 1h/mes de cambios menores.' },
   { name: 'Partner Estudio', price: '690€', unit: '/ mes', annualFull: '8.280€', annual: '6.200€ / año', discount: '−25%', detail: 'Soporte web, hasta 2 landings al mes, 8 piezas de diseño y SEO actualizado cada mes.' },
   { name: 'Full Partner & Redes', price: '1.950€', unit: '/ mes', annualFull: '23.400€', annual: '16.380€ / año', discount: '−30%', detail: 'Gestión de redes sociales y SEO actualizado cada mes. Hasta 8 tareas de diseño o desarrollo al mes, pequeñas o medianas según nuestra estimación previa (1 activa a la vez).' }
 ];
@@ -49,13 +49,13 @@ const monthlyPlans = [
       .label-caps { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
 
       /* ── Buttons ── */
-      .btn-black   { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:#000;color:#fff;border:1.5px solid #000;border-radius:9999px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:background 0.18s,border-color 0.18s; }
+      .btn-black   { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:#000;color:#fff;border:1.5px solid #000;border-radius:8px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:background 0.18s,border-color 0.18s; }
       .btn-black:hover { background:#222;border-color:#222; }
-      .btn-outline { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:transparent;color:#000;border:1.5px solid rgba(0,0,0,0.22);border-radius:9999px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:border-color 0.18s,background 0.18s; }
+      .btn-outline { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:transparent;color:#000;border:1.5px solid rgba(0,0,0,0.22);border-radius:8px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:border-color 0.18s,background 0.18s; }
       .btn-outline:hover { border-color:rgba(0,0,0,0.45);background:rgba(0,0,0,0.03); }
-      .btn-white   { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:#fff;color:#000;border:1.5px solid #fff;border-radius:9999px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:background 0.18s,border-color 0.18s; }
+      .btn-white   { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:#fff;color:#000;border:1.5px solid #fff;border-radius:8px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:background 0.18s,border-color 0.18s; }
       .btn-white:hover  { background:#e8e8e8;border-color:#e8e8e8; }
-      .btn-outline-w { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,0.25);border-radius:9999px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:border-color 0.18s,background 0.18s; }
+      .btn-outline-w { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,0.25);border-radius:8px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:border-color 0.18s,background 0.18s; }
       .btn-outline-w:hover { border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.06); }
 
       /* ── Card CTA: plain text link, no button box — a boxed CTA on every
@@ -93,24 +93,25 @@ const monthlyPlans = [
       .pricing-row:last-child { border-bottom:none; }
 
       /* ── Pack cards (dark section) ── */
-      .pack-card { position:relative;border:1.5px solid rgba(255,255,255,0.1);border-radius:28px;background:rgba(255,255,255,0.03);transition:border-color 0.18s,background 0.18s;overflow:hidden; }
+      .pack-card { position:relative;border:1.5px solid rgba(255,255,255,0.1);border-radius:14px;background:rgba(255,255,255,0.03);transition:border-color 0.18s,background 0.18s;overflow:hidden; }
       .pack-card:hover { border-color:rgba(255,255,255,0.24);background:rgba(255,255,255,0.05); }
       .pack-card-featured { border:1.5px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.05); }
 
       /* ── Test card ── */
-      .test-card { border:1.5px solid rgba(0,0,0,0.1);border-radius:28px;background:#fff;transition:border-color 0.18s; }
+      .test-card { border:1.5px solid rgba(0,0,0,0.1);border-radius:14px;background:#fff;transition:border-color 0.18s; }
       .test-card:hover { border-color:rgba(0,0,0,0.28); }
 
       /* ── Form card ── */
-      .form-card  { border:1.5px solid rgba(0,0,0,0.09);border-radius:28px;background:#fff;overflow:hidden; }
+      .form-card  { border:1.5px solid rgba(0,0,0,0.09);border-radius:14px;background:#fff;overflow:hidden; }
 
       /* ── Discount badge: monochrome outline, no filled colour ── */
       .discount-badge { display:inline-flex;align-items:center;gap:0.3em;background:transparent;color:rgba(255,255,255,0.85);border:1px solid rgba(255,255,255,0.3);border-radius:9999px;padding:0.2rem 0.65rem; }
 
       /* ── Billing toggle: 2 Plazos / Pago único — drives every price below ── */
-      .billing-toggle-btn { font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.02em;color:rgba(255,255,255,0.55);background:transparent;border:none;border-radius:9999px;padding:0.6rem 1.25rem;cursor:pointer;display:inline-flex;align-items:center;transition:background 0.18s,color 0.18s; }
+      .billing-toggle-thumb { position:absolute;top:4px;bottom:4px;left:0;border-radius:9999px;background:#fff;transition:transform 0.3s cubic-bezier(0.65,0,0.35,1),width 0.3s cubic-bezier(0.65,0,0.35,1);z-index:0; }
+      .billing-toggle-btn { position:relative;z-index:1;height:2.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.02em;color:rgba(255,255,255,0.55);background:transparent;border:none;border-radius:9999px;padding:0 1.25rem;cursor:pointer;display:inline-flex;align-items:center;transition:color 0.18s; }
       .billing-toggle-btn:hover { color:rgba(255,255,255,0.85); }
-      .billing-toggle-btn.active { background:#fff;color:#000; }
+      .billing-toggle-btn.active { color:#000; }
       .billing-toggle-btn.active:hover { color:#000; }
       /* the white-on-transparent badge disappears on the toggle's white
          active state — swap to a dark-outline variant there */
@@ -267,13 +268,17 @@ const monthlyPlans = [
         </div>
 
         <!-- Billing toggle — controls every price below -->
-        <div id="billing-toggle" class="inline-flex items-center gap-1 p-1 rounded-full border border-white/15 bg-white/5 mb-3" role="tablist" aria-label="Forma de pago">
+        <div id="billing-toggle" class="relative inline-flex items-center gap-1 p-1 rounded-full border border-white/15 bg-white/5 mb-3" role="tablist" aria-label="Forma de pago">
+          <span id="billing-toggle-thumb" class="billing-toggle-thumb" aria-hidden="true"></span>
           <button type="button" data-billing-option="split" role="tab" aria-selected="true" class="billing-toggle-btn active">2 Plazos</button>
           <button type="button" data-billing-option="full" role="tab" aria-selected="false" class="billing-toggle-btn">
-            Pago único <span class="discount-badge label-caps ml-1">Ahorra hasta 30%</span>
+            Pago único <span class="discount-badge label-caps ml-1">Hasta 30% Dto</span>
           </button>
         </div>
-        <p class="font-sans text-sm text-white/60 font-light mb-12 md:mb-16">Precios sin IVA. Se añade el 21% en el presupuesto final.</p>
+        <p class="font-sans text-base text-white/80 font-medium flex items-center gap-2 mb-12 md:mb-16">
+          <Icon name="ph:info-bold" class="w-4 h-4 text-white/50 shrink-0" />
+          Precios sin IVA. Se añade el 21% en el presupuesto final.
+        </p>
 
         <!-- 01 -->
         <div class="mb-12 md:mb-16">
@@ -494,13 +499,13 @@ const monthlyPlans = [
                 {pack.featured && (
                   <div class="border-beam-wrapper">
                     <svg class="w-full h-full" fill="none">
-                      <rect width="100%" height="100%" rx="28" pathLength="1000" stroke="url(#pack-featured-gradient)" stroke-width="2.5" class="magic-border-beam-svg" />
+                      <rect width="100%" height="100%" rx="14" pathLength="1000" stroke="url(#pack-featured-gradient)" stroke-width="2.5" class="magic-border-beam-svg" />
                       <defs>
                         <linearGradient id="pack-featured-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
                           <stop offset="0%" stop-color="#ffffff" stop-opacity="1" />
                           <stop offset="40%" stop-color="#2dd4bf" stop-opacity="0.9" />
-                          <stop offset="70%" stop-color="#3b82f6" stop-opacity="0.7" />
-                          <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+                          <stop offset="70%" stop-color="#3b82f6" stop-opacity="0.75" />
+                          <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.4" />
                         </linearGradient>
                       </defs>
                     </svg>
@@ -566,7 +571,7 @@ const monthlyPlans = [
 
     <!-- Footer is its own full-bleed band, not nested inside the CTA
          section's padded container, so its dark background spans edge-to-edge -->
-    <Footer compact />
+    <Footer compact light />
 
     <ContactModal />
   </main>
@@ -644,12 +649,23 @@ const monthlyPlans = [
   // ── Billing toggle: 2 Plazos / Pago único ──
   const pricingContent = document.getElementById('pricing-content');
   const billingToggle = document.getElementById('billing-toggle');
+  const billingThumb = document.getElementById('billing-toggle-thumb') as HTMLElement | null;
+
+  function moveBillingThumb(btn: HTMLElement) {
+    if (!billingThumb) return;
+    billingThumb.style.width = `${btn.offsetWidth}px`;
+    billingThumb.style.transform = `translateX(${btn.offsetLeft}px)`;
+  }
+
+  const initialBillingBtn = billingToggle?.querySelector('.billing-toggle-btn.active') as HTMLElement | null;
+  if (initialBillingBtn) moveBillingThumb(initialBillingBtn);
 
   billingToggle?.addEventListener('click', (e) => {
     const btn = (e.target as HTMLElement).closest('[data-billing-option]') as HTMLElement | null;
     if (!btn || !pricingContent) return;
     const mode = btn.dataset.billingOption;
     pricingContent.setAttribute('data-billing', mode ?? 'split');
+    moveBillingThumb(btn);
     billingToggle.querySelectorAll('[data-billing-option]').forEach((b) => {
       const isActive = b === btn;
       b.classList.toggle('active', isActive);
