@@ -17,9 +17,9 @@ const combinedPacks = [
 ];
 
 const monthlyPlans = [
-  { name: 'Mantenimiento & Hosting', price: '49€', unit: '/ mes', annual: '390€ / año', discount: '−20%', detail: 'Hosting, copias de seguridad y 1h/mes de cambios menores.' },
-  { name: 'Partner Estudio', price: '690€', unit: '/ mes', annual: '6.200€ / año', discount: '−25%', detail: '3h/mes de soporte web, hasta 2 landings al mes y 8 piezas de diseño.' },
-  { name: 'Full Partner & Redes', price: '1.950€', unit: '/ mes', annual: '16.380€ / año', discount: '−30%', detail: 'Gestión de redes sociales + diseño y desarrollo ilimitados (1 tarea activa).' }
+  { name: 'Mantenimiento & Hosting', price: '49€', unit: '/ mes', annualFull: '588€', annual: '390€ / año', discount: '−20%', detail: 'Hosting, copias de seguridad y 1h/mes de cambios menores.' },
+  { name: 'Partner Estudio', price: '690€', unit: '/ mes', annualFull: '8.280€', annual: '6.200€ / año', discount: '−25%', detail: 'Soporte web, hasta 2 landings al mes, 8 piezas de diseño y SEO actualizado cada mes.' },
+  { name: 'Full Partner & Redes', price: '1.950€', unit: '/ mes', annualFull: '23.400€', annual: '16.380€ / año', discount: '−30%', detail: 'Gestión de redes sociales, SEO actualizado cada mes y diseño y desarrollo ilimitados (1 tarea activa).' }
 ];
 ---
 
@@ -246,7 +246,6 @@ const monthlyPlans = [
       <div id="pricing-content" data-billing="split" class="max-w-screen-xl mx-auto">
 
         <div class="mb-10">
-          <span class="label-caps text-white/55 block mb-3">Precios & Servicios</span>
           <h2 class="display-sm text-white">Un precio.<br />Sin letra pequeña.</h2>
         </div>
 
@@ -334,6 +333,15 @@ const monthlyPlans = [
             </div>
             <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-6 px-2">
               <div>
+                <h4 class="font-sans text-base font-bold text-white tracking-tight">SEO para tu Web</h4>
+                <p class="font-sans text-base text-white/65 font-light mt-0.5 max-w-sm">Optimizamos tu web actual para buscadores: metadatos, velocidad y estructura. ¿Quieres que se mantenga actualizado cada mes? Está incluido en Partner Estudio y Full Partner & Redes.</p>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="font-sans text-2xl font-bold text-white">300€</span>
+              </div>
+            </div>
+            <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-6 px-2">
+              <div>
                 <h4 class="font-sans text-base font-bold text-white tracking-tight">Migración de Web Existente</h4>
                 <p class="font-sans text-base text-white/65 font-light mt-0.5 max-w-sm">Trasladamos tu contenido y dominio actual a la nueva web sin perder nada por el camino.</p>
               </div>
@@ -395,7 +403,10 @@ const monthlyPlans = [
                   </span>
                   <span class="price-full">
                     <span class="discount-badge label-caps mb-1">{plan.discount} pago único</span>
-                    <span class="font-sans text-xl font-bold text-white block">{plan.annual}</span>
+                    <span class="flex items-baseline justify-end gap-2">
+                      <span class="font-sans text-base text-white/35 line-through">{plan.annualFull}</span>
+                      <span class="font-sans text-xl font-bold text-white">{plan.annual}</span>
+                    </span>
                   </span>
                 </div>
               </div>
