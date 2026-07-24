@@ -237,6 +237,11 @@ const monthlyPlans = [
         </div>
       </div>
 
+      <!-- Fades this section's own color into the next one's, so the
+           rounded stack-card cut lands on an already-matching background
+           instead of a hard color swap. Sits behind all content, in the
+           empty bottom padding — never overlays readable text. -->
+      <div class="absolute inset-x-0 bottom-0 h-40 md:h-56 pointer-events-none" style="background: linear-gradient(to bottom, transparent 0%, #0A0A0A 100%);"></div>
     </section>
 
     <!-- ═══════════════════════════════════════
