@@ -110,14 +110,15 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
 
       <!-- Terms Checkbox -->
       <div class="flex items-start gap-3 pt-1">
-        <input 
-          type="checkbox" 
-          id="accept-terms" 
-          required 
-          class="mt-1 w-4 h-4 rounded border-white/20 bg-white/5 text-white accent-white cursor-pointer" 
+        <input
+          type="checkbox"
+          id="accept-terms"
+          name="consent"
+          required
+          class="mt-1 w-4 h-4 rounded border-white/20 bg-white/5 text-white accent-white cursor-pointer"
         />
         <label htmlFor="accept-terms" class="font-sans text-xs text-white/60 font-light leading-relaxed cursor-pointer select-none">
-          Acepto el tratamiento de mis datos de contacto de acuerdo con la <a href="#" class="text-white underline underline-offset-2">Política de Privacidad</a> de Orbital Leap.
+          Acepto el tratamiento de mis datos según la <a href="/privacidad" class="text-white underline underline-offset-2 hover:text-white/80">Política de Privacidad</a> de Orbital Leap.
         </label>
       </div>
 
@@ -125,15 +126,18 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
       <div id="form-feedback" class="hidden p-4 rounded-xl text-sm font-sans"></div>
 
       <!-- Submit Button -->
-      <button 
-        type="submit" 
-        id="submit-form-btn" 
+      <button
+        type="submit"
+        id="submit-form-btn"
         class="w-full bg-white text-black font-medium py-4 px-8 rounded-xl uppercase tracking-wider text-xs transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] flex items-center justify-center gap-2 cursor-pointer mt-2"
       >
-        <span id="submit-btn-text">Enviar mensaje</span>
-        <svg class="w-4 h-4 stroke-current" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/>
-        </svg>
+        <span id="submit-btn-content" class="inline-flex items-center gap-2">
+          <span id="submit-btn-text">Enviar mensaje</span>
+          <svg class="w-4 h-4 stroke-current" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25"/>
+          </svg>
+        </span>
+        <canvas id="submit-btn-orb" class="hidden" width="20" height="20" aria-hidden="true"></canvas>
       </button>
 
     </form>
@@ -142,6 +146,8 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
 </div>
 
 <script>
+  import { mountOrb } from '../lib/thinking-orb';
+
   // Turnstile script auto-loader
   if (!document.getElementById('turnstile-script')) {
     const script = document.createElement('script');
@@ -159,8 +165,11 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
   const feedback = document.getElementById('form-feedback');
   const submitBtn = document.getElementById('submit-form-btn') as HTMLButtonElement;
   const submitBtnText = document.getElementById('submit-btn-text');
+  const submitBtnContent = document.getElementById('submit-btn-content') as HTMLElement;
+  const submitBtnOrb = document.getElementById('submit-btn-orb') as HTMLCanvasElement;
   const messageInput = document.getElementById('message') as HTMLTextAreaElement;
   const charCounter = document.getElementById('char-counter');
+  let activeOrb: ReturnType<typeof mountOrb> | null = null;
 
   // Open modal trigger
   window.openContactModal = () => {
@@ -216,15 +225,18 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
       message: formData.get('message'),
       turnstileToken,
       website_url: formData.get('website_url'),
+      consent: formData.get('consent') === 'on',
     };
 
     if (feedback) {
       feedback.classList.remove('hidden', 'bg-red-500/20', 'text-red-300', 'bg-emerald-500/20', 'text-emerald-300');
     }
 
-    if (submitBtn && submitBtnText) {
+    if (submitBtn && submitBtnContent && submitBtnOrb) {
       submitBtn.disabled = true;
-      submitBtnText.textContent = 'Enviando...';
+      submitBtnContent.classList.add('hidden');
+      submitBtnOrb.classList.remove('hidden');
+      activeOrb = mountOrb(submitBtnOrb, { size: 20, color: '#0B0B0C', label: 'Enviando mensaje' });
     }
 
     try {
@@ -235,6 +247,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
       });
 
       const resData = await response.json();
+      activeOrb?.setState('resolving');
 
       if (!response.ok) {
         throw new Error(resData.error || 'Error al enviar el mensaje');
@@ -246,25 +259,34 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
       }
 
       form.reset();
-      if (submitBtnText) submitBtnText.textContent = 'Enviado con éxito ✓';
 
       setTimeout(() => {
         closeModal();
-        if (submitBtn && submitBtnText) {
+        activeOrb?.destroy();
+        activeOrb = null;
+        if (submitBtn && submitBtnContent && submitBtnOrb && submitBtnText) {
           submitBtn.disabled = false;
+          submitBtnOrb.classList.add('hidden');
+          submitBtnContent.classList.remove('hidden');
           submitBtnText.textContent = 'Enviar mensaje';
         }
-      }, 3000);
+      }, 1200);
 
     } catch (err: any) {
       if (feedback) {
         feedback.textContent = err.message || 'Ocurrió un error inesperado. Por favor inténtalo de nuevo.';
         feedback.className = 'p-4 rounded-xl text-sm font-sans bg-red-500/20 text-red-300 border border-red-500/30';
       }
-      if (submitBtn && submitBtnText) {
-        submitBtn.disabled = false;
-        submitBtnText.textContent = 'Reintentar envío';
-      }
+      setTimeout(() => {
+        activeOrb?.destroy();
+        activeOrb = null;
+        if (submitBtn && submitBtnContent && submitBtnOrb && submitBtnText) {
+          submitBtn.disabled = false;
+          submitBtnOrb.classList.add('hidden');
+          submitBtnContent.classList.remove('hidden');
+          submitBtnText.textContent = 'Reintentar envío';
+        }
+      }, 700);
     }
   });
 
@@ -274,5 +296,19 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
       e.preventDefault();
       window.openContactModal();
     });
+  });
+
+  // Any element opting in with [data-open-contact] opens the modal. Without this
+  // every such button on /launch was an inert no-op.
+  document.querySelectorAll('[data-open-contact]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.openContactModal();
+    });
+  });
+
+  // Close on Escape — the modal is a focus trap for keyboard users otherwise.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal?.classList.contains('pointer-events-none')) closeModal();
   });
 </script>

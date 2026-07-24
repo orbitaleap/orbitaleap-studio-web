@@ -6,12 +6,14 @@ interface Props {
   title: string;
   description?: string;
   lang?: string;
+  noindex?: boolean;
 }
 
-const { 
-  title, 
-  description = "Orbital Leap - Estudio de diseño y desarrollo digital. Creamos páginas web, plataformas y aplicaciones a medida.", 
-  lang = "es" 
+const {
+  title,
+  description = "Orbital Leap - Estudio de diseño y desarrollo digital. Creamos páginas web, plataformas y aplicaciones a medida.",
+  lang = "es",
+  noindex = false
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://orbitaleap.com");
@@ -26,6 +28,7 @@ const ogImage = new URL("/brand/ol_imagotipo-hw.svg", canonicalURL);
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="theme-color" content="#111111" />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
 
     <!-- Favicon & Icons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
