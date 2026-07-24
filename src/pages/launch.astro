@@ -11,15 +11,27 @@ const singleServices = [
 ];
 
 const combinedPacks = [
-  { name: 'Pack Emprendedor', sub: 'Logo + Web', desc: 'Todo lo necesario para arrancar con una imagen profesional desde el primer día.', priceSplit: '790€', priceUpfront: '630€', discount: '−20%', featured: false },
-  { name: 'Pack Marca & Web Pro', sub: 'Branding + Web Multipágina', desc: 'Identidad de marca completa y sitio web profesional con SEO inicial incluido.', priceSplit: '1.800€', priceUpfront: '1.350€', discount: '−25%', featured: true },
-  { name: 'Pack Plataforma / Tienda', sub: 'Marca + Ecommerce o App', desc: 'Diseño de marca y plataforma web con pasarela de pago o aplicación a medida.', priceSplit: '3.200€', priceUpfront: '2.240€', discount: '−30%', featured: false }
+  {
+    name: 'Pack Emprendedor', sub: 'Diseño de Logotipo y Desarrollo Web', desc: 'Todo lo necesario para arrancar con una imagen profesional desde el primer día.',
+    priceSplit: '750€', priceUpfront: '600€', discount: '−20%', featured: false,
+    features: ['Logo vectorial + paleta de colores', 'Web de 4-5 secciones adaptada a móvil', 'Formulario de contacto integrado'],
+  },
+  {
+    name: 'Pack Marca & Web Pro', sub: 'Branding + Web Multipágina', desc: 'Identidad de marca completa y sitio web profesional con SEO inicial incluido.',
+    priceSplit: '1.620€', priceUpfront: '1.215€', discount: '−25%', featured: true,
+    features: ['Identidad de marca completa + manual básico', 'Sitio web multipágina a medida', 'SEO inicial incluido', 'Versiones para redes sociales'],
+  },
+  {
+    name: 'Pack Plataforma / Tienda', sub: 'Marca + Ecommerce o App', desc: 'Diseño de marca y plataforma web con pasarela de pago o aplicación a medida.',
+    priceSplit: '2.880€', priceUpfront: '2.016€', discount: '−30%', featured: false,
+    features: ['Diseño de marca completo', 'Ecommerce o app a medida', 'Pasarela de pago integrada', 'Panel de administración'],
+  },
 ];
 
 const monthlyPlans = [
-  { name: 'Mantenimiento & Hosting', price: '49€', unit: '/ mes', annual: '390€ / año', discount: '−20%', detail: 'Hosting, copias de seguridad y 1h/mes de cambios menores.' },
-  { name: 'Partner Estudio', price: '690€', unit: '/ mes', annual: '6.200€ / año', discount: '−25%', detail: '3h/mes de soporte web, hasta 2 landings al mes y 8 piezas de diseño.' },
-  { name: 'Full Partner & Redes', price: '1.950€', unit: '/ mes', annual: '16.380€ / año', discount: '−30%', detail: 'Gestión de redes sociales + diseño y desarrollo ilimitados (1 tarea activa).' }
+  { name: 'Mantenimiento & Hosting', price: '49€', unit: '/ mes', annualFull: '588€', annual: '470€ / año', discount: '−20%', detail: 'Hosting, copias de seguridad y 1h/mes de cambios menores.' },
+  { name: 'Partner Estudio', price: '690€', unit: '/ mes', annualFull: '8.280€', annual: '6.200€ / año', discount: '−25%', detail: 'Soporte web, hasta 2 landings al mes, 8 piezas de diseño y SEO actualizado cada mes.' },
+  { name: 'Full Partner & Redes', price: '1.950€', unit: '/ mes', annualFull: '23.400€', annual: '16.380€ / año', discount: '−30%', detail: 'Gestión de redes sociales y SEO actualizado cada mes. Hasta 8 tareas de diseño o desarrollo al mes, pequeñas o medianas según nuestra estimación previa (1 activa a la vez).' }
 ];
 ---
 
@@ -37,26 +49,40 @@ const monthlyPlans = [
       .label-caps { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
 
       /* ── Buttons ── */
-      .btn-black   { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:#000;color:#fff;border:1.5px solid #000;border-radius:9999px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:background 0.18s,border-color 0.18s; }
+      .btn-black   { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:#000;color:#fff;border:1.5px solid #000;border-radius:8px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:background 0.18s,border-color 0.18s; }
       .btn-black:hover { background:#222;border-color:#222; }
-      .btn-outline { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:transparent;color:#000;border:1.5px solid rgba(0,0,0,0.22);border-radius:9999px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:border-color 0.18s,background 0.18s; }
+      .btn-outline { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:transparent;color:#000;border:1.5px solid rgba(0,0,0,0.22);border-radius:8px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:border-color 0.18s,background 0.18s; }
       .btn-outline:hover { border-color:rgba(0,0,0,0.45);background:rgba(0,0,0,0.03); }
-      .btn-white   { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:#fff;color:#000;border:1.5px solid #fff;border-radius:9999px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:background 0.18s,border-color 0.18s; }
+      .btn-white   { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:#fff;color:#000;border:1.5px solid #fff;border-radius:8px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:background 0.18s,border-color 0.18s; }
       .btn-white:hover  { background:#e8e8e8;border-color:#e8e8e8; }
-      .btn-outline-w { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,0.25);border-radius:9999px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:border-color 0.18s,background 0.18s; }
+      .btn-outline-w { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,0.25);border-radius:8px;padding:0.8rem 1.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:border-color 0.18s,background 0.18s; }
       .btn-outline-w:hover { border-color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.06); }
+
+      /* ── Card CTA: plain text link, no button box — a boxed CTA on every
+         single card read as generic "SaaS pricing template" ── */
+      .card-link-btn { background:none;border:none;padding:0;font-family:inherit;font-size:1.0625rem;font-weight:700;color:#fff;letter-spacing:0.01em;transition:color 0.18s; }
+      .card-link-btn:hover { color:rgba(255,255,255,0.7); }
 
       /* ── Fields ── */
       .field { width:100%;padding:0.875rem 1rem;border-radius:12px;border:1.5px solid rgba(0,0,0,0.11);background:#fff;font-family:inherit;font-size:0.875rem;color:#000;transition:border-color 0.18s,box-shadow 0.18s; }
       .field::placeholder { color:rgba(0,0,0,0.28); }
       .field:focus { outline:none;border-color:#000;box-shadow:0 0 0 3px rgba(0,0,0,0.05); }
 
-      /* ── Section stacking — rounded top cards ── */
+      /* ── Section stacking — rounded top cards ──
+         Radius scales with viewport: 72px reads huge on a narrow phone
+         (nearly 20% of the screen width), so it's smaller by default and
+         only goes big at md+ where there's room for it. */
       .stack-card {
         position: relative;
-        border-radius: 32px 32px 0 0;
-        margin-top: -32px;
+        border-radius: 36px 36px 0 0;
+        margin-top: -36px;
         z-index: 1;
+      }
+      @media (min-width: 768px) {
+        .stack-card {
+          border-radius: 72px 72px 0 0;
+          margin-top: -72px;
+        }
       }
       .stack-card + .stack-card { z-index: 2; }
       .stack-card + .stack-card + .stack-card { z-index: 3; }
@@ -64,37 +90,47 @@ const monthlyPlans = [
       /* ── Pricing rows (dark section) ── */
       .pricing-row { border-bottom:1px solid rgba(255,255,255,0.08);transition:background 0.15s; }
       .pricing-row:hover { background:rgba(255,255,255,0.02); }
+      .pricing-row:last-child { border-bottom:none; }
 
       /* ── Pack cards (dark section) ── */
-      .pack-card { border:1.5px solid rgba(255,255,255,0.1);border-radius:24px;background:rgba(255,255,255,0.03);transition:border-color 0.18s,background 0.18s; }
+      .pack-card { position:relative;border:1.5px solid rgba(255,255,255,0.1);border-radius:14px;background:rgba(255,255,255,0.03);transition:border-color 0.18s,background 0.18s;overflow:hidden; }
       .pack-card:hover { border-color:rgba(255,255,255,0.24);background:rgba(255,255,255,0.05); }
-      .pack-card-featured { border:2px solid #fff;background:rgba(255,255,255,0.05); }
+      .pack-card-featured { border:1.5px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.05); }
 
       /* ── Test card ── */
-      .test-card { border:1.5px solid rgba(0,0,0,0.1);border-radius:24px;background:#fff;transition:border-color 0.18s; }
+      .test-card { border:1.5px solid rgba(0,0,0,0.1);border-radius:14px;background:#fff;transition:border-color 0.18s; }
       .test-card:hover { border-color:rgba(0,0,0,0.28); }
 
       /* ── Form card ── */
-      .form-card  { border:1.5px solid rgba(0,0,0,0.09);border-radius:24px;background:#fff;overflow:hidden; }
+      .form-card  { border:1.5px solid rgba(0,0,0,0.09);border-radius:14px;background:#fff;overflow:hidden; }
 
-      /* ── Discount badge: only true when paying 100% upfront ── */
-      .discount-badge { display:inline-flex;align-items:center;gap:0.3em;background:rgba(45,212,191,0.12);color:#2dd4bf;border:1px solid rgba(45,212,191,0.35);border-radius:9999px;padding:0.2rem 0.65rem; }
+      /* ── Discount badge: monochrome outline, no filled colour ── */
+      .discount-badge { display:inline-flex;align-items:center;gap:0.3em;background:transparent;color:rgba(255,255,255,0.85);border:1px solid rgba(255,255,255,0.3);border-radius:9999px;padding:0.2rem 0.65rem; }
 
       /* ── Billing toggle: 2 Plazos / Pago único — drives every price below ── */
-      .billing-toggle-btn { font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.02em;color:rgba(255,255,255,0.55);background:transparent;border:none;border-radius:9999px;padding:0.6rem 1.25rem;cursor:pointer;display:inline-flex;align-items:center;transition:background 0.18s,color 0.18s; }
+      .billing-toggle-thumb { position:absolute;top:4px;bottom:4px;left:0;border-radius:9999px;background:#fff;transition:transform 0.3s cubic-bezier(0.65,0,0.35,1),width 0.3s cubic-bezier(0.65,0,0.35,1);z-index:0; }
+      .billing-toggle-btn { position:relative;z-index:1;height:2.75rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.02em;color:rgba(255,255,255,0.55);background:transparent;border:none;border-radius:9999px;padding:0 1.25rem;cursor:pointer;display:inline-flex;align-items:center;transition:color 0.18s; }
       .billing-toggle-btn:hover { color:rgba(255,255,255,0.85); }
-      .billing-toggle-btn.active { background:#fff;color:#000; }
+      .billing-toggle-btn.active { color:#000; }
       .billing-toggle-btn.active:hover { color:#000; }
-      /* the low-opacity teal fill reads fine on black but disappears on the
-         toggle's white active state — swap to a solid chip there */
-      .billing-toggle-btn.active .discount-badge { background:#0d9488;color:#fff;border-color:transparent; }
+      /* the white-on-transparent badge disappears on the toggle's white
+         active state — swap to a dark-outline variant there */
+      .billing-toggle-btn.active .discount-badge { color:rgba(0,0,0,0.7);border-color:rgba(0,0,0,0.3); }
 
       /* ── Price visibility: exactly one of these shows per row, driven by #pricing-content[data-billing] ── */
       #pricing-content[data-billing="split"] .price-full { display:none; }
       #pricing-content[data-billing="full"] .price-split { display:none; }
 
-      /* ── Ghost section numerals (dark section) ── */
-      .sec-num { font-size:clamp(4rem,12vw,8rem);font-weight:800;letter-spacing:-0.04em;line-height:0.88;color:rgba(255,255,255,0.055);user-select:none;pointer-events:none; }
+      /* ── Section numeral badge (dark section) ── */
+      .sec-num { position:relative;width:2.5rem;height:2.5rem;border-radius:9999px;border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+      .sec-num-beam { position:absolute;inset:-1px;border-radius:inherit;overflow:hidden; }
+      .sec-num-text {
+        position:relative;z-index:1;font-family:inherit;font-size:0.9375rem;font-weight:700;
+        -webkit-background-clip:text;background-clip:text;color:transparent;
+      }
+
+      /* ── Border beam: animated gradient outline for the recommended pack ── */
+      .border-beam-wrapper { position:absolute;inset:0;overflow:hidden;border-radius:inherit;pointer-events:none; }
 
       /* ── Parallax hero content ── */
       #hero-parallax { will-change: transform; }
@@ -126,7 +162,7 @@ const monthlyPlans = [
     <section id="hero-section" class="relative bg-[#F7F7F5] pt-32 pb-40 md:pt-44 md:pb-56 px-6 md:px-12 xl:px-20 overflow-hidden">
 
       <!-- Parallax content wrapper -->
-      <div id="hero-parallax" class="max-w-screen-xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+      <div id="hero-parallax" class="max-w-screen-xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
 
         <!-- Left -->
         <div class="lg:col-span-7 flex flex-col pt-2">
@@ -156,7 +192,7 @@ const monthlyPlans = [
               <span class="label-caps text-black/35 mt-1 block">Código tuyo</span>
             </div>
             <div>
-              <span class="font-sans text-3xl font-bold text-black block">−30%</span>
+              <span class="font-sans text-3xl font-bold text-black block">Hasta −30%</span>
               <span class="label-caps text-black/35 mt-1 block">Al pagar hoy</span>
             </div>
           </div>
@@ -224,37 +260,48 @@ const monthlyPlans = [
     <!-- ═══════════════════════════════════════
          PRICING — DARK CARD (stacked over hero)
     ═══════════════════════════════════════ -->
-    <section data-header-dark-zone class="stack-card bg-[#0A0A0A] py-20 md:py-28 px-6 md:px-12 xl:px-20">
+    <section data-header-dark-zone class="stack-card bg-[#0A0A0A] pt-24 md:pt-32 pb-[calc(6rem+36px)] md:pb-[calc(8rem+72px)] px-6 md:px-12 xl:px-20">
       <div id="pricing-content" data-billing="split" class="max-w-screen-xl mx-auto">
 
-        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-10">
-          <div>
-            <span class="label-caps text-white/55 block mb-3">Precios & Servicios</span>
-            <h2 class="display-sm text-white">Un precio.<br />Sin letra pequeña.</h2>
-          </div>
-          <p class="font-sans text-base text-white/70 font-light max-w-xs leading-relaxed">
-            El descuento solo aplica pagando todo de una vez.
-          </p>
+        <div class="mb-10">
+          <h2 class="display-sm text-white">Un precio.<br />Sin letra pequeña.</h2>
         </div>
 
         <!-- Billing toggle — controls every price below -->
-        <div id="billing-toggle" class="inline-flex items-center gap-1 p-1 rounded-full border border-white/15 bg-white/5 mb-16" role="tablist" aria-label="Forma de pago">
+        <div id="billing-toggle" class="relative inline-flex items-center gap-1 p-1 rounded-full border border-white/15 bg-white/5 mb-3" role="tablist" aria-label="Forma de pago">
+          <span id="billing-toggle-thumb" class="billing-toggle-thumb" aria-hidden="true"></span>
           <button type="button" data-billing-option="split" role="tab" aria-selected="true" class="billing-toggle-btn active">2 Plazos</button>
           <button type="button" data-billing-option="full" role="tab" aria-selected="false" class="billing-toggle-btn">
-            Pago único <span class="discount-badge label-caps ml-1">Ahorra hasta 30%</span>
+            Pago único <span class="discount-badge label-caps ml-1">Hasta 30% Dto</span>
           </button>
         </div>
+        <p class="font-sans text-base text-white/80 font-medium flex items-center gap-2 mb-12 md:mb-16">
+          <Icon name="ph:info-bold" class="w-4 h-4 text-white/50 shrink-0" />
+          Precios sin IVA. Se añade el 21% en el presupuesto final.
+        </p>
 
         <!-- 01 -->
-        <div class="mb-16">
-          <div class="flex items-end gap-5 mb-8 pb-5 border-b border-white/[0.08]">
-            <span class="sec-num" aria-hidden="true">01</span>
-            <div class="pb-2">
-              <h3 class="font-sans text-xl font-bold text-white tracking-tight">A la carta</h3>
+        <div class="mb-12 md:mb-16">
+          <div class="flex items-center gap-4 mb-8 pb-5 border-b border-white/[0.08]">
+            <span class="sec-num" aria-hidden="true">
+              <svg class="sec-num-beam" viewBox="0 0 40 40" fill="none">
+                <circle cx="20" cy="20" r="19" pathLength="1000" stroke="url(#sec-num-gradient-01)" stroke-width="2" class="magic-border-beam-svg" />
+                <defs>
+                  <linearGradient id="sec-num-gradient-01" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#2dd4bf" stop-opacity="1" />
+                    <stop offset="50%" stop-color="#3b82f6" stop-opacity="0.9" />
+                    <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <span class="sec-num-text" style="background:linear-gradient(90deg,#2dd4bf 0%,#3b82f6 100%);-webkit-background-clip:text;background-clip:text;">01</span>
+            </span>
+            <div>
+              <h3 class="font-sans text-xl font-bold text-white tracking-tight">Servicios individuales</h3>
               <p class="font-sans text-base text-white/65 font-light">Empieza solo con lo que necesitas ahora mismo.</p>
             </div>
           </div>
-          <div class="border-t border-white/[0.08]">
+          <div>
             {singleServices.map((s) => (
               <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-6 px-2">
                 <div>
@@ -270,7 +317,7 @@ const monthlyPlans = [
                     <span class="discount-badge label-caps mb-1">{s.discount} pago único</span>
                     <span class="flex items-baseline justify-end gap-2">
                       <span class="font-sans text-base text-white/35 line-through">{s.priceSplit}</span>
-                      <span class="font-sans text-2xl font-bold text-[#2dd4bf]">{s.priceUpfront}</span>
+                      <span class="font-sans text-2xl font-bold text-white">{s.priceUpfront}</span>
                     </span>
                   </span>
                 </div>
@@ -280,15 +327,127 @@ const monthlyPlans = [
         </div>
 
         <!-- 02 -->
-        <div class="mb-16">
-          <div class="flex items-end gap-5 mb-8 pb-5 border-b border-white/[0.08]">
-            <span class="sec-num" aria-hidden="true">02</span>
-            <div class="pb-2">
+        <div class="mb-12 md:mb-16">
+          <div class="flex items-center gap-4 mb-8 pb-5 border-b border-white/[0.08]">
+            <span class="sec-num" aria-hidden="true">
+              <svg class="sec-num-beam" viewBox="0 0 40 40" fill="none">
+                <circle cx="20" cy="20" r="19" pathLength="1000" stroke="url(#sec-num-gradient-02)" stroke-width="2" class="magic-border-beam-svg" />
+                <defs>
+                  <linearGradient id="sec-num-gradient-02" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#a855f7" stop-opacity="1" />
+                    <stop offset="50%" stop-color="#ec4899" stop-opacity="0.9" />
+                    <stop offset="100%" stop-color="#a855f7" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <span class="sec-num-text" style="background:linear-gradient(90deg,#a855f7 0%,#ec4899 100%);-webkit-background-clip:text;background-clip:text;">02</span>
+            </span>
+            <div>
+              <h3 class="font-sans text-xl font-bold text-white tracking-tight">Complementos</h3>
+              <p class="font-sans text-base text-white/65 font-light">Horas sueltas y asesoramiento cuando lo necesites, sin atarte a un plan.</p>
+            </div>
+          </div>
+          <div>
+            <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-6 px-2">
+              <div>
+                <h4 class="font-sans text-base font-bold text-white tracking-tight">Horas de Desarrollo</h4>
+                <p class="font-sans text-base text-white/65 font-light mt-0.5 max-w-sm">Bloques de horas sueltas para cambios, mejoras o soporte puntual fuera de un plan mensual.</p>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="font-sans text-2xl font-bold text-white">45€</span>
+                <span class="label-caps text-white/50 block">/ hora</span>
+              </div>
+            </div>
+            <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-6 px-2">
+              <div>
+                <h4 class="font-sans text-base font-bold text-white tracking-tight">Redacción de Contenidos</h4>
+                <p class="font-sans text-base text-white/65 font-light mt-0.5 max-w-sm">Textos escritos a medida para cada página, pensados para captar clientes.</p>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="font-sans text-2xl font-bold text-white">60€</span>
+                <span class="label-caps text-white/50 block">/ página</span>
+              </div>
+            </div>
+            <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-6 px-2">
+              <div>
+                <h4 class="font-sans text-base font-bold text-white tracking-tight">Auditoría SEO</h4>
+                <p class="font-sans text-base text-white/65 font-light mt-0.5 max-w-sm">Informe con los cambios concretos para mejorar tu posicionamiento en buscadores.</p>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="font-sans text-2xl font-bold text-white">150€</span>
+              </div>
+            </div>
+            <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-6 px-2">
+              <div>
+                <h4 class="font-sans text-base font-bold text-white tracking-tight">SEO para tu Web</h4>
+                <p class="font-sans text-base text-white/65 font-light mt-0.5 max-w-sm">Optimizamos tu web actual para buscadores: metadatos, velocidad y estructura. ¿Quieres que se mantenga actualizado cada mes? Está incluido en Partner Estudio y Full Partner & Redes.</p>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="font-sans text-2xl font-bold text-white">300€</span>
+              </div>
+            </div>
+            <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-6 px-2">
+              <div>
+                <h4 class="font-sans text-base font-bold text-white tracking-tight">Migración de Web Existente</h4>
+                <p class="font-sans text-base text-white/65 font-light mt-0.5 max-w-sm">Trasladamos tu contenido y dominio actual a la nueva web sin perder nada por el camino.</p>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="font-sans text-2xl font-bold text-white">200€</span>
+              </div>
+            </div>
+            <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-6 px-2">
+              <div>
+                <h4 class="font-sans text-base font-bold text-white tracking-tight">Gestión de Redes Sociales</h4>
+                <p class="font-sans text-base text-white/65 font-light mt-0.5 max-w-sm">Publicaciones y calendario de contenido para tus redes, sin comprometerte a un plan completo.</p>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="font-sans text-2xl font-bold text-white">250€</span>
+                <span class="label-caps text-white/50 block">/ mes</span>
+              </div>
+            </div>
+            <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-6 px-2">
+              <div>
+                <h4 class="font-sans text-base font-bold text-white tracking-tight">Consultoría Estratégica</h4>
+                <p class="font-sans text-base text-white/65 font-light mt-0.5 max-w-sm">Sesión de asesoramiento a medida sobre tu proyecto, estrategia digital o stack tecnológico.</p>
+              </div>
+              <div class="shrink-0">
+                <button type="button" data-open-contact class="btn-outline-w cursor-pointer">Pedir Presupuesto →</button>
+              </div>
+            </div>
+            <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-6 px-2">
+              <div>
+                <h4 class="font-sans text-base font-bold text-white tracking-tight">Consultoría IA</h4>
+                <p class="font-sans text-base text-white/65 font-light mt-0.5 max-w-sm">Asesoramiento sobre cómo integrar inteligencia artificial en tu negocio: automatización, atención al cliente o flujos de trabajo.</p>
+              </div>
+              <div class="shrink-0">
+                <button type="button" data-open-contact class="btn-outline-w cursor-pointer">Pedir Presupuesto →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 03 -->
+        <div class="mb-12 md:mb-16">
+          <div class="flex items-center gap-4 mb-8 pb-5 border-b border-white/[0.08]">
+            <span class="sec-num" aria-hidden="true">
+              <svg class="sec-num-beam" viewBox="0 0 40 40" fill="none">
+                <circle cx="20" cy="20" r="19" pathLength="1000" stroke="url(#sec-num-gradient-03)" stroke-width="2" class="magic-border-beam-svg" />
+                <defs>
+                  <linearGradient id="sec-num-gradient-03" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="1" />
+                    <stop offset="50%" stop-color="#818cf8" stop-opacity="0.9" />
+                    <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <span class="sec-num-text" style="background:linear-gradient(90deg,#38bdf8 0%,#818cf8 100%);-webkit-background-clip:text;background-clip:text;">03</span>
+            </span>
+            <div>
               <h3 class="font-sans text-xl font-bold text-white tracking-tight">Servicios mensuales</h3>
               <p class="font-sans text-base text-white/65 font-light">Tu equipo de diseño y desarrollo de confianza, mes a mes.</p>
             </div>
           </div>
-          <div class="border-t border-white/[0.08]">
+          <div>
             {monthlyPlans.map((plan) => (
               <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-7 px-2">
                 <div>
@@ -302,7 +461,10 @@ const monthlyPlans = [
                   </span>
                   <span class="price-full">
                     <span class="discount-badge label-caps mb-1">{plan.discount} pago único</span>
-                    <span class="font-sans text-xl font-bold text-[#2dd4bf] block">{plan.annual}</span>
+                    <span class="flex items-baseline justify-end gap-2">
+                      <span class="font-sans text-base text-white/35 line-through">{plan.annualFull}</span>
+                      <span class="font-sans text-xl font-bold text-white">{plan.annual}</span>
+                    </span>
                   </span>
                 </div>
               </div>
@@ -310,24 +472,59 @@ const monthlyPlans = [
           </div>
         </div>
 
-        <!-- 03 -->
+        <!-- 04 -->
         <div>
-          <div class="flex items-end gap-5 mb-8 pb-5 border-b border-white/[0.08]">
-            <span class="sec-num" aria-hidden="true">03</span>
-            <div class="pb-2">
+          <div class="flex items-center gap-4 mb-8 pb-5 border-b border-white/[0.08]">
+            <span class="sec-num" aria-hidden="true">
+              <svg class="sec-num-beam" viewBox="0 0 40 40" fill="none">
+                <circle cx="20" cy="20" r="19" pathLength="1000" stroke="url(#sec-num-gradient-04)" stroke-width="2" class="magic-border-beam-svg" />
+                <defs>
+                  <linearGradient id="sec-num-gradient-04" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#f43f5e" stop-opacity="1" />
+                    <stop offset="50%" stop-color="#fb923c" stop-opacity="0.9" />
+                    <stop offset="100%" stop-color="#f43f5e" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <span class="sec-num-text" style="background:linear-gradient(90deg,#f43f5e 0%,#fb923c 100%);-webkit-background-clip:text;background-clip:text;">04</span>
+            </span>
+            <div>
               <h3 class="font-sans text-xl font-bold text-white tracking-tight">Packs todo incluido</h3>
               <p class="font-sans text-base text-white/65 font-light">Marca y web en un proyecto. Más cohesión, más ahorro.</p>
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
             {combinedPacks.map((pack) => (
-              <div class={`p-7 flex flex-col justify-between ${pack.featured ? 'pack-card pack-card-featured' : 'pack-card'}`}>
-                <div>
+              <div class={`relative p-7 flex flex-col justify-between ${pack.featured ? 'pack-card pack-card-featured' : 'pack-card'}`}>
+                {pack.featured && (
+                  <div class="border-beam-wrapper">
+                    <svg class="w-full h-full" fill="none">
+                      <rect width="100%" height="100%" rx="14" pathLength="1000" stroke="url(#pack-featured-gradient)" stroke-width="2.5" class="magic-border-beam-svg" />
+                      <defs>
+                        <linearGradient id="pack-featured-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stop-color="#ffffff" stop-opacity="1" />
+                          <stop offset="40%" stop-color="#2dd4bf" stop-opacity="0.9" />
+                          <stop offset="70%" stop-color="#3b82f6" stop-opacity="0.75" />
+                          <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.4" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </div>
+                )}
+                <div class="relative">
                   <span class="label-caps text-white/55 block mb-2">{pack.sub}</span>
                   <h4 class="font-sans text-lg font-bold text-white tracking-tight mb-2">{pack.name}</h4>
-                  <p class="font-sans text-base text-white/70 font-light leading-relaxed">{pack.desc}</p>
+                  <p class="font-sans text-base text-white/70 font-light leading-relaxed mb-4">{pack.desc}</p>
+                  <ul class="flex flex-col gap-2">
+                    {pack.features.map((f) => (
+                      <li class="flex items-start gap-2 font-sans text-sm text-white/70 font-light">
+                        <Icon name="ph:check-bold" class="w-4 h-4 text-white/40 shrink-0 mt-0.5" />
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <div class="mt-6 pt-5 border-t border-white/[0.08]">
+                <div class="relative mt-6 pt-5 border-t border-white/[0.08]">
                   <span class="price-split block mb-5">
                     <span class="label-caps text-white/50 block mb-1">2 plazos</span>
                     <span class="font-sans text-3xl font-bold text-white">{pack.priceSplit}</span>
@@ -336,12 +533,14 @@ const monthlyPlans = [
                     <span class="discount-badge label-caps mb-1">{pack.discount} pago único</span>
                     <span class="flex items-baseline gap-2">
                       <span class="font-sans text-base text-white/35 line-through">{pack.priceSplit}</span>
-                      <span class="font-sans text-3xl font-bold text-[#2dd4bf]">{pack.priceUpfront}</span>
+                      <span class="font-sans text-3xl font-bold text-white">{pack.priceUpfront}</span>
                     </span>
                   </span>
-                  <button type="button" data-open-contact class={`w-full cursor-pointer ${pack.featured ? 'btn-white' : 'btn-outline-w'}`}>
-                    Contratar →
-                  </button>
+                  <div class="pt-4 text-right">
+                    <button type="button" data-open-contact class="card-link-btn cursor-pointer">
+                      Contratar →
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -354,7 +553,7 @@ const monthlyPlans = [
     <!-- ═══════════════════════════════════════
          CLOSING CTA — DARK CARD (stacked over pricing)
     ═══════════════════════════════════════ -->
-    <section class="stack-card bg-[#F7F7F5] pt-20 md:pt-28 pb-20 md:pb-28 px-6 md:px-12 xl:px-20">
+    <section class="stack-card bg-[#F7F7F5] pt-24 md:pt-32 pb-24 md:pb-32 px-6 md:px-12 xl:px-20">
       <div class="max-w-screen-xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-10">
         <div>
           <span class="label-caps text-black/40 block mb-4">Orbital Leap Studio</span>
@@ -372,7 +571,7 @@ const monthlyPlans = [
 
     <!-- Footer is its own full-bleed band, not nested inside the CTA
          section's padded container, so its dark background spans edge-to-edge -->
-    <Footer compact />
+    <Footer compact light />
 
     <ContactModal />
   </main>
@@ -450,12 +649,23 @@ const monthlyPlans = [
   // ── Billing toggle: 2 Plazos / Pago único ──
   const pricingContent = document.getElementById('pricing-content');
   const billingToggle = document.getElementById('billing-toggle');
+  const billingThumb = document.getElementById('billing-toggle-thumb') as HTMLElement | null;
+
+  function moveBillingThumb(btn: HTMLElement) {
+    if (!billingThumb) return;
+    billingThumb.style.width = `${btn.offsetWidth}px`;
+    billingThumb.style.transform = `translateX(${btn.offsetLeft}px)`;
+  }
+
+  const initialBillingBtn = billingToggle?.querySelector('.billing-toggle-btn.active') as HTMLElement | null;
+  if (initialBillingBtn) moveBillingThumb(initialBillingBtn);
 
   billingToggle?.addEventListener('click', (e) => {
     const btn = (e.target as HTMLElement).closest('[data-billing-option]') as HTMLElement | null;
     if (!btn || !pricingContent) return;
     const mode = btn.dataset.billingOption;
     pricingContent.setAttribute('data-billing', mode ?? 'split');
+    moveBillingThumb(btn);
     billingToggle.querySelectorAll('[data-billing-option]').forEach((b) => {
       const isActive = b === btn;
       b.classList.toggle('active', isActive);

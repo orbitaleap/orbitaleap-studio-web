@@ -6,7 +6,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
 <div id="contact-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-10 opacity-0 pointer-events-none transition-all duration-500 bg-black/80 backdrop-blur-2xl">
   
   <!-- Modal Card Container -->
-  <div class="relative w-full max-w-2xl bg-[#161616] border border-white/15 rounded-3xl p-6 sm:p-10 text-white shadow-2xl overflow-hidden transform scale-95 transition-all duration-500 max-h-[90vh] overflow-y-auto" id="contact-modal-card">
+  <div class="relative w-full max-w-2xl bg-[#161616] border border-white/15 rounded-2xl p-6 sm:p-10 text-white shadow-2xl overflow-hidden transform scale-95 transition-all duration-500 max-h-[90vh] overflow-y-auto" id="contact-modal-card">
     
     <!-- Top Corner Close Button -->
     <button type="button" id="close-modal-btn" aria-label="Cerrar formulario" class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-white/70 hover:text-white transition-all cursor-pointer">
@@ -24,6 +24,9 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
       <p class="font-sans text-white/60 font-light text-sm sm:text-base mt-2">
         Cuéntanos qué necesitas construir. Te responderemos en menos de 24 horas.
       </p>
+      <a href="/test-autodiagnostico" class="font-sans text-sm text-white/50 mt-3 inline-block underline underline-offset-2 hover:text-white/80 transition-colors">
+        ¿No sabes qué necesitas? Haz nuestro test gratuito de 2 minutos →
+      </a>
     </div>
 
     <!-- Contact Form -->
@@ -44,7 +47,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
             name="name" 
             required 
             placeholder="Ej. Ana Martínez" 
-            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors" 
+            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors" 
           />
         </div>
 
@@ -57,7 +60,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
             name="email" 
             required 
             placeholder="ana@ejemplo.com" 
-            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors" 
+            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors" 
           />
         </div>
 
@@ -69,7 +72,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
             id="company" 
             name="company" 
             placeholder="Particular, startup o empresa" 
-            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors" 
+            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors" 
           />
         </div>
 
@@ -82,7 +85,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
             name="phone" 
             required 
             placeholder="+34 600 000 000" 
-            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors" 
+            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors" 
           />
         </div>
       </div>
@@ -99,7 +102,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
           rows="4" 
           required 
           placeholder="Describe brevemente tus objetivos, alcance o plazos aproximados..." 
-          class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors resize-none"
+          class="w-full bg-white/5 border border-white/10 rounded-lg p-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors resize-none"
         ></textarea>
       </div>
 
@@ -123,13 +126,13 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
       </div>
 
       <!-- Feedback Banner -->
-      <div id="form-feedback" class="hidden p-4 rounded-xl text-sm font-sans"></div>
+      <div id="form-feedback" class="hidden p-4 rounded-lg text-sm font-sans"></div>
 
       <!-- Submit Button -->
       <button
         type="submit"
         id="submit-form-btn"
-        class="w-full bg-white text-black font-medium py-4 px-8 rounded-xl uppercase tracking-wider text-xs transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] flex items-center justify-center gap-2 cursor-pointer mt-2"
+        class="w-full bg-white text-black font-medium py-4 px-8 rounded-lg uppercase tracking-wider text-xs transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] flex items-center justify-center gap-2 cursor-pointer mt-2"
       >
         <span id="submit-btn-content" class="inline-flex items-center gap-2">
           <span id="submit-btn-text">Enviar mensaje</span>
@@ -255,7 +258,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
 
       if (feedback) {
         feedback.textContent = '¡Mensaje enviado con éxito! Nos pondremos en contacto contigo en menos de 24 horas.';
-        feedback.className = 'p-4 rounded-xl text-sm font-sans bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+        feedback.className = 'p-4 rounded-lg text-sm font-sans bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
       }
 
       form.reset();
@@ -275,7 +278,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
     } catch (err: any) {
       if (feedback) {
         feedback.textContent = err.message || 'Ocurrió un error inesperado. Por favor inténtalo de nuevo.';
-        feedback.className = 'p-4 rounded-xl text-sm font-sans bg-red-500/20 text-red-300 border border-red-500/30';
+        feedback.className = 'p-4 rounded-lg text-sm font-sans bg-red-500/20 text-red-300 border border-red-500/30';
       }
       setTimeout(() => {
         activeOrb?.destroy();
