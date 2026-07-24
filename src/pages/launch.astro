@@ -54,8 +54,8 @@ const monthlyPlans = [
       /* ── Section stacking — rounded top cards ── */
       .stack-card {
         position: relative;
-        border-radius: 32px 32px 0 0;
-        margin-top: -32px;
+        border-radius: 48px 48px 0 0;
+        margin-top: -48px;
         z-index: 1;
       }
       .stack-card + .stack-card { z-index: 2; }
@@ -64,37 +64,41 @@ const monthlyPlans = [
       /* ── Pricing rows (dark section) ── */
       .pricing-row { border-bottom:1px solid rgba(255,255,255,0.08);transition:background 0.15s; }
       .pricing-row:hover { background:rgba(255,255,255,0.02); }
+      .pricing-row:last-child { border-bottom:none; }
 
       /* ── Pack cards (dark section) ── */
-      .pack-card { border:1.5px solid rgba(255,255,255,0.1);border-radius:24px;background:rgba(255,255,255,0.03);transition:border-color 0.18s,background 0.18s; }
+      .pack-card { position:relative;border:1.5px solid rgba(255,255,255,0.1);border-radius:28px;background:rgba(255,255,255,0.03);transition:border-color 0.18s,background 0.18s;overflow:hidden; }
       .pack-card:hover { border-color:rgba(255,255,255,0.24);background:rgba(255,255,255,0.05); }
-      .pack-card-featured { border:2px solid #fff;background:rgba(255,255,255,0.05); }
+      .pack-card-featured { border:1.5px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.05); }
 
       /* ── Test card ── */
-      .test-card { border:1.5px solid rgba(0,0,0,0.1);border-radius:24px;background:#fff;transition:border-color 0.18s; }
+      .test-card { border:1.5px solid rgba(0,0,0,0.1);border-radius:28px;background:#fff;transition:border-color 0.18s; }
       .test-card:hover { border-color:rgba(0,0,0,0.28); }
 
       /* ── Form card ── */
-      .form-card  { border:1.5px solid rgba(0,0,0,0.09);border-radius:24px;background:#fff;overflow:hidden; }
+      .form-card  { border:1.5px solid rgba(0,0,0,0.09);border-radius:28px;background:#fff;overflow:hidden; }
 
-      /* ── Discount badge: only true when paying 100% upfront ── */
-      .discount-badge { display:inline-flex;align-items:center;gap:0.3em;background:rgba(45,212,191,0.12);color:#2dd4bf;border:1px solid rgba(45,212,191,0.35);border-radius:9999px;padding:0.2rem 0.65rem; }
+      /* ── Discount badge: monochrome outline, no filled colour ── */
+      .discount-badge { display:inline-flex;align-items:center;gap:0.3em;background:transparent;color:rgba(255,255,255,0.85);border:1px solid rgba(255,255,255,0.3);border-radius:9999px;padding:0.2rem 0.65rem; }
 
       /* ── Billing toggle: 2 Plazos / Pago único — drives every price below ── */
       .billing-toggle-btn { font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.02em;color:rgba(255,255,255,0.55);background:transparent;border:none;border-radius:9999px;padding:0.6rem 1.25rem;cursor:pointer;display:inline-flex;align-items:center;transition:background 0.18s,color 0.18s; }
       .billing-toggle-btn:hover { color:rgba(255,255,255,0.85); }
       .billing-toggle-btn.active { background:#fff;color:#000; }
       .billing-toggle-btn.active:hover { color:#000; }
-      /* the low-opacity teal fill reads fine on black but disappears on the
-         toggle's white active state — swap to a solid chip there */
-      .billing-toggle-btn.active .discount-badge { background:#0d9488;color:#fff;border-color:transparent; }
+      /* the white-on-transparent badge disappears on the toggle's white
+         active state — swap to a dark-outline variant there */
+      .billing-toggle-btn.active .discount-badge { color:rgba(0,0,0,0.7);border-color:rgba(0,0,0,0.3); }
 
       /* ── Price visibility: exactly one of these shows per row, driven by #pricing-content[data-billing] ── */
       #pricing-content[data-billing="split"] .price-full { display:none; }
       #pricing-content[data-billing="full"] .price-split { display:none; }
 
-      /* ── Ghost section numerals (dark section) ── */
-      .sec-num { font-size:clamp(4rem,12vw,8rem);font-weight:800;letter-spacing:-0.04em;line-height:0.88;color:rgba(255,255,255,0.055);user-select:none;pointer-events:none; }
+      /* ── Section numeral badge (dark section) ── */
+      .sec-num { width:2.5rem;height:2.5rem;border-radius:9999px;border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-family:inherit;font-size:0.9375rem;font-weight:700;color:rgba(255,255,255,0.7);flex-shrink:0; }
+
+      /* ── Border beam: animated gradient outline for the recommended pack ── */
+      .border-beam-wrapper { position:absolute;inset:0;overflow:hidden;border-radius:inherit;pointer-events:none; }
 
       /* ── Parallax hero content ── */
       #hero-parallax { will-change: transform; }
@@ -227,14 +231,9 @@ const monthlyPlans = [
     <section data-header-dark-zone class="stack-card bg-[#0A0A0A] py-20 md:py-28 px-6 md:px-12 xl:px-20">
       <div id="pricing-content" data-billing="split" class="max-w-screen-xl mx-auto">
 
-        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-10">
-          <div>
-            <span class="label-caps text-white/55 block mb-3">Precios & Servicios</span>
-            <h2 class="display-sm text-white">Un precio.<br />Sin letra pequeña.</h2>
-          </div>
-          <p class="font-sans text-base text-white/70 font-light max-w-xs leading-relaxed">
-            El descuento solo aplica pagando todo de una vez.
-          </p>
+        <div class="mb-10">
+          <span class="label-caps text-white/55 block mb-3">Precios & Servicios</span>
+          <h2 class="display-sm text-white">Un precio.<br />Sin letra pequeña.</h2>
         </div>
 
         <!-- Billing toggle — controls every price below -->
@@ -247,14 +246,14 @@ const monthlyPlans = [
 
         <!-- 01 -->
         <div class="mb-16">
-          <div class="flex items-end gap-5 mb-8 pb-5 border-b border-white/[0.08]">
+          <div class="flex items-center gap-4 mb-8 pb-5 border-b border-white/[0.08]">
             <span class="sec-num" aria-hidden="true">01</span>
-            <div class="pb-2">
-              <h3 class="font-sans text-xl font-bold text-white tracking-tight">A la carta</h3>
+            <div>
+              <h3 class="font-sans text-xl font-bold text-white tracking-tight">Servicios individuales</h3>
               <p class="font-sans text-base text-white/65 font-light">Empieza solo con lo que necesitas ahora mismo.</p>
             </div>
           </div>
-          <div class="border-t border-white/[0.08]">
+          <div>
             {singleServices.map((s) => (
               <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-6 px-2">
                 <div>
@@ -270,7 +269,7 @@ const monthlyPlans = [
                     <span class="discount-badge label-caps mb-1">{s.discount} pago único</span>
                     <span class="flex items-baseline justify-end gap-2">
                       <span class="font-sans text-base text-white/35 line-through">{s.priceSplit}</span>
-                      <span class="font-sans text-2xl font-bold text-[#2dd4bf]">{s.priceUpfront}</span>
+                      <span class="font-sans text-2xl font-bold text-white">{s.priceUpfront}</span>
                     </span>
                   </span>
                 </div>
@@ -281,14 +280,46 @@ const monthlyPlans = [
 
         <!-- 02 -->
         <div class="mb-16">
-          <div class="flex items-end gap-5 mb-8 pb-5 border-b border-white/[0.08]">
+          <div class="flex items-center gap-4 mb-8 pb-5 border-b border-white/[0.08]">
             <span class="sec-num" aria-hidden="true">02</span>
-            <div class="pb-2">
+            <div>
+              <h3 class="font-sans text-xl font-bold text-white tracking-tight">Complementos</h3>
+              <p class="font-sans text-base text-white/65 font-light">Horas sueltas y asesoramiento cuando lo necesites, sin atarte a un plan.</p>
+            </div>
+          </div>
+          <div>
+            <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-6 px-2">
+              <div>
+                <h4 class="font-sans text-base font-bold text-white tracking-tight">Horas de Desarrollo</h4>
+                <p class="font-sans text-base text-white/65 font-light mt-0.5 max-w-sm">Bloques de horas sueltas para cambios, mejoras o soporte puntual fuera de un plan mensual.</p>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="font-sans text-2xl font-bold text-white">45€</span>
+                <span class="label-caps text-white/50 block">/ hora</span>
+              </div>
+            </div>
+            <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-6 px-2">
+              <div>
+                <h4 class="font-sans text-base font-bold text-white tracking-tight">Consultoría Estratégica</h4>
+                <p class="font-sans text-base text-white/65 font-light mt-0.5 max-w-sm">Sesión de asesoramiento a medida sobre tu proyecto, estrategia digital o stack tecnológico.</p>
+              </div>
+              <div class="shrink-0">
+                <button type="button" data-open-contact class="btn-outline-w cursor-pointer">Pedir Presupuesto →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 03 -->
+        <div class="mb-16">
+          <div class="flex items-center gap-4 mb-8 pb-5 border-b border-white/[0.08]">
+            <span class="sec-num" aria-hidden="true">03</span>
+            <div>
               <h3 class="font-sans text-xl font-bold text-white tracking-tight">Servicios mensuales</h3>
               <p class="font-sans text-base text-white/65 font-light">Tu equipo de diseño y desarrollo de confianza, mes a mes.</p>
             </div>
           </div>
-          <div class="border-t border-white/[0.08]">
+          <div>
             {monthlyPlans.map((plan) => (
               <div class="pricing-row flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-7 px-2">
                 <div>
@@ -302,7 +333,7 @@ const monthlyPlans = [
                   </span>
                   <span class="price-full">
                     <span class="discount-badge label-caps mb-1">{plan.discount} pago único</span>
-                    <span class="font-sans text-xl font-bold text-[#2dd4bf] block">{plan.annual}</span>
+                    <span class="font-sans text-xl font-bold text-white block">{plan.annual}</span>
                   </span>
                 </div>
               </div>
@@ -310,24 +341,39 @@ const monthlyPlans = [
           </div>
         </div>
 
-        <!-- 03 -->
+        <!-- 04 -->
         <div>
-          <div class="flex items-end gap-5 mb-8 pb-5 border-b border-white/[0.08]">
-            <span class="sec-num" aria-hidden="true">03</span>
-            <div class="pb-2">
+          <div class="flex items-center gap-4 mb-8 pb-5 border-b border-white/[0.08]">
+            <span class="sec-num" aria-hidden="true">04</span>
+            <div>
               <h3 class="font-sans text-xl font-bold text-white tracking-tight">Packs todo incluido</h3>
               <p class="font-sans text-base text-white/65 font-light">Marca y web en un proyecto. Más cohesión, más ahorro.</p>
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
             {combinedPacks.map((pack) => (
-              <div class={`p-7 flex flex-col justify-between ${pack.featured ? 'pack-card pack-card-featured' : 'pack-card'}`}>
-                <div>
+              <div class={`relative p-7 flex flex-col justify-between ${pack.featured ? 'pack-card pack-card-featured' : 'pack-card'}`}>
+                {pack.featured && (
+                  <div class="border-beam-wrapper">
+                    <svg class="w-full h-full" fill="none">
+                      <rect width="100%" height="100%" rx="28" pathLength="1000" stroke="url(#pack-featured-gradient)" stroke-width="2.5" class="magic-border-beam-svg" />
+                      <defs>
+                        <linearGradient id="pack-featured-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stop-color="#ffffff" stop-opacity="1" />
+                          <stop offset="40%" stop-color="#2dd4bf" stop-opacity="0.9" />
+                          <stop offset="70%" stop-color="#3b82f6" stop-opacity="0.7" />
+                          <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </div>
+                )}
+                <div class="relative">
                   <span class="label-caps text-white/55 block mb-2">{pack.sub}</span>
                   <h4 class="font-sans text-lg font-bold text-white tracking-tight mb-2">{pack.name}</h4>
                   <p class="font-sans text-base text-white/70 font-light leading-relaxed">{pack.desc}</p>
                 </div>
-                <div class="mt-6 pt-5 border-t border-white/[0.08]">
+                <div class="relative mt-6 pt-5 border-t border-white/[0.08]">
                   <span class="price-split block mb-5">
                     <span class="label-caps text-white/50 block mb-1">2 plazos</span>
                     <span class="font-sans text-3xl font-bold text-white">{pack.priceSplit}</span>
@@ -336,7 +382,7 @@ const monthlyPlans = [
                     <span class="discount-badge label-caps mb-1">{pack.discount} pago único</span>
                     <span class="flex items-baseline gap-2">
                       <span class="font-sans text-base text-white/35 line-through">{pack.priceSplit}</span>
-                      <span class="font-sans text-3xl font-bold text-[#2dd4bf]">{pack.priceUpfront}</span>
+                      <span class="font-sans text-3xl font-bold text-white">{pack.priceUpfront}</span>
                     </span>
                   </span>
                   <button type="button" data-open-contact class={`w-full cursor-pointer ${pack.featured ? 'btn-white' : 'btn-outline-w'}`}>
