@@ -1,0 +1,82 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Layout
+  title="Aviso Legal | Orbital Leap Studio"
+  description="Información legal de Orbital Leap Technologies, S.L. conforme a la Ley 34/2002 (LSSI-CE)."
+>
+  <main class="bg-[#F7F7F5] min-h-screen">
+
+    <header class="px-6 md:px-12 py-5 border-b border-black/[0.06] bg-[#F7F7F5]/90 backdrop-blur-xl">
+      <nav class="max-w-screen-lg mx-auto flex items-center justify-between">
+        <a href="/"><img src="/brand/ol_imagotipo-k.svg" alt="Orbital Leap" width="165" height="28" class="h-7 w-auto" /></a>
+        <a href="/" class="font-sans text-xs text-black/60 hover:text-black transition-colors">← Volver</a>
+      </nav>
+    </header>
+
+    <article class="max-w-screen-md mx-auto px-6 py-16 md:py-24 font-sans">
+
+      <div class="mb-12">
+        <span class="text-[11px] font-semibold uppercase tracking-widest text-black/60 block mb-3">Legal</span>
+        <h1 class="text-4xl font-bold text-black tracking-tight mb-3">Aviso Legal</h1>
+        <p class="text-sm text-black/60">Última actualización: julio de 2026</p>
+      </div>
+
+      <div class="prose prose-black max-w-none text-black/75 leading-relaxed space-y-8 text-base">
+
+        <section>
+          <h2 class="text-xl font-bold text-black mb-3">1. Información general</h2>
+          <p>
+            En cumplimiento de la Ley 34/2002 de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI-CE), se informa de que este sitio web pertenece a:
+          </p>
+          <p class="mt-3">
+            <strong>Orbital Leap Technologies, S.L.</strong><br />
+            NIF/CIF: B22472674<br />
+            Calle Antonio López 138, 28026 Madrid, España<br />
+            Correo electrónico: <a href="mailto:hello@orbitaleap.com" class="text-black underline underline-offset-2">hello@orbitaleap.com</a>
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-bold text-black mb-3">2. Condiciones de uso</h2>
+          <p>
+            El acceso y uso de este sitio web atribuye la condición de usuario e implica la aceptación de las presentes condiciones. El usuario se compromete a utilizar el sitio web de forma lícita y conforme a la legislación vigente.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-bold text-black mb-3">3. Propiedad intelectual</h2>
+          <p>
+            Todos los contenidos del sitio web, incluyendo textos, diseño, logotipos, imágenes y código fuente, son propiedad de Orbital Leap Technologies, S.L. o cuentan con las licencias necesarias para su uso.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-bold text-black mb-3">4. Responsabilidad</h2>
+          <p>
+            Orbital Leap Technologies, S.L. no se responsabiliza del uso indebido del contenido del sitio web ni de los daños derivados de errores técnicos o interrupciones del servicio.
+          </p>
+        </section>
+
+        <section>
+          <h2 class="text-xl font-bold text-black mb-3">5. Legislación aplicable</h2>
+          <p>
+            El presente aviso legal se rige por la legislación española. Cualquier controversia se someterá a los tribunales de Madrid, España.
+          </p>
+        </section>
+
+      </div>
+
+      <div class="mt-16 pt-8 border-t border-black/[0.08] flex gap-4 flex-wrap">
+        <a href="/privacidad" class="font-sans text-sm text-black/60 hover:text-black underline underline-offset-2 transition-colors">Política de Privacidad</a>
+        <a href="/cookies" class="font-sans text-sm text-black/60 hover:text-black underline underline-offset-2 transition-colors">Política de Cookies</a>
+        <a href="/" class="font-sans text-sm text-black/60 hover:text-black transition-colors">← Volver al inicio</a>
+      </div>
+
+    </article>
+
+    <Footer />
+  </main>
+</Layout>
