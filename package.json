@@ -14,8 +14,6 @@
   "dependencies": {
     "@astrojs/cloudflare": "^14.1.4",
     "@astrojs/node": "^11.0.2",
-    "@fontsource/geist-mono": "^5.2.8",
-    "@fontsource/geist-sans": "^5.2.5",
     "@iconify-json/ph": "^1.2.2",
     "@tailwindcss/vite": "^4.3.2",
     "astro": "^7.0.7",
@@ -25,5 +23,8 @@
     "resend": "^6.18.0",
     "tailwindcss": "^4.3.2",
     "thinking-orbs": "^0.1.1"
+  },
+  "devDependencies": {
+    "@astrojs/sitemap": "^3.7.3"
   }
 }

@@ -23,3 +23,9 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# agent worktrees & local settings
+.claude/
+
+# firebase
+firebase-debug.log
