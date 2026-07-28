@@ -16,7 +16,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
 
     <!-- Header Block -->
     <div class="mb-8">
-      <span class="font-sans text-xs text-white/40 uppercase tracking-widest block mb-2 font-medium">HABLEMOS DE TU PROYECTO</span>
+      <span class="font-sans text-xs text-white/55 uppercase tracking-widest block mb-2 font-medium">HABLEMOS DE TU PROYECTO</span>
       <h2 class="font-sans text-3xl sm:text-4xl font-medium tracking-tight text-white">
         Inicia la conversación.
       </h2>
@@ -40,52 +40,52 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <!-- Name -->
         <div class="flex flex-col gap-2">
-          <label htmlFor="name" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Nombre y Apellidos *</label>
+          <label for="name" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Nombre y Apellidos *</label>
           <input 
             type="text" 
             id="name" 
             name="name" 
             required 
             placeholder="Ej. Ana Martínez" 
-            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors" 
+            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/55 focus:outline-none focus:border-white/40 transition-colors" 
           />
         </div>
 
         <!-- Email -->
         <div class="flex flex-col gap-2">
-          <label htmlFor="email" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Email de contacto *</label>
+          <label for="email" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Email de contacto *</label>
           <input 
             type="email" 
             id="email" 
             name="email" 
             required 
             placeholder="ana@ejemplo.com" 
-            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors" 
+            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/55 focus:outline-none focus:border-white/40 transition-colors" 
           />
         </div>
 
         <!-- Company / Organization / Individual -->
         <div class="flex flex-col gap-2">
-          <label htmlFor="company" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Empresa / Proyecto <span class="text-white/40 font-normal lowercase">(opcional)</span></label>
+          <label for="company" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Empresa / Proyecto <span class="text-white/55 font-normal lowercase">(opcional)</span></label>
           <input 
             type="text" 
             id="company" 
             name="company" 
             placeholder="Particular, startup o empresa" 
-            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors" 
+            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/55 focus:outline-none focus:border-white/40 transition-colors" 
           />
         </div>
 
         <!-- Phone (Required) -->
         <div class="flex flex-col gap-2">
-          <label htmlFor="phone" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Teléfono de contacto *</label>
+          <label for="phone" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Teléfono de contacto *</label>
           <input 
             type="tel" 
             id="phone" 
             name="phone" 
             required 
             placeholder="+34 600 000 000" 
-            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors" 
+            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/55 focus:outline-none focus:border-white/40 transition-colors" 
           />
         </div>
       </div>
@@ -93,8 +93,8 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
       <!-- Message -->
       <div class="flex flex-col gap-2">
         <div class="flex justify-between items-center">
-          <label htmlFor="message" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Detalles del proyecto *</label>
-          <span id="char-counter" class="font-sans text-[11px] text-white/40">Mínimo 20 caracteres</span>
+          <label for="message" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Detalles del proyecto *</label>
+          <span id="char-counter" class="font-sans text-[11px] text-white/55">Mínimo 20 caracteres</span>
         </div>
         <textarea 
           id="message" 
@@ -102,7 +102,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
           rows="4" 
           required 
           placeholder="Describe brevemente tus objetivos, alcance o plazos aproximados..." 
-          class="w-full bg-white/5 border border-white/10 rounded-lg p-4 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors resize-none"
+          class="w-full bg-white/5 border border-white/10 rounded-lg p-4 text-sm text-white placeholder:text-white/55 focus:outline-none focus:border-white/40 transition-colors resize-none"
         ></textarea>
       </div>
 

@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# /launch is a paid-ads landing page. It is served with a noindex meta tag, so
+# it stays crawlable on purpose — a Disallow here would stop crawlers reading
+# that tag and the page could still surface in search.
+
+Sitemap: https://orbitaleap.com/sitemap-index.xml
