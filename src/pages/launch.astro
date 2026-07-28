@@ -151,7 +151,7 @@ const monthlyPlans = [
          flipped by scroll-position JS below (light hero/CTA vs dark pricing/footer) ═══ -->
     <header id="site-header" class="header-light fixed top-0 left-0 w-full z-50 px-6 md:px-12 py-4 bg-white/[0.04] backdrop-blur-xl border-b border-white/10 transition-[border-color] duration-300">
       <nav class="flex justify-between items-center max-w-screen-xl mx-auto">
-        <a href="/"><img id="header-logo" src="/brand/ol_imagotipo-hk.svg" alt="Orbital Leap" class="h-7 w-auto" /></a>
+        <a href="/"><img id="header-logo" src="/brand/ol_imagotipo-hk.svg" alt="Orbital Leap" width="165" height="28" class="h-7 w-auto" /></a>
         <div class="flex items-center gap-3">
           <a href="/test-autodiagnostico" id="header-nav-link" class="hidden sm:block label-caps px-3 py-2 transition-colors">Test Gratuito</a>
           <button type="button" id="header-cta" data-open-contact class="btn-black">Escríbenos</button>
@@ -170,7 +170,11 @@ const monthlyPlans = [
     <section id="hero-section" class="sticky top-0 bg-[#F7F7F5] pt-32 pb-40 md:pt-44 md:pb-56 px-6 md:px-12 xl:px-20 overflow-hidden">
 
       <!-- Parallax content wrapper -->
-      <div id="hero-parallax" class="max-w-screen-xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+      <!-- Same background as the section above. It is visually a no-op, but this
+           div is moved by the parallax transform, so contrast checkers that walk
+           up the tree for a background would otherwise resolve the near-black
+           <main> behind it and flag every element in here as unreadable. -->
+      <div id="hero-parallax" class="max-w-screen-xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start bg-[#F7F7F5]">
 
         <!-- Left -->
         <div class="lg:col-span-7 flex flex-col pt-2">
@@ -193,15 +197,15 @@ const monthlyPlans = [
           <div class="flex gap-10 pt-10 border-t border-black/[0.08]">
             <div>
               <span class="font-sans text-3xl font-bold text-black block">&lt;24h</span>
-              <span class="label-caps text-black/35 mt-1 block">Respuesta</span>
+              <span class="label-caps text-black/60 mt-1 block">Respuesta</span>
             </div>
             <div>
               <span class="font-sans text-3xl font-bold text-black block">100%</span>
-              <span class="label-caps text-black/35 mt-1 block">Código tuyo</span>
+              <span class="label-caps text-black/60 mt-1 block">Código tuyo</span>
             </div>
             <div>
               <span class="font-sans text-3xl font-bold text-black block">Hasta −30%</span>
-              <span class="label-caps text-black/35 mt-1 block">Al pagar hoy</span>
+              <span class="label-caps text-black/60 mt-1 block">Al pagar hoy</span>
             </div>
           </div>
         </div>
@@ -213,31 +217,31 @@ const monthlyPlans = [
           <div class="form-card">
             <div class="px-6 pt-5 pb-1">
               <span class="font-sans text-base font-bold text-black tracking-tight">Cuéntanos qué necesitas</span>
-              <p class="font-sans text-xs text-black/40 font-light mt-0.5">Presupuesto en &lt;24 horas, todos los días de la semana. Sin compromiso.</p>
+              <p class="font-sans text-xs text-black/60 font-light mt-0.5">Presupuesto en &lt;24 horas, todos los días de la semana. Sin compromiso.</p>
             </div>
             <form id="hero-contact-form" class="flex flex-col gap-4 px-6 pb-6 pt-5">
               <div class="hidden" aria-hidden="true">
                 <input type="text" name="website_url" tabindex="-1" autocomplete="off" />
               </div>
               <div>
-                <label class="label-caps text-black/40 block mb-1.5">Tu nombre</label>
-                <input type="text" name="name" required placeholder="Ej. María García" class="field" />
+                <label for="hero-name" class="label-caps text-black/55 block mb-1.5">Tu nombre</label>
+                <input type="text" id="hero-name" name="name" required placeholder="Ej. María García" class="field" />
               </div>
               <div>
-                <label class="label-caps text-black/40 block mb-1.5">Correo electrónico</label>
-                <input type="email" name="email" required placeholder="hola@empresa.com" class="field" />
+                <label for="hero-email" class="label-caps text-black/55 block mb-1.5">Correo electrónico</label>
+                <input type="email" id="hero-email" name="email" required placeholder="hola@empresa.com" class="field" />
               </div>
               <div>
-                <label class="label-caps text-black/40 block mb-1.5">Teléfono</label>
-                <input type="tel" name="phone" required placeholder="600 000 000" class="field" />
+                <label for="hero-phone" class="label-caps text-black/55 block mb-1.5">Teléfono</label>
+                <input type="tel" id="hero-phone" name="phone" required placeholder="600 000 000" class="field" />
               </div>
               <div>
-                <label class="label-caps text-black/40 block mb-1.5">¿Qué tienes en mente?</label>
-                <textarea name="message" rows="3" required placeholder="Cuéntanos brevemente tu proyecto o qué quieres mejorar." class="field resize-none"></textarea>
+                <label for="hero-message" class="label-caps text-black/55 block mb-1.5">¿Qué tienes en mente?</label>
+                <textarea id="hero-message" name="message" rows="3" required placeholder="Cuéntanos brevemente tu proyecto o qué quieres mejorar." class="field resize-none"></textarea>
               </div>
               <div class="flex items-start gap-3">
                 <input type="checkbox" id="landing-consent" name="consent" required class="mt-0.5 w-4 h-4 shrink-0 rounded border-black/20 accent-black cursor-pointer" />
-                <label for="landing-consent" class="font-sans text-xs text-black/50 font-light leading-relaxed cursor-pointer select-none">
+                <label for="landing-consent" class="font-sans text-xs text-black/60 font-light leading-relaxed cursor-pointer select-none">
                   Acepto el tratamiento de mis datos según la <a href="/privacidad" class="text-black underline underline-offset-2 hover:text-black/70">Política de Privacidad</a> de Orbital Leap.
                 </label>
               </div>
@@ -318,7 +322,7 @@ const monthlyPlans = [
                 </div>
                 <div class="text-right shrink-0">
                   <span class="price-split">
-                    <span class="label-caps text-white/45 block mb-1">2 plazos</span>
+                    <span class="label-caps text-white/55 block mb-1">2 plazos</span>
                     <span class="font-sans text-2xl font-bold text-white">{s.priceSplit}</span>
                   </span>
                   <span class="price-full">
@@ -571,7 +575,7 @@ const monthlyPlans = [
     <section class="stack-card z-[2] bg-[#F7F7F5] pt-24 md:pt-32 pb-24 md:pb-32 px-6 md:px-12 xl:px-20">
       <div class="max-w-screen-xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-10">
         <div>
-          <span class="label-caps text-black/40 block mb-4">Orbital Leap Studio</span>
+          <span class="label-caps text-black/60 block mb-4">Orbital Leap Studio</span>
           <h2 class="display-sm text-black max-w-xl">¿Listo para empezar?</h2>
           <p class="font-sans text-black/60 text-lg font-light mt-4 max-w-md leading-relaxed">
             Escríbenos hoy y te enviamos un presupuesto concreto. Todos los días de la semana, sin reuniones innecesarias.

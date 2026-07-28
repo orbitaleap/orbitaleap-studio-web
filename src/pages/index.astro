@@ -323,7 +323,7 @@ const methodology = [
         <div class="flex flex-col gap-10 w-full">
           {methodology.map((stage) => (
             <div class="flex flex-col w-full border-b border-black/10 pb-8">
-              <span class="font-sans text-black/40 text-xs font-medium tracking-[0.2em] uppercase mb-3 block">Fase {stage.stage}</span>
+              <span class="font-sans text-black/60 text-xs font-medium tracking-[0.2em] uppercase mb-3 block">Fase {stage.stage}</span>
               <h3 class="font-sans text-2xl font-medium tracking-tight mb-3 text-black">{stage.title}</h3>
               <p class="font-sans text-black/60 font-light text-base leading-relaxed mb-5">{stage.desc}</p>
 
@@ -331,14 +331,14 @@ const methodology = [
                 <div class="border-t border-black/10">
                   <button type="button" class="methodology-accordion-header w-full py-4 flex justify-between items-center text-left cursor-pointer group">
                     <span class="font-sans text-xs tracking-[0.15em] uppercase text-black/60 font-medium">¿Cómo lo hacemos?</span>
-                    <span class="methodology-accordion-icon font-mono text-sm text-black/40">+</span>
+                    <span class="methodology-accordion-icon font-mono text-sm text-black/60">+</span>
                   </button>
                   <div class="methodology-accordion-content h-0 overflow-hidden transition-all duration-300 ease-out">
                     <div class="pb-4 pt-1">
                       <ul class="flex flex-col gap-2.5">
                         {stage.how.map((item, index) => (
                           <li class="font-sans text-black/80 font-light text-sm leading-relaxed flex">
-                            <span class="text-black/30 font-mono text-xs mr-2.5 mt-0.5">{index + 1}.</span> 
+                            <span class="text-black/60 font-mono text-xs mr-2.5 mt-0.5">{index + 1}.</span> 
                             <span>{item}</span>
                           </li>
                         ))}
@@ -350,7 +350,7 @@ const methodology = [
                 <div class="border-t border-black/10 border-b border-black/10">
                   <button type="button" class="methodology-accordion-header w-full py-4 flex justify-between items-center text-left cursor-pointer group">
                     <span class="font-sans text-xs tracking-[0.15em] uppercase text-black/60 font-medium">¿Qué recibirás?</span>
-                    <span class="methodology-accordion-icon font-mono text-sm text-black/40">+</span>
+                    <span class="methodology-accordion-icon font-mono text-sm text-black/60">+</span>
                   </button>
                   <div class="methodology-accordion-content h-0 overflow-hidden transition-all duration-300 ease-out">
                     <div class="pb-4 pt-1">
@@ -392,7 +392,7 @@ const methodology = [
           {methodology.map((stage, i) => (
             <div class={`flex flex-col w-[85vw] md:w-[35vw] shrink-0 group relative z-10 ${i % 2 === 0 ? 'mt-auto mb-8' : 'mb-auto mt-12'}`}>
               <div class="mb-10">
-                <span class="font-sans text-black/40 text-xs font-medium tracking-[0.2em] uppercase mb-6 block">Fase {stage.stage}</span>
+                <span class="font-sans text-black/60 text-xs font-medium tracking-[0.2em] uppercase mb-6 block">Fase {stage.stage}</span>
                 <h3 class="font-sans text-4xl md:text-5xl tracking-tight mb-6 text-black">{stage.title}</h3>
                 <p class="font-sans text-black/60 font-light text-base md:text-lg leading-relaxed max-w-md">{stage.desc}</p>
               </div>
@@ -401,14 +401,14 @@ const methodology = [
                 <div class="border-t border-black/10">
                   <button type="button" class="methodology-accordion-header w-full py-5 flex justify-between items-center text-left cursor-pointer group pointer-events-auto">
                     <span class="font-sans text-xs tracking-[0.15em] uppercase text-black/60 group-hover:text-black transition-colors font-medium">¿Cómo lo hacemos?</span>
-                    <span class="methodology-accordion-icon font-mono text-sm text-black/40 group-hover:text-black transition-colors">+</span>
+                    <span class="methodology-accordion-icon font-mono text-sm text-black/60 group-hover:text-black transition-colors">+</span>
                   </button>
                   <div class="methodology-accordion-content h-0 overflow-hidden transition-all duration-300 ease-out">
                     <div class="pb-6 pt-1">
                       <ul class="flex flex-col gap-3">
                         {stage.how.map((item, index) => (
                           <li class="font-sans text-black/80 font-light text-sm md:text-base leading-relaxed flex">
-                            <span class="text-black/30 font-mono text-xs mr-3 mt-0.5">{index + 1}.</span> 
+                            <span class="text-black/60 font-mono text-xs mr-3 mt-0.5">{index + 1}.</span> 
                             <span>{item}</span>
                           </li>
                         ))}
@@ -420,7 +420,7 @@ const methodology = [
                 <div class="border-t border-black/10 border-b border-black/10">
                   <button type="button" class="methodology-accordion-header w-full py-5 flex justify-between items-center text-left cursor-pointer group pointer-events-auto">
                     <span class="font-sans text-xs tracking-[0.15em] uppercase text-black/60 group-hover:text-black transition-colors font-medium">¿Qué recibirás?</span>
-                    <span class="methodology-accordion-icon font-mono text-sm text-black/40 group-hover:text-black transition-colors">+</span>
+                    <span class="methodology-accordion-icon font-mono text-sm text-black/60 group-hover:text-black transition-colors">+</span>
                   </button>
                   <div class="methodology-accordion-content h-0 overflow-hidden transition-all duration-300 ease-out">
                     <div class="pb-6 pt-1">
