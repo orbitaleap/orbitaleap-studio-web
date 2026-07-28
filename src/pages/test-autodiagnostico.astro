@@ -391,8 +391,21 @@ import Footer from '../components/Footer.astro';
               <Icon name="ph:whatsapp-logo-bold" class="w-4 h-4" />Hablar por WhatsApp <Icon name="ph:arrow-right-bold" class="w-4 h-4" />
             </a>
 
-            <button onclick="location.reload()" class="btn-outline-w cursor-pointer">
-              <Icon name="ph:arrow-left-bold" class="w-4 h-4" /> Repetir Test
+            <!--
+              Two different exits, because "Repetir Test" was doing the work of
+              both and doing neither well. It is location.reload(), so it
+              discards every answer and starts from zero — which is the right
+              behaviour for starting over and the wrong one for "I mistyped my
+              email" or "I want to change my last answer". This was the only
+              step in the flow with no way back: every question carries a
+              Volver, the result carried a restart.
+            -->
+            <button type="button" onclick="prevStep(7)" class="btn-outline-w cursor-pointer">
+              <Icon name="ph:arrow-left-bold" class="w-4 h-4" /> Volver
+            </button>
+
+            <button type="button" onclick="restartTest()" class="btn-outline-w cursor-pointer">
+              <Icon name="ph:arrow-counter-clockwise-bold" class="w-4 h-4" /> Repetir Test
             </button>
           </div>
         </div>
@@ -421,6 +434,15 @@ import Footer from '../components/Footer.astro';
   (window as any).prevStep = (currentStep: number) => {
     const prev = currentStep - 1;
     (window as any).nextStep(prev);
+  };
+
+  // Starting over has to clear the answers too. A reload did that for free;
+  // now that going back is a separate control, the restart has to do it
+  // explicitly or the next run inherits the previous one's selections.
+  (window as any).restartTest = () => {
+    answers = {};
+    document.querySelectorAll('.quiz-opt').forEach((el) => el.classList.remove('quiz-opt-selected'));
+    (window as any).nextStep(0);
   };
 
   (window as any).selectOption = (questionNum: number, value: string) => {
