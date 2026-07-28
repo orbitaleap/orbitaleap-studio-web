@@ -5,6 +5,8 @@ import node from '@astrojs/node';
 import icon from 'astro-icon';
 import sitemap from '@astrojs/sitemap';
 
+import cloudflare from '@astrojs/cloudflare';
+
 // https://astro.build/config
 export default defineConfig({
   // Absolute origin for canonical URLs, OpenGraph tags and the sitemap.
@@ -31,9 +33,7 @@ export default defineConfig({
     '/cookies': { status: 301, destination: 'https://orbitaleap.com/cookies/' },
     '/aviso-legal': { status: 301, destination: 'https://orbitaleap.com/aviso-legal/' }
   },
-  adapter: node({
-    mode: 'standalone'
-  }),
+  adapter: cloudflare(),
   i18n: {
     defaultLocale: 'es',
     locales: ['es', 'en'],

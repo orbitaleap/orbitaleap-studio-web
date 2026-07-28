@@ -8,11 +8,13 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro"
+    "preview": "npm run build && wrangler dev",
+    "astro": "astro",
+    "generate-types": "wrangler types",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^14.1.4",
+    "@astrojs/cloudflare": "^14.1.6",
     "@astrojs/node": "^11.0.2",
     "@iconify-json/ph": "^1.2.2",
     "@tailwindcss/vite": "^4.3.2",
@@ -25,6 +27,7 @@
     "thinking-orbs": "^0.1.1"
   },
   "devDependencies": {
-    "@astrojs/sitemap": "^3.7.3"
+    "@astrojs/sitemap": "^3.7.3",
+    "wrangler": "^4.114.0"
   }
 }
