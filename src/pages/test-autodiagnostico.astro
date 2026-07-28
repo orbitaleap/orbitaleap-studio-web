@@ -350,7 +350,7 @@ import Footer from '../components/Footer.astro';
             </div>
 
             <div class="flex items-start gap-3">
-              <input type="checkbox" id="test-consent" required
+              <input type="checkbox" id="test-consent" name="consent" required
                 class="mt-0.5 w-4 h-4 shrink-0 rounded border-white/20 bg-white/5 accent-white cursor-pointer" />
               <label for="test-consent" class="font-sans text-xs text-white/50 font-light leading-relaxed cursor-pointer select-none">
                 Acepto el tratamiento de mis datos según la <a href="/privacidad" class="text-white underline underline-offset-2 hover:text-white/70">Política de Privacidad</a> de Orbital Leap.
@@ -472,19 +472,28 @@ import Footer from '../components/Footer.astro';
 
       (window as any).nextStep('result');
 
-      // Send Lead Email asynchronously
+      // Send Lead Email asynchronously.
+      // The consent flag is required by /api/send-email (RGPD art. 7) and was
+      // missing from this payload, so every lead from the test was rejected
+      // with a 400 while the visitor still saw their result.
+      const consent = (document.getElementById('test-consent') as HTMLInputElement)?.checked === true;
       try {
-        await fetch('/api/send-email', {
+        const res = await fetch('/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name,
             email,
             phone,
+            consent,
             company: 'Lead desde Test Autodiagnóstico',
             message: `[RESULTADO TEST AUTODIAGNÓSTICO]\n\nRespuestas: ${JSON.stringify(answers)}\n\nResultado Recomendado: ${title}${extraMsg ? `\n\nMensaje adicional del cliente:\n${extraMsg}` : ''}`
           })
         });
+        if (!res.ok) {
+          // A lead is lost here, so surface why rather than failing silently.
+          console.error('Lead send failed:', res.status, await res.text());
+        }
       } catch (err) {
         console.error('Lead send error:', err);
       }
