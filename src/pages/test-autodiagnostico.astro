@@ -2,8 +2,7 @@
 import { Icon } from 'astro-icon/components';
 import Layout from '../layouts/Layout.astro';
 import Footer from '../components/Footer.astro';
-
-const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAACoSt6_i55YN9YBM";
+import FormGuard from '../components/FormGuard.astro';
 ---
 
 <Layout
@@ -28,22 +27,8 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
       /* Result badge */
       .result-badge { border: 1px solid rgba(255,255,255,0.15); background-color: rgba(255,255,255,0.04); }
 
-      /* Input focus */
-      /* A real outline, not a box-shadow pretending to be one. `outline: none`
-         plus a shadow ring loses the system focus indicator that high-contrast
-         and forced-colours modes rely on, and shadows do not follow the shape
-         of a focused element the way an outline does. */
-      .quiz-input:focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-color: #fff; }
-      .quiz-input:focus { border-color: #fff; }
-
-      /* :user-invalid, not :invalid — the latter marks every empty required
-         field from first paint, so the form loads pre-flagged before anyone
-         has typed. Red chosen for contrast on this background: #ff6b6b clears
-         5.9:1 where the browser default manages 3.2:1. */
-      .quiz-input:user-invalid { border-color: #ff6b6b; }
-      .quiz-input:user-invalid:focus-visible { outline-color: #ff6b6b; }
-      .quiz-req { color: rgba(255,255,255,0.45); }
-      .quiz-hint { display:block; margin-top:4px; font-size:0.7rem; line-height:1.4; color:rgba(255,255,255,0.45); }
+      /* Field, focus and validation styling now come from .ol-form /
+         .ol-field in global.css, shared with the contact modal and /launch. */
 
       /* Buttons (monochrome, matching /launch) */
       .btn-black { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:#000;color:#fff;border:1.5px solid #000;border-radius:8px;padding:0.9rem 2rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:background 0.18s; }
@@ -344,45 +329,47 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
             Introduce tus datos para desbloquear la recomendación personalizada y recibir la propuesta.
           </p>
 
-          <form id="quiz-unlock-form" class="flex flex-col gap-4">
+          <form id="quiz-unlock-form" class="ol-form flex flex-col gap-4">
             <div>
-              <label class="block font-sans text-xs text-white/60 font-medium mb-1">Nombre o empresa *</label>
-              <input type="text" id="quiz-name" required minlength="2" placeholder="Tu nombre / Empresa" class="quiz-input w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 font-sans text-sm" />
-            </div>
-
-            <div>
-              <label class="block font-sans text-xs text-white/60 font-medium mb-1">Email de contacto *</label>
-              <input type="email" id="quiz-email" required placeholder="hola@tuempresa.com" class="quiz-input w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 font-sans text-sm" />
+              <label for="quiz-name" class="ol-label">Nombre o empresa <span class="ol-required">*</span></label>
+              <input type="text" id="quiz-name" name="name" required minlength="2" placeholder="Tu nombre / Empresa" class="ol-field" />
             </div>
 
             <div>
-              <label class="block font-sans text-xs text-white/60 font-medium mb-1">Teléfono o WhatsApp *</label>
-              <input type="tel" id="quiz-phone" required placeholder="600 000 000" class="quiz-input w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 font-sans text-sm" />
+              <label for="quiz-email" class="ol-label">Email de contacto <span class="ol-required">*</span></label>
+              <input type="email" id="quiz-email" name="email" required placeholder="hola@tuempresa.com" class="ol-field" />
             </div>
 
             <div>
-              <label class="block font-sans text-xs text-white/60 font-medium mb-1">¿Algo más que quieras contarnos? <span class="text-white/55 font-light">(opcional)</span></label>
-              <textarea id="quiz-message" rows="3" placeholder="Cuéntanos más sobre tu proyecto, dudas o plazos que manejas..." class="quiz-input w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 font-sans text-sm resize-none"></textarea>
+              <label for="quiz-phone" class="ol-label">Teléfono o WhatsApp <span class="ol-required">*</span></label>
+              <input type="tel" id="quiz-phone" name="phone" required placeholder="600 000 000" class="ol-field" />
             </div>
 
-            <!--
-              Turnstile. This form had none, and it is the one that captures
-              leads off the quiz — the endpoint only verified a token when one
-              was sent, so it was unprotected in practice.
-            -->
-            <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="dark" data-action="turnstile-spin-v2"></div>
-
-            <div class="flex items-start gap-3">
-              <input type="checkbox" id="test-consent" name="consent" required
-                class="mt-0.5 w-4 h-4 shrink-0 rounded border-white/20 bg-white/5 accent-white cursor-pointer" />
-              <label for="test-consent" class="font-sans text-xs text-white/50 font-light leading-relaxed cursor-pointer select-none">
-                Acepto el tratamiento de mis datos según la <a href="https://orbitaleap.com/privacidad/" class="text-white underline underline-offset-2 hover:text-white/70">Política de Privacidad</a> de Orbital Leap.
-              </label>
+            <div>
+              {/* Genuinely optional here, and the only field that differs from
+                  the other two forms: the message sent to us is built from the
+                  six answers, so there is always a substantial body without
+                  this. No minlength for the same reason. */}
+              <label for="quiz-message" class="ol-label">¿Algo más que quieras contarnos? <span class="ol-optional">(opcional)</span></label>
+              <textarea id="quiz-message" name="message" rows="3" placeholder="Cuéntanos más sobre tu proyecto, dudas o plazos que manejas..." class="ol-field resize-none"></textarea>
             </div>
+
+            <FormGuard theme="dark" id="test-consent" />
 
             <button type="submit" id="quiz-submit-btn" class="btn-white w-full cursor-pointer mt-1">
-              Ver Mi Diagnóstico Personalizado <Icon name="ph:arrow-right-bold" class="w-4 h-4" />
+              <span id="quiz-submit-label" class="inline-flex items-center gap-2">
+                Ver Mi Diagnóstico Personalizado <Icon name="ph:arrow-right-bold" class="w-4 h-4" />
+              </span>
+              <canvas id="quiz-submit-orb" class="hidden" width="18" height="18" aria-hidden="true"></canvas>
             </button>
+
+            {/*
+              This form used to report a failed send to the console and nowhere
+              else: the visitor got their diagnosis, we got no lead, and nobody
+              knew. It now behaves like the other two — the error is shown and
+              the result waits for a successful send.
+            */}
+            <p id="quiz-status-msg" class="hidden font-sans text-xs text-center" role="alert"></p>
 
             <p class="text-center font-sans text-[11px] text-white/55 mt-1 flex items-center justify-center gap-1.5">
               <Icon name="ph:lock-simple-fill" class="w-3 h-3" />100% confidencial. Te enviamos la recomendación técnica por email.
@@ -444,6 +431,9 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
 </Layout>
 
 <script>
+  import { createLeadSubmitter } from '../lib/lead-form';
+  import { mountOrb } from '../lib/thinking-orb';
+
   // Phosphor's check-bold path data — inlined since this builds dynamic
   // markup in vanilla JS, where the Icon component (build-time only) isn't available.
   const PH_CHECK_ICON = '<svg class="w-4 h-4 shrink-0" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="m232.49 80.49l-128 128a12 12 0 0 1-17 0l-56-56a12 12 0 1 1 17-17L96 183L215.51 63.51a12 12 0 0 1 17 17Z"/></svg>';
@@ -477,12 +467,32 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
 
   const form = document.getElementById('quiz-unlock-form') as HTMLFormElement;
   if (form) {
+    const submitBtn = document.getElementById('quiz-submit-btn') as HTMLButtonElement;
+    const submitLabel = document.getElementById('quiz-submit-label') as HTMLElement;
+    const submitOrb = document.getElementById('quiz-submit-orb') as HTMLCanvasElement;
+    const statusMsg = document.getElementById('quiz-status-msg') as HTMLElement;
+
+    // Created once, at setup, so the timing stamp measures from when the form
+    // appeared. The body is composed from the six answers and the
+    // recommendation, both known only at submit time — hence the closure.
+    let recommendation = '';
+    const submitLead = createLeadSubmitter(form, {
+      source: 'studio.orbitaleap.com/test-autodiagnostico',
+      buildMessage: (fd) => {
+        const extra = String(fd.get('message') ?? '').trim();
+        return (
+          `[RESULTADO TEST AUTODIAGNÓSTICO]\n\n` +
+          `Respuestas: ${JSON.stringify(answers)}\n\n` +
+          `Resultado Recomendado: ${recommendation}` +
+          (extra ? `\n\nMensaje adicional del cliente:\n${extra}` : '')
+        );
+      },
+    });
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const name = (document.getElementById('quiz-name') as HTMLInputElement).value;
-      const email = (document.getElementById('quiz-email') as HTMLInputElement).value;
-      const phone = (document.getElementById('quiz-phone') as HTMLInputElement).value;
       const extraMsg = (document.getElementById('quiz-message') as HTMLTextAreaElement).value;
 
       let title = 'Plataforma Web a Medida';
@@ -497,6 +507,32 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
         title = 'Pack Lanzamiento Inicial (MVP)';
         desc = 'La mejor opción para arrancar rápido sin presupuestos desorbitados y con la máxima calidad.';
         items = ['Diseño de marca básico', 'Página web rápida y clara', 'Formulario de captación', 'Entrega en tiempo récord'];
+      }
+
+      // Sent BEFORE the result is revealed, so a rejected submission leaves
+      // the visitor on the form able to retry rather than looking at their
+      // diagnosis while the lead is gone.
+      statusMsg.classList.add('hidden');
+      submitBtn.disabled = true;
+      submitLabel.classList.add('hidden');
+      submitOrb.classList.remove('hidden');
+      const orb = mountOrb(submitOrb, { size: 18, color: '#0B0B0C', label: 'Enviando tu diagnóstico' });
+
+      recommendation = title;
+      const result = await submitLead();
+      orb.setState('resolving');
+
+      setTimeout(() => {
+        orb.destroy();
+        submitOrb.classList.add('hidden');
+        submitLabel.classList.remove('hidden');
+        submitBtn.disabled = false;
+      }, 700);
+
+      if (!result.ok) {
+        statusMsg.textContent = result.error as string;
+        statusMsg.className = 'font-sans text-xs text-center text-[#ff6b6b]';
+        return;
       }
 
       const resTitle = document.getElementById('res-title');
@@ -518,38 +554,6 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
       if (waLink) waLink.href = `https://wa.me/34600000000?text=${waText}`;
 
       (window as any).nextStep('result');
-
-      // Send Lead Email asynchronously.
-      // The consent flag is required by /api/send-email (RGPD art. 7) and was
-      // missing from this payload, so every lead from the test was rejected
-      // with a 400 while the visitor still saw their result.
-      const consent = (document.getElementById('test-consent') as HTMLInputElement)?.checked === true;
-      // Read from the hidden input Turnstile writes into the surrounding form.
-      const turnstileToken =
-        (document.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement)?.value || '';
-      try {
-        const res = await fetch('/api/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name,
-            email,
-            phone,
-            consent,
-            turnstileToken,
-            source: 'studio.orbitaleap.com/test-autodiagnostico',
-            message: `[RESULTADO TEST AUTODIAGNÓSTICO]\n\nRespuestas: ${JSON.stringify(answers)}\n\nResultado Recomendado: ${title}${extraMsg ? `\n\nMensaje adicional del cliente:\n${extraMsg}` : ''}`
-          })
-        });
-        if (!res.ok) {
-          // A lead is lost here, so surface why rather than failing silently.
-          console.error('Lead send failed:', res.status, await res.text());
-          // Single-use token: without this a retry re-sends a redeemed one.
-          (window as any).turnstile?.reset();
-        }
-      } catch (err) {
-        console.error('Lead send error:', err);
-      }
     });
   }
 </script>

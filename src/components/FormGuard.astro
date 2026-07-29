@@ -1,0 +1,79 @@
+---
+// The anti-spam pair every lead form on this site carries: the honeypot that
+// goes at the top of the form, and the Turnstile widget + consent checkbox
+// that go just above the submit button.
+//
+// One component rather than three copies, because that is what went wrong the
+// first time: the test form had no honeypot, the modal had no `data-action`,
+// and each spelled the consent sentence differently while all three claimed
+// to be asking for the same thing.
+//
+// `slot="honeypot"` is not a thing, so this renders the honeypot too and the
+// caller places the whole block where the widget belongs — the hidden input
+// works anywhere inside the <form>, and keeping the pair together is what
+// makes it impossible to add one without the other.
+
+interface Props {
+  /** 'dark' for the modal and the test, 'light' for the /launch card. */
+  theme?: 'dark' | 'light';
+  /** Distinguishes the checkbox from the other forms' when several exist. */
+  id?: string;
+}
+
+const { theme = 'dark', id = 'consent' } = Astro.props;
+
+// The widget's own site key. Falls back to the live one so a missing build
+// var renders a real widget rather than a broken challenge — the endpoint
+// fails closed either way, so the fallback cannot weaken anything.
+const turnstileSiteKey =
+  import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAACoSt6_i55YN9YBM';
+
+// Absolute, to orbitaleap.com: the legal documents live on the main site and
+// this subdomain does not host copies. Spanish, matching this site.
+const legal = [
+  { label: 'Política de Privacidad', href: 'https://orbitaleap.com/privacidad/' },
+  { label: 'Política de Cookies', href: 'https://orbitaleap.com/cookies/' },
+  { label: 'Aviso Legal', href: 'https://orbitaleap.com/aviso-legal/' },
+];
+---
+
+{/* Bots fill every field they can see, including this one. A person cannot:
+    it is display:none and out of the tab order. */}
+<div class="hidden" aria-hidden="true">
+  <input type="text" name="website_url" tabindex="-1" autocomplete="off" />
+</div>
+
+{/*
+  Turnstile. data-action labels which form the challenge came from in the
+  Cloudflare dashboard — without it every form's traffic is one undifferentiated
+  line, so a form under attack is invisible.
+*/}
+<div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme={theme} data-action="turnstile-spin-v2"></div>
+
+<div class="flex items-start gap-3">
+  <input type="checkbox" id={id} name="consent" required class="ol-checkbox" />
+  <label for={id} class="ol-consent-text font-sans text-xs font-light leading-relaxed cursor-pointer select-none">
+    He leído y acepto la <a href={legal[0].href} target="_blank" rel="noopener">{legal[0].label}</a>,
+    la <a href={legal[1].href} target="_blank" rel="noopener">{legal[1].label}</a> y
+    el <a href={legal[2].href} target="_blank" rel="noopener">{legal[2].label}</a>, y consiento
+    el tratamiento de mis datos conforme a la normativa aplicable. <span class="ol-required">*</span>
+  </label>
+</div>
+
+<style>
+  /* Themed off the .ol-form wrapper the caller sets, so this block inherits
+     light or dark without a prop of its own. */
+  .ol-consent-text {
+    color: var(--field-label);
+  }
+
+  .ol-consent-text a {
+    color: var(--field-text);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .ol-consent-text a:hover {
+    opacity: 0.75;
+  }
+</style>
