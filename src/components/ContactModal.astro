@@ -78,7 +78,7 @@ import FormGuard from './FormGuard.astro';
         ></textarea>
       </div>
 
-      <FormGuard theme="dark" id="accept-terms" />
+      <FormGuard theme="dark" id="accept-terms" defer />
 
       <!-- Feedback Banner -->
       <div id="form-feedback" class="hidden p-4 rounded-lg text-sm font-sans"></div>
@@ -128,6 +128,29 @@ import FormGuard from './FormGuard.astro';
   const charCounter = document.getElementById('char-counter');
   let activeOrb: ReturnType<typeof mountOrb> | null = null;
 
+  // Turnstile is rendered the first time the modal is actually shown, not at
+  // page load. The widget lives inside a container that is hidden until then,
+  // and starting a challenge in one makes it hang (error 300030) and retry
+  // forever without ever producing a token.
+  let turnstileWidgetId: string | undefined;
+
+  function ensureTurnstile() {
+    if (turnstileWidgetId !== undefined) return;
+    const slot = document.querySelector('.ol-turnstile-slot') as HTMLElement | null;
+    const api = (window as any).turnstile;
+    // The script is loaded async; if it has not arrived yet, try again on the
+    // next open rather than rendering into nothing.
+    if (!slot || !api) return;
+
+    turnstileWidgetId = api.render(slot, {
+      sitekey: slot.dataset.sitekey,
+      theme: slot.dataset.theme,
+      action: slot.dataset.action,
+      'error-callback': (window as any).olTurnstileError,
+      'timeout-callback': (window as any).olTurnstileTimeout,
+    });
+  }
+
   // Open modal trigger
   window.openContactModal = () => {
     if (modal && modalCard) {
@@ -135,6 +158,9 @@ import FormGuard from './FormGuard.astro';
       modalCard.classList.remove('scale-95');
       modalCard.classList.add('scale-100');
       document.body.style.overflow = 'hidden';
+      // After the class flip, so the container has real geometry when the
+      // challenge starts.
+      requestAnimationFrame(ensureTurnstile);
     }
   };
 
