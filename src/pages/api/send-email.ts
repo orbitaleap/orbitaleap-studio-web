@@ -3,6 +3,17 @@ export const prerender = false;
 import type { APIRoute } from "astro";
 import { Resend } from "resend";
 
+// The Workers binding namespace. Imported at module scope because
+// `cloudflare:workers` is a virtual module resolved only when bundling for
+// the Workers runtime; the try/catch keeps `astro dev` and Node builds, where
+// it does not exist, from failing to load this route at all.
+try {
+    const mod = await import(/* @vite-ignore */ 'cloudflare:workers');
+    (globalThis as any).__cfEnv = (mod as any).env;
+} catch {
+    // Not on Workers — readEnv falls through to process.env / import.meta.env.
+}
+
 function escapeHtml(value: string): string {
     return value
         .replace(/&/g, "&amp;")
@@ -24,8 +35,24 @@ function escapeHtml(value: string): string {
 // locals.runtime.env. Read that first and keep the other two as fallbacks so
 // `astro dev` and any Node deployment keep working unchanged.
 function readEnv(context: any, key: string): string | undefined {
+    // cloudflare:workers first. Astro 7 (this project) removed
+    // locals.runtime.env — reading it now throws the removal notice itself,
+    // which is what this endpoint was returning to every submitter:
+    //   "Astro.locals.runtime.env has been removed in Astro v6.
+    //    Use 'import { env } from \"cloudflare:workers\"' instead."
+    //
+    // The import is dynamic and wrapped because the module only exists inside
+    // the Workers runtime: a static import would break `astro dev` and any
+    // Node build, and this file has to keep working in both.
+    let workerEnv: Record<string, string> | undefined;
+    try {
+        workerEnv = (globalThis as any).__cfEnv;
+    } catch {
+        workerEnv = undefined;
+    }
+
     return (
-        context?.locals?.runtime?.env?.[key] ||
+        workerEnv?.[key] ||
         (typeof process !== 'undefined' ? process.env?.[key] : undefined) ||
         (import.meta.env as any)?.[key]
     );
