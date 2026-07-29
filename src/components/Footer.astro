@@ -66,6 +66,15 @@ const dotPattern = light
         <li><a href="https://orbitaleap.com/privacidad/" class={}>Política de Privacidad</a></li>
         <li><a href="https://orbitaleap.com/cookies/" class={}>Política de Cookies</a></li>
         <li><a href="https://orbitaleap.com/aviso-legal/" class={}>Aviso Legal</a></li>
+        <!--
+          The way back into the consent panel. The cookie policy states the
+          choice can be withdrawn at any time, and until this link existed
+          there was no way to do it: once someone answered, the banner never
+          reappeared and the stored value could only be changed from devtools.
+          href="#" with preventDefault in CookieBanner, so it is a real link
+          for keyboard and screen-reader users rather than a bare span.
+        -->
+        <li><a href="#" data-cookie-preferences class={}>Preferencias de cookies</a></li>
       </ul>
     </div>
 
