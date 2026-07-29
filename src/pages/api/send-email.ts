@@ -192,24 +192,76 @@ export const POST: APIRoute = async (context) => {
         const emailTo = readEnv(context, 'CONTACT_TO_EMAIL') || "hello@orbitaleap.com";
         const consentedAt = new Date().toISOString();
 
+        // Everything below comes from the request itself — Cloudflare's own
+        // headers and the clock. Nothing is captured in the browser and
+        // nothing is stored there, so this adds no cookie, no localStorage
+        // and nothing to declare in the cookie policy.
+        const country = request.headers.get('cf-ipcountry') || '';
+        const cf = (request as any).cf ?? {};
+        const place = [cf.city ?? '', cf.region ?? '', country].filter(Boolean).join(', ');
+
+        // The IP itself is deliberately not recorded: it would be a new
+        // category of personal data to declare, and answers no question the
+        // country does not.
+        const submittedAt = new Intl.DateTimeFormat('es-ES', {
+            dateStyle: 'full', timeStyle: 'short', timeZone: 'Europe/Madrid',
+        }).format(new Date());
+
+        // Digits only, for the tel: and wa.me links. A number typed as
+        // "+34 600 123 456" is not dialable as written.
+        const telHref = phone.replace(/[^+\d]/g, '');
+        const waHref = phone.replace(/[^\d]/g, '');
+
+        const row = (label: string, value: string) => value
+            ? `<tr><td style="padding:7px 14px 7px 0;color:#666;font-size:13px;white-space:nowrap;vertical-align:top;">${label}</td>
+                   <td style="padding:7px 0;font-size:14px;color:#111;">${value}</td></tr>`
+            : '';
+
         const { data, error } = await resend.emails.send({
             from: emailFrom,
             to: [emailTo],
             replyTo: email,
             subject: `[${escapeHtml(source)}] ${escapeHtml(name)}${company ? ` — ${escapeHtml(company)}` : ""}`,
             html: `
-        <div style="font-family: sans-serif; padding: 24px; color: #111; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px;">
-          <h2 style="border-bottom: 2px solid #111; padding-bottom: 12px; font-size: 20px;">Nuevo mensaje desde la web de Orbital Leap</h2>
-          <p style="margin: 12px 0;"><strong>Nombre:</strong> ${escapeHtml(name)}</p>
-          <p style="margin: 12px 0;"><strong>Email:</strong> ${escapeHtml(email)}</p>
-          <p style="margin: 12px 0;"><strong>Origen:</strong> ${escapeHtml(source)}</p>
-          <p style="margin: 12px 0;"><strong>Empresa / Organización:</strong> ${company ? escapeHtml(company) : "No especificada"}</p>
-          <p style="margin: 12px 0;"><strong>Teléfono:</strong> ${escapeHtml(phone)}</p>
-          <div style="margin-top: 24px; padding: 16px; background: #f9f9f9; border-radius: 8px;">
-            <p style="margin: 0 0 8px 0; font-weight: bold;">Mensaje:</p>
-            <p style="white-space: pre-wrap; margin: 0; color: #333;">${escapeHtml(message)}</p>
+        <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;padding:24px;color:#111;max-width:640px;margin:0 auto;">
+
+          <!-- WHICH FORM, first and largest. It was a row in a table below
+               the message, which made three different forms look identical
+               at a glance. -->
+          <div style="margin-bottom:18px;">
+            <span style="background:#111;color:#fff;padding:9px 16px;border-radius:6px;font-size:14px;font-weight:700;display:inline-block;">
+              ${escapeHtml(source)}
+            </span>
           </div>
-          <p style="margin: 16px 0 0; font-size: 11px; color: #999;">Consentimiento RGPD aceptado el ${consentedAt}.</p>
+
+          <h2 style="font-size:21px;margin:0 0 18px;">${escapeHtml(name)}${company ? ` <span style="color:#666;font-weight:400;">· ${escapeHtml(company)}</span>` : ''}</h2>
+
+          <!-- Contact actions first: replying is the entire point of this
+               email, and it used to mean selecting an address out of a
+               paragraph. -->
+          <p style="margin:0 0 22px;">
+            <a href="mailto:${escapeHtml(email)}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:10px 18px;border-radius:6px;font-size:14px;font-weight:500;margin-right:6px;">Responder</a>
+            <a href="tel:${escapeHtml(telHref)}" style="display:inline-block;border:1px solid #ccc;color:#111;text-decoration:none;padding:10px 18px;border-radius:6px;font-size:14px;font-weight:500;margin-right:6px;">Llamar</a>
+            <a href="https://wa.me/${escapeHtml(waHref)}" style="display:inline-block;border:1px solid #ccc;color:#111;text-decoration:none;padding:10px 18px;border-radius:6px;font-size:14px;font-weight:500;">WhatsApp</a>
+          </p>
+
+          <div style="padding:18px;background:#f7f7f7;border-radius:8px;margin-bottom:22px;">
+            <p style="margin:0 0 8px;font-weight:600;font-size:13px;color:#666;">MENSAJE</p>
+            <p style="white-space:pre-wrap;margin:0;color:#111;font-size:15px;line-height:1.55;">${escapeHtml(message)}</p>
+          </div>
+
+          <table style="width:100%;border-collapse:collapse;border-top:1px solid #eee;">
+            ${row('Email', `<a href="mailto:${escapeHtml(email)}" style="color:#111;">${escapeHtml(email)}</a>`)}
+            ${row('Teléfono', `<a href="tel:${escapeHtml(telHref)}" style="color:#111;">${escapeHtml(phone)}</a>`)}
+            ${row('Empresa', company ? escapeHtml(company) : '<span style="color:#999;">No especificada</span>')}
+            ${row('Formulario', escapeHtml(source))}
+            ${row('Ubicación', escapeHtml(place))}
+            ${row('Enviado', escapeHtml(submittedAt))}
+          </table>
+
+          <p style="margin:22px 0 0;font-size:11px;color:#999;border-top:1px solid #eee;padding-top:12px;">
+            Consentimiento RGPD aceptado el ${consentedAt}. No se registra la dirección IP.
+          </p>
         </div>
       `,
         });

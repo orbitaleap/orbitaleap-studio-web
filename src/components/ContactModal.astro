@@ -199,7 +199,7 @@ import FormGuard from './FormGuard.astro';
   // Wired once, at setup — the submitter stamps the moment the form became
   // available, which is what the endpoint's timing check measures against.
   const submitLead = form
-    ? createLeadSubmitter(form, { source: 'studio.orbitaleap.com (formulario de contacto)' })
+    ? createLeadSubmitter(form, { source: 'Contacto web' })
     : null;
 
   form?.addEventListener('submit', async (e) => {
