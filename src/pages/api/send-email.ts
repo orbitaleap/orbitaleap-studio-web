@@ -126,6 +126,17 @@ export const POST: APIRoute = async (context) => {
         // processing this submission — every form on the site marks it required,
         // so a request that reaches here without it is spoofed and must be refused
         // rather than silently processed.
+        // Server-side minimum, mirroring the client's minlength. Client
+        // validation is a courtesy to whoever is typing; a direct post never
+        // sees it, and a one-character message is the shape junk arrives in.
+        const MIN_MESSAGE = 20;
+        if (name.trim().length < 2 || message.trim().length < MIN_MESSAGE) {
+            return new Response(JSON.stringify({ error: "Añade un poco más de detalle: una o dos frases bastan." }), {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+            });
+        }
+
         if (!consent) {
             return new Response(JSON.stringify({ error: "Debes aceptar la Política de Privacidad para enviar el formulario." }), {
                 status: 400,

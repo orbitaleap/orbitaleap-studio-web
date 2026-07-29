@@ -29,7 +29,21 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
       .result-badge { border: 1px solid rgba(255,255,255,0.15); background-color: rgba(255,255,255,0.04); }
 
       /* Input focus */
-      .quiz-input:focus { outline: none; border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,0.08); }
+      /* A real outline, not a box-shadow pretending to be one. `outline: none`
+         plus a shadow ring loses the system focus indicator that high-contrast
+         and forced-colours modes rely on, and shadows do not follow the shape
+         of a focused element the way an outline does. */
+      .quiz-input:focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-color: #fff; }
+      .quiz-input:focus { border-color: #fff; }
+
+      /* :user-invalid, not :invalid — the latter marks every empty required
+         field from first paint, so the form loads pre-flagged before anyone
+         has typed. Red chosen for contrast on this background: #ff6b6b clears
+         5.9:1 where the browser default manages 3.2:1. */
+      .quiz-input:user-invalid { border-color: #ff6b6b; }
+      .quiz-input:user-invalid:focus-visible { outline-color: #ff6b6b; }
+      .quiz-req { color: rgba(255,255,255,0.45); }
+      .quiz-hint { display:block; margin-top:4px; font-size:0.7rem; line-height:1.4; color:rgba(255,255,255,0.45); }
 
       /* Buttons (monochrome, matching /launch) */
       .btn-black { display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;background:#000;color:#fff;border:1.5px solid #000;border-radius:8px;padding:0.9rem 2rem;font-family:inherit;font-size:0.8125rem;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;transition:background 0.18s; }
@@ -333,7 +347,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
           <form id="quiz-unlock-form" class="flex flex-col gap-4">
             <div>
               <label class="block font-sans text-xs text-white/60 font-medium mb-1">Nombre o empresa *</label>
-              <input type="text" id="quiz-name" required placeholder="Tu nombre / Empresa" class="quiz-input w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 font-sans text-sm" />
+              <input type="text" id="quiz-name" required minlength="2" placeholder="Tu nombre / Empresa" class="quiz-input w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 font-sans text-sm" />
             </div>
 
             <div>
