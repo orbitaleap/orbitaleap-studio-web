@@ -337,12 +337,12 @@ import FormGuard from '../components/FormGuard.astro';
 
             <div>
               <label for="quiz-email" class="ol-label">Email de contacto <span class="ol-required">*</span></label>
-              <input type="email" id="quiz-email" name="email" required placeholder="hola@tuempresa.com" class="ol-field" />
+              <input type="email" id="quiz-email" name="email" required placeholder="hola@tuempresa.com" pattern="[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}" title="Introduce un email válido, por ejemplo nombre@empresa.com" autocomplete="email" inputmode="email" class="ol-field" />
             </div>
 
             <div>
               <label for="quiz-phone" class="ol-label">Teléfono o WhatsApp <span class="ol-required">*</span></label>
-              <input type="tel" id="quiz-phone" name="phone" required placeholder="600 000 000" class="ol-field" />
+              <input type="tel" id="quiz-phone" name="phone" required placeholder="600 000 000" pattern="[+]?[0-9][0-9\s().\-]{7,19}" title="Introduce un teléfono válido: solo números, con prefijo opcional" autocomplete="tel" inputmode="tel" class="ol-field" />
             </div>
 
             <div>

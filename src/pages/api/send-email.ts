@@ -137,6 +137,34 @@ export const POST: APIRoute = async (context) => {
             });
         }
 
+        // Shape checks, not emptiness checks — the fields above already cover
+        // empty. Until now a lead could arrive with a sentence in the phone
+        // field and prose in the email, and it was accepted: the only email
+        // rule was the browser's type="email", which a direct post never sees
+        // and which accepts "ana@localhost" anyway, and type="tel" validates
+        // nothing at all in any browser.
+        //
+        // A malformed address means the reply bounces and the lead is dead, so
+        // this is worth refusing at the door rather than discovering later.
+        const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+        if (!EMAIL_RE.test(email)) {
+            return new Response(JSON.stringify({ error: "Revisa el email: no parece una dirección válida." }), {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+            });
+        }
+
+        // Counted on digits alone, so +34, spaces, dashes and brackets are all
+        // fine while "llámame por la tarde" is not. 9 is a Spanish national
+        // number; 15 is the E.164 maximum.
+        const phoneDigits = phone.replace(/\D/g, '');
+        if (phoneDigits.length < 9 || phoneDigits.length > 15 || /[a-zA-Z]/.test(phone)) {
+            return new Response(JSON.stringify({ error: "Revisa el teléfono: introduce solo números, con prefijo si quieres." }), {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+            });
+        }
+
         if (!consent) {
             return new Response(JSON.stringify({ error: "Debes aceptar la Política de Privacidad para enviar el formulario." }), {
                 status: 400,
@@ -189,7 +217,7 @@ export const POST: APIRoute = async (context) => {
     // Resend (DKIM at resend._domainkey.mail.orbitaleap.com), and Resend refuses
     // to send from a domain it has not verified.
         const emailFrom = readEnv(context, 'CONTACT_FROM_EMAIL') || "Orbital Leap <no-reply@mail.orbitaleap.com>";
-        const emailTo = readEnv(context, 'CONTACT_TO_EMAIL') || "hello@orbitaleap.com";
+        const emailTo = readEnv(context, "CONTACT_TO_EMAIL") || "contact@orbitaleap.com";
         const consentedAt = new Date().toISOString();
 
         // Everything below comes from the request itself — Cloudflare's own
