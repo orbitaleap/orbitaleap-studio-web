@@ -10,6 +10,8 @@ interface Props {
   noindex?: boolean;
   /** Load the Google Ads tag. Only the page the ads point at should. */
   ads?: boolean;
+  /** Show the cookie notice. Off for the paid landing page. */
+  banner?: boolean;
 }
 
 const {
@@ -17,7 +19,8 @@ const {
   description = "Orbital Leap - Estudio de diseño y desarrollo digital. Creamos páginas web, plataformas y aplicaciones a medida.",
   lang = "es",
   noindex = false,
-  ads = false
+  ads = false,
+  banner = true
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://studio.orbitaleap.com");
@@ -159,6 +162,6 @@ const googleAdsId = import.meta.env.PUBLIC_GOOGLE_ADS_ID || 'AW-18312929105';
       was imported by nothing, so it rendered on no page — the site asked for
       consent only in the sense that the code to ask existed.
     -->
-    <CookieBanner />
+    {banner && <CookieBanner />}
   </body>
 </html>

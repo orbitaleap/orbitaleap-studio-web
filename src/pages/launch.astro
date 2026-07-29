@@ -44,7 +44,12 @@ const monthlyPlans = [
   title="Diseño y Desarrollo de Webs y Apps | Orbital Leap Studio"
   description="Creamos la página web o app que necesita tu empresa. Respuesta en menos de 24 horas."
   noindex
->
+
+  {/* No cookie notice on the paid landing page. It sets no cookies — the Ads
+      tag moved to /launch/deployed, which is only reached after the form is
+      submitted — so there is nothing here to consent to, and an overlay on a
+      page bought click by click costs conversions for no legal gain. */}
+  banner={false}>
   <main class="bg-[#0A0A0A] text-black overflow-x-clip">
 
     <style>
