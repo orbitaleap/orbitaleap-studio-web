@@ -3,11 +3,7 @@ import { Icon } from 'astro-icon/components';
 import Layout from '../layouts/Layout.astro';
 import Footer from '../components/Footer.astro';
 import ContactModal from '../components/ContactModal.astro';
-
-// Same source and same fallback as ContactModal: the site key is public by
-// definition, and the literal keeps the widget working on a build where the
-// build-time variable was not provided.
-const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAACoSt6_i55YN9YBM";
+import FormGuard from '../components/FormGuard.astro';
 
 const singleServices = [
   { name: 'Logotipo', desc: 'Logo vectorial en todos los formatos + paleta de colores.', priceSplit: '290€', priceUpfront: '230€', discount: '−20%' },
@@ -45,21 +41,22 @@ const monthlyPlans = [
   description="Creamos la página web o app que necesita tu empresa. Respuesta en menos de 24 horas."
   noindex
 
+  {/* No shared Ads tag here, which is what keeps the line below true: this
+      page sets no cookies at all. gclid is forwarded in the URL to
+      /launch/deployed instead of being stored in one. */}
+  ads={false}
+
   {/* No cookie notice on the paid landing page. It sets no cookies — the Ads
-      tag moved to /launch/deployed, which is only reached after the form is
+      tag lives on /launch/deployed, which is only reached after the form is
       submitted — so there is nothing here to consent to, and an overlay on a
       page bought click by click costs conversions for no legal gain. */}
   banner={false}>
   <main class="bg-[#0A0A0A] text-black overflow-x-clip">
 
     <style>
-      /* Validation styling, matching the quiz. Outline rather than a shadow
-         ring, and :user-invalid so nothing is flagged before it is touched. */
-      #hero-contact-form input:user-invalid,
-      #hero-contact-form textarea:user-invalid { border-color: #d33; }
-      #hero-contact-form input:focus-visible,
-      #hero-contact-form textarea:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
-      .launch-req { opacity: 0.5; }
+      /* Field, focus and validation styling now come from .ol-form /
+         .ol-field in global.css, shared with the contact modal and the quiz.
+         This page's local copy is gone. */
       .launch-hint { display:block; margin-top:4px; font-size:0.7rem; line-height:1.4; opacity:0.55; }
       /* ── Type ── */
       .display    { font-size: clamp(2.4rem, 7vw, 5.5rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.04; }
@@ -84,9 +81,6 @@ const monthlyPlans = [
       .card-link-btn:hover { background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.16);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px); }
 
       /* ── Fields ── */
-      .field { width:100%;padding:0.875rem 1rem;border-radius:12px;border:1.5px solid rgba(0,0,0,0.11);background:#fff;font-family:inherit;font-size:0.875rem;color:#000;transition:border-color 0.18s,box-shadow 0.18s; }
-      .field::placeholder { color:rgba(0,0,0,0.28); }
-      .field:focus { outline:none;border-color:#000;box-shadow:0 0 0 3px rgba(0,0,0,0.05); }
 
       /* ── Section stacking — rounded top cards ──
          Radius scales with viewport: 72px reads huge on a narrow phone
@@ -237,39 +231,27 @@ const monthlyPlans = [
               <span class="font-sans text-base font-bold text-black tracking-tight">Cuéntanos qué necesitas</span>
               <p class="font-sans text-xs text-black/60 font-light mt-0.5">Presupuesto en &lt;24 horas, todos los días de la semana. Sin compromiso.</p>
             </div>
-            <form id="hero-contact-form" class="flex flex-col gap-4 px-6 pb-6 pt-5">
-              <div class="hidden" aria-hidden="true">
-                <input type="text" name="website_url" tabindex="-1" autocomplete="off" />
+            <form id="hero-contact-form" class="ol-form ol-form--light flex flex-col gap-4 px-6 pb-6 pt-5">
+              <div>
+                <label for="hero-name" class="ol-label">Tu nombre <span class="ol-required">*</span></label>
+                <input type="text" id="hero-name" name="name" required minlength="2" placeholder="Ej. María García" class="ol-field" />
               </div>
               <div>
-                <label for="hero-name" class="label-caps text-black/55 block mb-1.5">Tu nombre</label>
-                <input type="text" id="hero-name" name="name" required placeholder="Ej. María García" class="field"  minlength="2" />
+                <label for="hero-email" class="ol-label">Correo electrónico <span class="ol-required">*</span></label>
+                <input type="email" id="hero-email" name="email" required placeholder="hola@empresa.com" class="ol-field" />
               </div>
               <div>
-                <label for="hero-email" class="label-caps text-black/55 block mb-1.5">Correo electrónico</label>
-                <input type="email" id="hero-email" name="email" required placeholder="hola@empresa.com" class="field" />
+                <label for="hero-phone" class="ol-label">Teléfono <span class="ol-required">*</span></label>
+                <input type="tel" id="hero-phone" name="phone" required placeholder="600 000 000" class="ol-field" />
               </div>
               <div>
-                <label for="hero-phone" class="label-caps text-black/55 block mb-1.5">Teléfono</label>
-                <input type="tel" id="hero-phone" name="phone" required placeholder="600 000 000" class="field" />
+                <label for="hero-message" class="ol-label">¿Qué tienes en mente? <span class="ol-required">*</span></label>
+                <textarea id="hero-message" name="message" rows="3" required minlength="20" placeholder="Cuéntanos brevemente tu proyecto o qué quieres mejorar." class="ol-field resize-none"></textarea>
+                <span class="launch-hint">Mínimo 20 caracteres.</span>
               </div>
-              <div>
-                <label for="hero-message" class="label-caps text-black/55 block mb-1.5">¿Qué tienes en mente?</label>
-                <textarea id="hero-message" name="message" rows="3" required placeholder="Cuéntanos brevemente tu proyecto o qué quieres mejorar." class="field resize-none" minlength="20"></textarea>
-              </div>
-              <!--
-                Turnstile. This form had none: the endpoint verified a token when one
-                arrived and this page never sent one, so the landing page taking paid
-                traffic was the least protected form on the site.
-              -->
-              <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="light" data-action="turnstile-spin-v2"></div>
 
-              <div class="flex items-start gap-3">
-                <input type="checkbox" id="landing-consent" name="consent" required class="mt-0.5 w-4 h-4 shrink-0 rounded border-black/20 accent-black cursor-pointer" />
-                <label for="landing-consent" class="font-sans text-xs text-black/60 font-light leading-relaxed cursor-pointer select-none">
-                  Acepto el tratamiento de mis datos según la <a href="https://orbitaleap.com/privacidad/" class="text-black underline underline-offset-2 hover:text-black/70">Política de Privacidad</a> de Orbital Leap.
-                </label>
-              </div>
+              <FormGuard theme="light" id="landing-consent" />
+
               <button type="submit" id="hero-submit-btn" class="btn-black w-full">
                 <span id="hero-submit-label" class="inline-flex items-center gap-2">Enviar Consulta <Icon name="ph:arrow-right-bold" class="w-4 h-4" /></span>
                 <canvas id="hero-submit-orb" class="hidden" width="18" height="18" aria-hidden="true"></canvas>
@@ -631,6 +613,7 @@ const monthlyPlans = [
   import { gsap } from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
   import { mountOrb } from '../lib/thinking-orb';
+  import { createLeadSubmitter } from '../lib/lead-form';
 
   gsap.registerPlugin(ScrollTrigger);
 
@@ -736,45 +719,30 @@ const monthlyPlans = [
   const orbCanvas = document.getElementById('hero-submit-orb') as HTMLCanvasElement;
   const msg   = document.getElementById('hero-status-msg') as HTMLElement;
 
-  // Stamped on load, sent with the submission — the endpoint refuses anything
-  // filled in implausibly fast.
-  const formOpenedAt = Date.now();
+  // Wired once, at setup. The submitter carries the honeypot, the timing
+  // stamp, the consent flag, the Turnstile token and the token reset — see
+  // src/lib/lead-form.ts. This page used to assemble all of that by hand.
+  const submitLead = form
+    ? createLeadSubmitter(form, {
+        source: 'studio.orbitaleap.com/launch (campaña)',
+        buildMessage: (fd) => `[CONSULTA LANDING]\n\n${fd.get('message')}`,
+      })
+    : null;
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!btn || !msg || !label || !orbCanvas) return;
+    if (!btn || !msg || !label || !orbCanvas || !submitLead) return;
 
     btn.disabled = true;
     label.classList.add('hidden');
     orbCanvas.classList.remove('hidden');
     const orb = mountOrb(orbCanvas, { size: 18, color: '#ffffff', label: 'Enviando tu consulta' });
 
-    const fd = new FormData(form);
     try {
-      const res = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: fd.get('name'), email: fd.get('email'),
-          phone: fd.get('phone'), company: fd.get('company') || '',
-          source: 'studio.orbitaleap.com/launch (campaña)',
-          elapsed: Date.now() - formOpenedAt,
-          message: `[CONSULTA LANDING]\n\n${fd.get('message')}`,
-          consent: fd.get('consent') === 'on',
-          turnstileToken: fd.get('cf-turnstile-response') || '',
-          website_url: fd.get('website_url'),
-        })
-      });
-      const data = await res.json();
+      const result = await submitLead();
       orb.setState('resolving');
 
-      // Turnstile tokens are single-use. The page does not navigate on a
-      // failed submit, so without this a retry re-sends the redeemed token and
-      // Cloudflare rejects it as timeout-or-duplicate — the visitor sees a
-      // second failure that has nothing to do with what they typed.
-      if (!res.ok) (window as any).turnstile?.reset();
-
-      if (res.ok) {
+      if (result.ok) {
         // Redirect to the dedicated thank-you URL rather than showing an
         // inline message — this page is what the Google Ads "Carga de la
         // página" conversion action for /launch watches for, since this
@@ -808,13 +776,9 @@ const monthlyPlans = [
         window.location.href = '/launch/deployed' + (carried ? `?${carried}` : '');
         return;
       } else {
-        msg.innerHTML = `${PH_X_ICON} ${data.error || 'No se pudo enviar.'}`;
+        msg.innerHTML = `${PH_X_ICON} ${result.error}`;
         msg.className = 'text-xs flex items-center justify-center gap-1.5 font-sans text-red-600 mt-1';
       }
-    } catch {
-      orb.setState('resolving');
-      msg.innerHTML = `${PH_X_ICON} Error de conexión.`;
-      msg.className = 'text-xs flex items-center justify-center gap-1.5 font-sans text-red-600 mt-1';
     } finally {
       setTimeout(() => {
         orb.destroy();

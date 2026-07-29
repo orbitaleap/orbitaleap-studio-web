@@ -1,6 +1,6 @@
 ---
 import { Icon } from 'astro-icon/components';
-const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAACoSt6_i55YN9YBM";
+import FormGuard from './FormGuard.astro';
 ---
 
 <!-- Contact Modal Backdrop Overlay -->
@@ -30,100 +30,55 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
     </div>
 
     <!-- Contact Form -->
-    <form id="contact-form" class="flex flex-col gap-5">
-      
-      <!-- Honeypot Bot Field (Hidden) -->
-      <div class="hidden" aria-hidden="true">
-        <input type="text" name="website_url" id="website_url" tabindex="-1" autocomplete="off" />
-      </div>
+    <form id="contact-form" class="ol-form flex flex-col gap-5">
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <!-- Name -->
-        <div class="flex flex-col gap-2">
-          <label for="name" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Nombre y Apellidos *</label>
-          <input 
-            type="text" 
-            id="name" 
-            name="name" 
-            required 
-            placeholder="Ej. Ana Martínez" 
-            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/55 focus:outline-none focus:border-white/40 transition-colors" 
-          />
+        <div>
+          <label for="name" class="ol-label">Nombre y apellidos <span class="ol-required">*</span></label>
+          <input type="text" id="name" name="name" required minlength="2" placeholder="Ej. Ana Martínez" class="ol-field" />
         </div>
 
         <!-- Email -->
-        <div class="flex flex-col gap-2">
-          <label for="email" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Email de contacto *</label>
-          <input 
-            type="email" 
-            id="email" 
-            name="email" 
-            required 
-            placeholder="ana@ejemplo.com" 
-            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/55 focus:outline-none focus:border-white/40 transition-colors" 
-          />
+        <div>
+          <label for="email" class="ol-label">Email de contacto <span class="ol-required">*</span></label>
+          <input type="email" id="email" name="email" required placeholder="ana@ejemplo.com" class="ol-field" />
         </div>
 
         <!-- Company / Organization / Individual -->
-        <div class="flex flex-col gap-2">
-          <label for="company" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Empresa / Proyecto <span class="text-white/55 font-normal lowercase">(opcional)</span></label>
-          <input 
-            type="text" 
-            id="company" 
-            name="company" 
-            placeholder="Particular, startup o empresa" 
-            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/55 focus:outline-none focus:border-white/40 transition-colors" 
-          />
+        <div>
+          <label for="company" class="ol-label">Empresa / Proyecto <span class="ol-optional">(opcional)</span></label>
+          <input type="text" id="company" name="company" placeholder="Particular, startup o empresa" class="ol-field" />
         </div>
 
         <!-- Phone (Required) -->
-        <div class="flex flex-col gap-2">
-          <label for="phone" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Teléfono de contacto *</label>
-          <input 
-            type="tel" 
-            id="phone" 
-            name="phone" 
-            required 
-            placeholder="+34 600 000 000" 
-            class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/55 focus:outline-none focus:border-white/40 transition-colors" 
-          />
+        <div>
+          <label for="phone" class="ol-label">Teléfono de contacto <span class="ol-required">*</span></label>
+          <input type="tel" id="phone" name="phone" required placeholder="+34 600 000 000" class="ol-field" />
         </div>
       </div>
 
       <!-- Message -->
-      <div class="flex flex-col gap-2">
-        <div class="flex justify-between items-center">
-          <label for="message" class="font-sans text-xs font-medium text-white/70 uppercase tracking-wider">Detalles del proyecto *</label>
-          <span id="char-counter" class="font-sans text-[11px] text-white/55">Mínimo 20 caracteres</span>
+      <div>
+        <div class="flex justify-between items-baseline">
+          <label for="message" class="ol-label">Detalles del proyecto <span class="ol-required">*</span></label>
+          <span id="char-counter" class="ol-label">Mínimo 20 caracteres</span>
         </div>
-        <textarea 
-          id="message" 
-          name="message" 
-          rows="4" 
-          required 
-          placeholder="Describe brevemente tus objetivos, alcance o plazos aproximados..." 
-          class="w-full bg-white/5 border border-white/10 rounded-lg p-4 text-sm text-white placeholder:text-white/55 focus:outline-none focus:border-white/40 transition-colors resize-none"
+        <!-- minlength matches the counter's promise and the endpoint's floor.
+             It had neither: the counter said 20, the browser accepted 1, and
+             the server rejected it after a round trip. -->
+        <textarea
+          id="message"
+          name="message"
+          rows="4"
+          required
+          minlength="20"
+          placeholder="Describe brevemente tus objetivos, alcance o plazos aproximados..."
+          class="ol-field resize-none"
         ></textarea>
       </div>
 
-      <!-- Turnstile Cloudflare Security Widget -->
-      <div class="my-1">
-        <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="dark"></div>
-      </div>
-
-      <!-- Terms Checkbox -->
-      <div class="flex items-start gap-3 pt-1">
-        <input
-          type="checkbox"
-          id="accept-terms"
-          name="consent"
-          required
-          class="mt-1 w-4 h-4 shrink-0 rounded border-white/20 bg-white/5 text-white accent-white cursor-pointer"
-        />
-        <label for="accept-terms" class="font-sans text-xs text-white/60 font-light leading-relaxed cursor-pointer select-none">
-          Acepto el tratamiento de mis datos según la <a href="https://orbitaleap.com/privacidad/" class="text-white underline underline-offset-2 hover:text-white/80">Política de Privacidad</a> de Orbital Leap.
-        </label>
-      </div>
+      <FormGuard theme="dark" id="accept-terms" />
 
       <!-- Feedback Banner -->
       <div id="form-feedback" class="hidden p-4 rounded-lg text-sm font-sans"></div>
@@ -148,6 +103,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
 
 <script>
   import { mountOrb } from '../lib/thinking-orb';
+  import { createLeadSubmitter } from '../lib/lead-form';
 
   // Turnstile script auto-loader
   if (!document.getElementById('turnstile-script')) {
@@ -201,34 +157,27 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
   messageInput?.addEventListener('input', () => {
     const len = messageInput.value.length;
     if (charCounter) {
+      // Keeps .ol-label so the counter stays the same size and weight as the
+      // labels either side of it; only the colour reacts.
       if (len < 20) {
         charCounter.textContent = `Faltan ${20 - len} caracteres`;
-        charCounter.className = 'font-sans text-[11px] text-amber-400';
+        charCounter.className = 'ol-label text-amber-400';
       } else {
         charCounter.textContent = `${len} caracteres`;
-        charCounter.className = 'font-sans text-[11px] text-emerald-400';
+        charCounter.className = 'ol-label text-emerald-400';
       }
     }
   });
 
   // Handle Form Submission with Resend API
+  // Wired once, at setup — the submitter stamps the moment the form became
+  // available, which is what the endpoint's timing check measures against.
+  const submitLead = form
+    ? createLeadSubmitter(form, { source: 'studio.orbitaleap.com (formulario de contacto)' })
+    : null;
+
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
-
-    const formData = new FormData(form);
-    const turnstileToken = (formData.get('cf-turnstile-response') as string) || '';
-
-    const payload = {
-      name: formData.get('name'),
-      email: formData.get('email'),
-      company: formData.get('company'),
-      source: 'studio.orbitaleap.com (formulario de contacto)',
-      phone: formData.get('phone'),
-      message: formData.get('message'),
-      turnstileToken,
-      website_url: formData.get('website_url'),
-      consent: formData.get('consent') === 'on',
-    };
 
     if (feedback) {
       feedback.classList.remove('hidden', 'bg-red-500/20', 'text-red-300', 'bg-emerald-500/20', 'text-emerald-300');
@@ -242,17 +191,11 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
     }
 
     try {
-      const response = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const resData = await response.json();
+      const result = await submitLead!();
       activeOrb?.setState('resolving');
 
-      if (!response.ok) {
-        throw new Error(resData.error || 'Error al enviar el mensaje');
+      if (!result.ok) {
+        throw new Error(result.error);
       }
 
       form.reset();
@@ -261,8 +204,21 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
       // instead of the normal inline success message — that URL is what the
       // Google Ads "Carga de la página" conversion action for /launch
       // watches for. Every other page keeps the inline-success behavior.
-      if (window.location.pathname === '/launch') {
-        window.location.href = '/launch/deployed';
+      if (window.location.pathname.replace(/\/$/, '') === '/launch') {
+        // The one-shot flag /launch/deployed checks before firing the
+        // conversion. Without it a lead submitted through the modal on
+        // /launch — the same page, the same paid click — reached the
+        // thank-you page and recorded nothing, because only the hero form
+        // set it. Carry the click identifier across for the same reason
+        // /launch does: the Ads tag does not load until that page.
+        sessionStorage.setItem('ol_launch_conversion', '1');
+
+        const src = new URLSearchParams(window.location.search);
+        const carried = ['gclid', 'gbraid', 'wbraid']
+          .filter((k) => src.get(k))
+          .map((k) => `${k}=${encodeURIComponent(src.get(k) as string)}`)
+          .join('&');
+        window.location.href = '/launch/deployed' + (carried ? `?${carried}` : '');
         return;
       }
 

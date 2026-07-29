@@ -105,3 +105,127 @@ body::after {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ─────────────────────────────────────────────────────────────────────
+   Lead-form fields
+
+   One definition for all three forms on this site — the contact modal,
+   the /launch hero form and the test's unlock form. They had three
+   copies of roughly the same Tailwind utility strings, which is how
+   they ended up disagreeing about focus rings, invalid states and
+   minimum lengths.
+
+   Themed by the wrapper: .ol-form is the dark default, .ol-form--light
+   for the /launch card, which sits on white.
+   ───────────────────────────────────────────────────────────────────── */
+.ol-form {
+  --field-bg: rgba(255, 255, 255, 0.05);
+  --field-border: rgba(255, 255, 255, 0.14);
+  --field-border-hover: rgba(255, 255, 255, 0.28);
+  --field-focus: #ffffff;
+  --field-text: #ffffff;
+  --field-placeholder: rgba(255, 255, 255, 0.34);
+  --field-label: rgba(255, 255, 255, 0.6);
+  /* #ff6b6b clears 5.9:1 on this ink. It is also the exact red used on
+     orbitaleap.com, so an invalid field looks the same on both sites. */
+  --field-invalid: #ff6b6b;
+}
+
+.ol-form--light {
+  --field-bg: #ffffff;
+  --field-border: rgba(0, 0, 0, 0.18);
+  --field-border-hover: rgba(0, 0, 0, 0.34);
+  --field-focus: #000000;
+  --field-text: #000000;
+  --field-placeholder: rgba(0, 0, 0, 0.38);
+  --field-label: rgba(0, 0, 0, 0.55);
+  /* NOT #ff6b6b. On white that is 2.5:1 — under the 3:1 WCAG 1.4.11
+     floor for a non-text indicator, i.e. a red border a good number of
+     people cannot see is red. #d33 measures 4.6:1 on white. */
+  --field-invalid: #d33333;
+}
+
+.ol-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--field-border);
+  border-radius: 8px;
+  background: var(--field-bg);
+  color: var(--field-text);
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  transition: border-color 0.18s ease;
+}
+
+.ol-field::placeholder {
+  color: var(--field-placeholder);
+}
+
+.ol-field:hover:not(:focus) {
+  border-color: var(--field-border-hover);
+}
+
+/* Focus is a real outline, never a box-shadow ring.
+   A shadow does not follow the element's shape, and it is dropped
+   entirely in forced-colours mode — which leaves a keyboard user with
+   no visible focus at all. :focus-visible so a mouse click does not
+   draw one. */
+.ol-field:focus {
+  border-color: var(--field-focus);
+}
+
+.ol-field:focus-visible {
+  outline: 2px solid var(--field-focus);
+  outline-offset: 2px;
+}
+
+/* :user-invalid, not :invalid. The latter matches from first paint, so
+   every empty required field loads already flagged in red before
+   anyone has touched it. This waits for an interaction or a submit. */
+.ol-field:user-invalid {
+  border-color: var(--field-invalid);
+}
+
+.ol-field:user-invalid:focus-visible {
+  outline-color: var(--field-invalid);
+}
+
+.ol-label {
+  display: block;
+  margin-bottom: 0.375rem;
+  color: var(--field-label);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Red alone must not be the only thing carrying "required" — the mark
+   is a literal asterisk, and every required field also has the
+   attribute, so assistive tech is told independently of the colour. */
+.ol-required {
+  color: var(--field-invalid);
+}
+
+.ol-optional {
+  color: var(--field-placeholder);
+  font-weight: 400;
+}
+
+.ol-checkbox {
+  margin-top: 0.125rem;
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  accent-color: var(--field-focus);
+  cursor: pointer;
+}
+
+.ol-checkbox:focus-visible {
+  outline: 2px solid var(--field-focus);
+  outline-offset: 2px;
+}
+
+.ol-checkbox:user-invalid {
+  outline: 2px solid var(--field-invalid);
+  outline-offset: 2px;
+}
