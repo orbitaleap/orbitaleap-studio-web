@@ -728,6 +728,10 @@ const monthlyPlans = [
   const orbCanvas = document.getElementById('hero-submit-orb') as HTMLCanvasElement;
   const msg   = document.getElementById('hero-status-msg') as HTMLElement;
 
+  // Stamped on load, sent with the submission — the endpoint refuses anything
+  // filled in implausibly fast.
+  const formOpenedAt = Date.now();
+
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!btn || !msg || !label || !orbCanvas) return;
@@ -744,7 +748,9 @@ const monthlyPlans = [
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: fd.get('name'), email: fd.get('email'),
-          phone: fd.get('phone'), company: 'Consulta desde Landing',
+          phone: fd.get('phone'), company: fd.get('company') || '',
+          source: 'studio.orbitaleap.com/launch (campaña)',
+          elapsed: Date.now() - formOpenedAt,
           message: `[CONSULTA LANDING]\n\n${fd.get('message')}`,
           consent: fd.get('consent') === 'on',
           turnstileToken: fd.get('cf-turnstile-response') || '',

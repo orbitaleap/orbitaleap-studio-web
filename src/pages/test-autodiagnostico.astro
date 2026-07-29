@@ -523,7 +523,7 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
             phone,
             consent,
             turnstileToken,
-            company: 'Lead desde Test Autodiagnóstico',
+            source: 'studio.orbitaleap.com/test-autodiagnostico',
             message: `[RESULTADO TEST AUTODIAGNÓSTICO]\n\nRespuestas: ${JSON.stringify(answers)}\n\nResultado Recomendado: ${title}${extraMsg ? `\n\nMensaje adicional del cliente:\n${extraMsg}` : ''}`
           })
         });
