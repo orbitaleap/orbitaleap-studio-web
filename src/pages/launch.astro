@@ -4,6 +4,11 @@ import Layout from '../layouts/Layout.astro';
 import Footer from '../components/Footer.astro';
 import ContactModal from '../components/ContactModal.astro';
 
+// Same source and same fallback as ContactModal: the site key is public by
+// definition, and the literal keeps the widget working on a build where the
+// build-time variable was not provided.
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAACoSt6_i55YN9YBM";
+
 const singleServices = [
   { name: 'Logotipo', desc: 'Logo vectorial en todos los formatos + paleta de colores.', priceSplit: '290€', priceUpfront: '230€', discount: '−20%' },
   { name: 'Identidad de Marca Completa', desc: 'Logo, tipografías, guía de colores, versiones para redes y manual básico.', priceSplit: '690€', priceUpfront: '550€', discount: '−20%' },
@@ -239,6 +244,13 @@ const monthlyPlans = [
                 <label for="hero-message" class="label-caps text-black/55 block mb-1.5">¿Qué tienes en mente?</label>
                 <textarea id="hero-message" name="message" rows="3" required placeholder="Cuéntanos brevemente tu proyecto o qué quieres mejorar." class="field resize-none"></textarea>
               </div>
+              <!--
+                Turnstile. This form had none: the endpoint verified a token when one
+                arrived and this page never sent one, so the landing page taking paid
+                traffic was the least protected form on the site.
+              -->
+              <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="light" data-action="turnstile-spin-v2"></div>
+
               <div class="flex items-start gap-3">
                 <input type="checkbox" id="landing-consent" name="consent" required class="mt-0.5 w-4 h-4 shrink-0 rounded border-black/20 accent-black cursor-pointer" />
                 <label for="landing-consent" class="font-sans text-xs text-black/60 font-light leading-relaxed cursor-pointer select-none">
@@ -590,6 +602,12 @@ const monthlyPlans = [
 
     <!-- Footer is its own full-bleed band, not nested inside the CTA
          section's padded container, so its dark background spans edge-to-edge -->
+    <!-- Turnstile's loader, which is what actually renders the .cf-turnstile
+         div in the hero form. id="turnstile-script" on purpose: ContactModal
+         injects the same script lazily and guards on that id, so this one
+         satisfies its check rather than racing it to a second copy. -->
+    <script id="turnstile-script" is:inline async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
+
     <Footer compact light />
 
     <ContactModal />
@@ -724,11 +742,18 @@ const monthlyPlans = [
           phone: fd.get('phone'), company: 'Consulta desde Landing',
           message: `[CONSULTA LANDING]\n\n${fd.get('message')}`,
           consent: fd.get('consent') === 'on',
+          turnstileToken: fd.get('cf-turnstile-response') || '',
           website_url: fd.get('website_url'),
         })
       });
       const data = await res.json();
       orb.setState('resolving');
+
+      // Turnstile tokens are single-use. The page does not navigate on a
+      // failed submit, so without this a retry re-sends the redeemed token and
+      // Cloudflare rejects it as timeout-or-duplicate — the visitor sees a
+      // second failure that has nothing to do with what they typed.
+      if (!res.ok) (window as any).turnstile?.reset();
 
       if (res.ok) {
         // Redirect to the dedicated thank-you URL rather than showing an
