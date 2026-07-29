@@ -84,6 +84,10 @@ export const POST: APIRoute = async (context) => {
         const name = (body?.name ?? "").toString().trim();
         const email = (body?.email ?? "").toString().trim();
         const company = (body?.company ?? "").toString().trim();
+        // Where the lead came from, sent explicitly by each form. It used to
+        // be smuggled into `company` ("Consulta desde Landing"), which
+        // collides with the company a visitor actually types.
+        const source = (body?.source ?? "studio.orbitaleap.com").toString().trim();
         const phone = (body?.phone ?? "").toString().trim();
         const message = (body?.message ?? "").toString().trim();
         const turnstileToken = (body?.turnstileToken ?? "").toString().trim();
@@ -91,6 +95,19 @@ export const POST: APIRoute = async (context) => {
         const consent = body?.consent === true || body?.consent === "true" || body?.consent === "on";
 
         // Honeypot bot protection
+        // Same 2.5s floor orbitaleap.com uses. A person cannot read the
+        // fields, type and submit inside it; a script posting straight at the
+        // endpoint has no reason to wait. Forms that do not send `elapsed` are
+        // let through rather than blocked, so adding this cannot break a form
+        // that has not been updated yet.
+        const elapsed = Number(body?.elapsed);
+        if (Number.isFinite(elapsed) && elapsed < 2500) {
+            return new Response(JSON.stringify({ ok: true }), {
+                status: 200,
+                headers: { "Content-Type": "application/json" },
+            });
+        }
+
         if (website_url) {
             return new Response(JSON.stringify({ error: "Comprobación de seguridad fallida." }), {
                 status: 403,
@@ -168,12 +185,13 @@ export const POST: APIRoute = async (context) => {
             from: emailFrom,
             to: [emailTo],
             replyTo: email,
-            subject: `Nuevo mensaje de contacto: ${escapeHtml(name)}`,
+            subject: `[${escapeHtml(source)}] ${escapeHtml(name)}${company ? ` — ${escapeHtml(company)}` : ""}`,
             html: `
         <div style="font-family: sans-serif; padding: 24px; color: #111; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px;">
           <h2 style="border-bottom: 2px solid #111; padding-bottom: 12px; font-size: 20px;">Nuevo mensaje desde la web de Orbital Leap</h2>
           <p style="margin: 12px 0;"><strong>Nombre:</strong> ${escapeHtml(name)}</p>
           <p style="margin: 12px 0;"><strong>Email:</strong> ${escapeHtml(email)}</p>
+          <p style="margin: 12px 0;"><strong>Origen:</strong> ${escapeHtml(source)}</p>
           <p style="margin: 12px 0;"><strong>Empresa / Organización:</strong> ${company ? escapeHtml(company) : "No especificada"}</p>
           <p style="margin: 12px 0;"><strong>Teléfono:</strong> ${escapeHtml(phone)}</p>
           <div style="margin-top: 24px; padding: 16px; background: #f9f9f9; border-radius: 8px;">
