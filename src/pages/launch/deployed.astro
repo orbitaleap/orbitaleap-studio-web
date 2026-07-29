@@ -81,27 +81,40 @@ import Layout from '../../layouts/Layout.astro';
       window.gtag = gtag;
 
       // Same consent posture as the shared tag in Layout, which does not run
-      // on this page. Declaring it here matters for the rejection below: a
-      // 'consent update' with nothing defaulted first is not applied.
+      // on this page: everything denied until the visitor has said otherwise.
+      // Declaring the default here matters for the update below — a 'consent
+      // update' with nothing defaulted first is not applied.
       gtag('consent', 'default', {
-        ad_storage: 'granted',
-        ad_user_data: 'granted',
-        ad_personalization: 'granted',
-        analytics_storage: 'granted'
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: 'denied',
+        wait_for_update: 500
       });
+      gtag('set', 'ads_data_redaction', true);
+      gtag('set', 'url_passthrough', true);
 
-      // A visitor who declined in the cookie notice stays declined here too.
-      // This page carries no notice of its own, so without the check a
-      // rejection recorded anywhere else on the site was ignored at exactly
-      // the point an advertising cookie would be written.
-      if (localStorage.getItem('ol_cookie_consent') === 'rejected') {
-        gtag('consent', 'update', {
-          ad_storage: 'denied',
-          ad_user_data: 'denied',
-          ad_personalization: 'denied',
-          analytics_storage: 'denied'
-        });
-      }
+      // Whatever the visitor chose in the cookie banner applies here too.
+      // This page carries no banner of its own, so without this the decision
+      // recorded everywhere else on the site was ignored at exactly the point
+      // an advertising cookie would be written.
+      try {
+        var raw = localStorage.getItem('ol_cookie_consent');
+        var choice = null;
+        if (raw === 'accepted') choice = { advertising: true, analytics: true };
+        else if (raw === 'rejected') choice = { advertising: false, analytics: false };
+        else if (raw) choice = JSON.parse(raw);
+
+        if (choice && typeof choice.advertising === 'boolean') {
+          var ads = choice.advertising ? 'granted' : 'denied';
+          gtag('consent', 'update', {
+            ad_storage: ads,
+            ad_user_data: ads,
+            ad_personalization: ads,
+            analytics_storage: choice.analytics ? 'granted' : 'denied'
+          });
+        }
+      } catch (e) {}
 
       gtag('js', new Date());
       gtag('config', adsId);
