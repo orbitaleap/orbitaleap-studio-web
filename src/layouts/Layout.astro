@@ -173,8 +173,15 @@ const googleAdsId = import.meta.env.PUBLIC_GOOGLE_ADS_ID || 'AW-18312929105';
     <script>
       import { gsap } from 'gsap';
       import { ScrollTrigger } from 'gsap/ScrollTrigger';
+      import { captureAttribution } from '../lib/lead-form';
 
       gsap.registerPlugin(ScrollTrigger);
+
+      // Records gclid/utm/referrer from the landing URL, once per tab.
+      // It has to run on every page because the landing page is whichever
+      // one the visitor arrived on, and the parameters are gone from the
+      // address bar by the time they reach a form.
+      captureAttribution();
     </script>
     <!--
       The cookie notice. This component has existed in the repo for weeks and

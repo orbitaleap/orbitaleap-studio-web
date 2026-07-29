@@ -34,6 +34,67 @@ export interface LeadResult {
 
 const ENDPOINT = '/api/send-email';
 
+/** Ad click identifiers. Their presence is what makes a visit "paid". */
+const CLICK_IDS = ['gclid', 'gbraid', 'wbraid'] as const;
+
+const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'] as const;
+
+/** Where the campaign parameters seen on landing are kept for this tab. */
+const ATTRIBUTION_KEY = 'ol_attribution';
+
+/**
+ * Records the campaign parameters from the current URL, once per tab.
+ *
+ * Called on every page load. The parameters only exist on the landing URL —
+ * by the time someone has clicked through to another page and submitted a
+ * form, they are long gone from the address bar, which is why the lead emails
+ * could never say where anyone came from.
+ *
+ * First write wins: the landing parameters describe the visit, and a later
+ * page should not overwrite them with nothing.
+ */
+export function captureAttribution() {
+  try {
+    if (sessionStorage.getItem(ATTRIBUTION_KEY)) return;
+
+    const url = new URL(window.location.href);
+    const found: Record<string, string> = {};
+    for (const k of [...CLICK_IDS, ...UTM_KEYS]) {
+      const v = url.searchParams.get(k);
+      if (v) found[k] = v;
+    }
+
+    // The referrer is worth keeping even with no parameters at all — it is
+    // what distinguishes a Google organic visit from a direct one.
+    if (document.referrer && !document.referrer.startsWith(window.location.origin)) {
+      found.referrer = document.referrer;
+    }
+    if (Object.keys(found).length) sessionStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(found));
+  } catch {
+    // Private mode with storage disabled. Attribution is a nice-to-have.
+  }
+}
+
+function readAttribution(): Record<string, string> {
+  try {
+    return JSON.parse(sessionStorage.getItem(ATTRIBUTION_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Whether this visit came from a Google ad, i.e. carries a click identifier.
+ *
+ * This is what decides whether a submission may count as an Ads conversion.
+ * It reads stored state rather than the URL so it cannot be forged by typing
+ * a query string onto the thank-you page.
+ */
+export function isPaidVisit(): boolean {
+  const attribution = readAttribution();
+  return CLICK_IDS.some((k) => attribution[k]);
+}
+
 const CONNECTION_ERROR =
   'No hemos podido conectar. Comprueba tu conexión e inténtalo de nuevo.';
 
@@ -70,6 +131,21 @@ export function createLeadSubmitter(form: HTMLFormElement, options: LeadFormOpti
       // Hidden field. Anything in it means a bot filled the form blind.
       website_url: text(fd, 'website_url'),
       elapsed: Date.now() - openedAt,
+
+      // Context for the lead email. None of this is asked of the visitor;
+      // it is what the browser already knows, and it is the difference
+      // between "a lead came in" and knowing which campaign paid for it.
+      context: {
+        page: window.location.pathname + window.location.search,
+        attribution: readAttribution(),
+        paid: isPaidVisit(),
+        // How long the form was open before it was sent. A useful signal
+        // next to the message: thirty seconds reads differently to ten
+        // minutes, and it is already measured for the anti-bot floor.
+        filledInSeconds: Math.round((Date.now() - openedAt) / 1000),
+        screen: `${window.screen?.width || 0}x${window.screen?.height || 0}`,
+        language: navigator.language,
+      },
     };
 
     try {

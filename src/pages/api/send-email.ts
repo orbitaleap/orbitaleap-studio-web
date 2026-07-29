@@ -92,6 +92,10 @@ export const POST: APIRoute = async (context) => {
         const message = (body?.message ?? "").toString().trim();
         const turnstileToken = (body?.turnstileToken ?? "").toString().trim();
         const website_url = (body?.website_url ?? "").toString().trim();
+        // Browser-side context: landing parameters, page, timings. Optional by
+        // construction — a form that does not send it still works.
+        const ctx = (body?.context ?? {}) as Record<string, any>;
+        const attribution = (ctx.attribution ?? {}) as Record<string, string>;
         const consent = body?.consent === true || body?.consent === "true" || body?.consent === "on";
 
         // Honeypot bot protection
@@ -192,24 +196,90 @@ export const POST: APIRoute = async (context) => {
         const emailTo = readEnv(context, 'CONTACT_TO_EMAIL') || "hello@orbitaleap.com";
         const consentedAt = new Date().toISOString();
 
+        // Cloudflare fills these on the way in. Country and city cost nothing
+        // and answer "is this lead even in a market we serve?" before you
+        // read a word of the message. The IP itself is deliberately NOT
+        // recorded: it would be a new category of personal data to declare,
+        // and it answers no question the country does not.
+        const country = request.headers.get('cf-ipcountry') || '';
+        const cf = (request as any).cf ?? {};
+        const city = (cf.city ?? '') as string;
+        const region = (cf.region ?? '') as string;
+        const place = [city, region, country].filter(Boolean).join(', ');
+
+        const submittedAt = new Intl.DateTimeFormat('es-ES', {
+            dateStyle: 'full', timeStyle: 'short', timeZone: 'Europe/Madrid',
+        }).format(new Date());
+
+        const isPaid = ctx.paid === true;
+        const clickId = attribution.gclid || attribution.gbraid || attribution.wbraid || '';
+
+        // How the visit arrived, in one line, in plain words. This is the
+        // question the old email could not answer at all: every lead looked
+        // identical whether it cost 4 euros of ad spend or arrived free.
+        const channel = isPaid
+            ? 'Anuncio de Google Ads (pagado)'
+            : attribution.utm_source
+                ? `Campaña: ${escapeHtml(attribution.utm_source)}${attribution.utm_medium ? ` / ${escapeHtml(attribution.utm_medium)}` : ''}`
+                : attribution.referrer
+                    ? `Enlace desde ${escapeHtml(new URL(attribution.referrer).hostname)}`
+                    : 'Directo u orgánico';
+
+        const row = (label: string, value: string) => value
+            ? `<tr><td style="padding:7px 14px 7px 0;color:#666;font-size:13px;white-space:nowrap;vertical-align:top;">${label}</td>
+                   <td style="padding:7px 0;font-size:14px;color:#111;">${value}</td></tr>`
+            : '';
+
+        const detailRows = [
+            row('Origen', escapeHtml(source)),
+            row('Página', escapeHtml(ctx.page ?? '')),
+            row('Canal', channel),
+            row('Campaña', escapeHtml(attribution.utm_campaign ?? '')),
+            row('Término', escapeHtml(attribution.utm_term ?? '')),
+            row('Click ID', clickId ? `<code style="font-size:12px;">${escapeHtml(clickId)}</code>` : ''),
+            row('Ubicación', escapeHtml(place)),
+            row('Idioma', escapeHtml(ctx.language ?? '')),
+            row('Enviado', escapeHtml(submittedAt)),
+            row('Rellenado en', ctx.filledInSeconds ? `${escapeHtml(String(ctx.filledInSeconds))} s` : ''),
+        ].join('');
+
         const { data, error } = await resend.emails.send({
             from: emailFrom,
             to: [emailTo],
             replyTo: email,
-            subject: `[${escapeHtml(source)}] ${escapeHtml(name)}${company ? ` — ${escapeHtml(company)}` : ""}`,
+            // The channel leads the subject line. Scanning an inbox, the first
+            // thing worth knowing is whether this lead cost money.
+            subject: `${isPaid ? '💰 ' : ''}[${escapeHtml(source)}] ${escapeHtml(name)}${company ? ` — ${escapeHtml(company)}` : ""}`,
             html: `
-        <div style="font-family: sans-serif; padding: 24px; color: #111; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px;">
-          <h2 style="border-bottom: 2px solid #111; padding-bottom: 12px; font-size: 20px;">Nuevo mensaje desde la web de Orbital Leap</h2>
-          <p style="margin: 12px 0;"><strong>Nombre:</strong> ${escapeHtml(name)}</p>
-          <p style="margin: 12px 0;"><strong>Email:</strong> ${escapeHtml(email)}</p>
-          <p style="margin: 12px 0;"><strong>Origen:</strong> ${escapeHtml(source)}</p>
-          <p style="margin: 12px 0;"><strong>Empresa / Organización:</strong> ${company ? escapeHtml(company) : "No especificada"}</p>
-          <p style="margin: 12px 0;"><strong>Teléfono:</strong> ${escapeHtml(phone)}</p>
-          <div style="margin-top: 24px; padding: 16px; background: #f9f9f9; border-radius: 8px;">
-            <p style="margin: 0 0 8px 0; font-weight: bold;">Mensaje:</p>
-            <p style="white-space: pre-wrap; margin: 0; color: #333;">${escapeHtml(message)}</p>
+        <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:24px;color:#111;max-width:640px;margin:0 auto;">
+          ${isPaid ? `<div style="background:#111;color:#fff;padding:8px 14px;border-radius:6px;font-size:12px;font-weight:600;display:inline-block;margin-bottom:16px;">LEAD DE PAGO · Google Ads</div>` : ''}
+
+          <h2 style="font-size:21px;margin:0 0 4px;">${escapeHtml(name)}${company ? ` <span style="color:#666;font-weight:400;">· ${escapeHtml(company)}</span>` : ''}</h2>
+          <p style="margin:0 0 20px;color:#666;font-size:14px;">${channel}</p>
+
+          <!-- Contact actions first: replying is the point of this email, and
+               it used to mean selecting an address out of a paragraph. -->
+          <p style="margin:0 0 22px;">
+            <a href="mailto:${escapeHtml(email)}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:10px 18px;border-radius:6px;font-size:14px;font-weight:500;margin-right:8px;">Responder</a>
+            <a href="tel:${escapeHtml(phone.replace(/[^+\d]/g, ''))}" style="display:inline-block;border:1px solid #ccc;color:#111;text-decoration:none;padding:10px 18px;border-radius:6px;font-size:14px;font-weight:500;margin-right:8px;">Llamar</a>
+            <a href="https://wa.me/${escapeHtml(phone.replace(/[^\d]/g, ''))}" style="display:inline-block;border:1px solid #ccc;color:#111;text-decoration:none;padding:10px 18px;border-radius:6px;font-size:14px;font-weight:500;">WhatsApp</a>
+          </p>
+
+          <div style="padding:18px;background:#f7f7f7;border-radius:8px;margin-bottom:22px;">
+            <p style="margin:0 0 8px;font-weight:600;font-size:13px;color:#666;">MENSAJE</p>
+            <p style="white-space:pre-wrap;margin:0;color:#111;font-size:15px;line-height:1.55;">${escapeHtml(message)}</p>
           </div>
-          <p style="margin: 16px 0 0; font-size: 11px; color: #999;">Consentimiento RGPD aceptado el ${consentedAt}.</p>
+
+          <table style="width:100%;border-collapse:collapse;border-top:1px solid #eee;">
+            ${row('Email', `<a href="mailto:${escapeHtml(email)}" style="color:#111;">${escapeHtml(email)}</a>`)}
+            ${row('Teléfono', `<a href="tel:${escapeHtml(phone.replace(/[^+\d]/g, ''))}" style="color:#111;">${escapeHtml(phone)}</a>`)}
+            ${row('Empresa', company ? escapeHtml(company) : '<span style="color:#999;">No especificada</span>')}
+            ${detailRows}
+          </table>
+
+          <p style="margin:22px 0 0;font-size:11px;color:#999;border-top:1px solid #eee;padding-top:12px;">
+            Consentimiento RGPD aceptado el ${consentedAt}. No se registra la dirección IP.
+          </p>
         </div>
       `,
         });
