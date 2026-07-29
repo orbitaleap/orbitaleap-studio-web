@@ -117,18 +117,24 @@ const googleAdsId = import.meta.env.PUBLIC_GOOGLE_ADS_ID || 'AW-18312929105';
                          letting the shared tag load would hand a conversion to
                          every crawler, refresh and shared link.
 
-      Consent Mode v2, defaulting to GRANTED, and an explicit rejection is
-      still honoured — CookieBanner flips every storage type to denied the
-      moment someone declines, and a previous rejection is re-applied on load.
+      Consent Mode v2, ADVANCED: the tag loads on every page but every
+      storage type starts denied, so nothing is written until the visitor
+      answers the banner. This replaces a granted-by-default arrangement
+      that wrote advertising cookies before anyone had been asked.
 
-      This is a deliberate business decision, recorded here because the
-      default cuts against the usual reading of the ePrivacy directive: for
-      EEA visitors advertising cookies are supposed to be set only AFTER
-      consent, and granting by default means the tag writes before anyone has
-      answered. Denied-by-default was the compliant arrangement and cost
-      measurement on traffic that never touches the banner, which is why it
-      was rejected. If that trade is ever revisited, the single word to change
-      is on the four lines below.
+      Denied-by-default is not a measurement blackout, which was the
+      objection to it: while denied, the tag still sends cookieless pings
+      carrying no identifiers, and Google models the conversions it cannot
+      observe. Modelling needs a minimum of ad traffic before it engages, so
+      early low-volume campaigns will see fewer conversions than they
+      otherwise would.
+
+      wait_for_update holds those pings briefly so a visitor who accepts
+      immediately is measured properly rather than as a denied hit.
+
+      ads_data_redaction strips ad identifiers from the pings while consent
+      is denied. url_passthrough carries gclid across pages in the URL rather
+      than in a cookie, which preserves attribution without storing anything.
     -->
     {ads && googleAdsId && (
       <>
@@ -139,26 +145,40 @@ const googleAdsId = import.meta.env.PUBLIC_GOOGLE_ADS_ID || 'AW-18312929105';
           window.gtag = gtag;
 
           gtag('consent', 'default', {
-            ad_storage: 'granted',
-            ad_user_data: 'granted',
-            ad_personalization: 'granted',
-            analytics_storage: 'granted'
+            ad_storage: 'denied',
+            ad_user_data: 'denied',
+            ad_personalization: 'denied',
+            analytics_storage: 'denied',
+            wait_for_update: 500
           });
+          gtag('set', 'ads_data_redaction', true);
+          gtag('set', 'url_passthrough', true);
+
+          // A previous decision is re-applied before config, so a visitor who
+          // already accepted is not measured as denied for the first hit of
+          // every page. Inline and duplicated from src/lib/consent.ts on
+          // purpose: this has to run before the tag initialises, and a module
+          // import would not.
+          try {
+            var raw = localStorage.getItem('ol_cookie_consent');
+            var choice = null;
+            if (raw === 'accepted') choice = { advertising: true, analytics: true };
+            else if (raw === 'rejected') choice = { advertising: false, analytics: false };
+            else if (raw) choice = JSON.parse(raw);
+
+            if (choice && typeof choice.advertising === 'boolean') {
+              var ads = choice.advertising ? 'granted' : 'denied';
+              gtag('consent', 'update', {
+                ad_storage: ads,
+                ad_user_data: ads,
+                ad_personalization: ads,
+                analytics_storage: choice.analytics ? 'granted' : 'denied'
+              });
+            }
+          } catch (e) {}
 
           gtag('js', new Date());
           gtag('config', googleAdsId);
-
-          // A visitor who declined on a previous visit stays declined. This is
-          // the half that has to survive a reload now that the default grants:
-          // without it, rejecting would last exactly one page view.
-          if (localStorage.getItem('ol_cookie_consent') === 'rejected') {
-            gtag('consent', 'update', {
-              ad_storage: 'denied',
-              ad_user_data: 'denied',
-              ad_personalization: 'denied',
-              analytics_storage: 'denied'
-            });
-          }
         </script>
       </>
     )}

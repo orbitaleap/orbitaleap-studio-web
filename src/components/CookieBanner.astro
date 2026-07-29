@@ -1,51 +1,102 @@
 ---
-// CookieBanner.astro — GDPR compliant cookie consent
-// Stored in localStorage as 'ol_cookie_consent' = 'accepted' | 'rejected'
+// CookieBanner.astro — RGPD / LSSI-CE cookie consent.
 //
-// The copy follows what the page actually loads rather than being fixed
-// prose. It used to state flatly "no compartimos datos con terceros ni
-// usamos cookies de publicidad" — true when the Google Ads tag lived on one
-// page, false the moment it went sitewide, and a cookie banner that
-// misdescribes its own cookies is worse than none at all.
+// Two layers: a compact bar, and a preferences panel behind "Personalizar".
 //
-// Layout passes its own `ads` value straight through, so the two can no
-// longer disagree: if the tag loads, the banner says so.
+// The bar used to offer only "Solo esenciales" and "Aceptar", which under
+// Consent Mode advanced is not enough to express the decision — advanced
+// splits consent into four signals, and a single Accept cannot say "measure
+// me but do not use my data for ad personalisation". The panel exposes the
+// two categories those four signals collapse into.
+//
+// Rejecting is exactly as easy as accepting: both are one click, side by
+// side, styled with equal weight. A reject path that takes more steps than
+// the accept path is the specific pattern the AEPD calls out.
+//
+// The copy follows what the page actually loads, via `advertising` — Layout
+// passes its own `ads` value, so the wording and the tag cannot drift apart.
 
 interface Props {
-  /**
-   * This page loads the advertising tag. Drives the wording and what the
-   * accept/reject pair is actually deciding.
-   */
+  /** This page loads the advertising tag. Drives the wording only; the
+      decision itself is site-wide and applies wherever the tag runs. */
   advertising?: boolean;
 }
 
 const { advertising = false } = Astro.props;
 ---
 
-<div id="cookie-banner" class="cookie-banner" role="dialog" aria-label="Aviso de cookies" aria-modal="false">
-  <div class="cookie-inner">
+<div id="cookie-banner" class="cookie-banner" role="dialog" aria-label="Preferencias de cookies" aria-modal="false">
+  <!-- Compact bar -->
+  <div class="cookie-inner" id="cookie-compact">
     <div class="cookie-text">
       <p class="cookie-title">Usamos cookies</p>
       <p class="cookie-desc">
-        {advertising ? (
-          <>
-            Usamos cookies propias para el funcionamiento del sitio y cookies de Google Ads
-            para medir la eficacia de nuestros anuncios. Puedes aceptarlas o quedarte solo
-            con las esenciales.{' '}
-          </>
-        ) : (
-          <>
-            Usamos únicamente cookies propias necesarias para el funcionamiento de este sitio.
-            No usamos cookies de publicidad ni compartimos datos con terceros.{' '}
-          </>
-        )}
+        {advertising
+          ? 'Usamos cookies propias necesarias para el funcionamiento del sitio y, con tu permiso, cookies de medición y publicidad de proveedores externos.'
+          : 'Usamos cookies propias necesarias para el funcionamiento de este sitio.'}{' '}
         <a href="https://orbitaleap.com/cookies/" class="cookie-link">Política de cookies</a> ·
         <a href="https://orbitaleap.com/privacidad/" class="cookie-link">Privacidad</a>
       </p>
     </div>
     <div class="cookie-actions">
+      <button id="cookie-customise" type="button" class="cookie-btn-ghost">Personalizar</button>
       <button id="cookie-reject" type="button" class="cookie-btn-outline">Solo esenciales</button>
-      <button id="cookie-accept" type="button" class="cookie-btn-solid">Aceptar</button>
+      <button id="cookie-accept" type="button" class="cookie-btn-solid">Aceptar todo</button>
+    </div>
+  </div>
+
+  <!-- Preferences panel -->
+  <div class="cookie-prefs" id="cookie-prefs" hidden>
+    <p class="cookie-prefs-title">Elige qué permites</p>
+
+    <div class="cookie-cat">
+      <div class="cookie-cat-text">
+        <p class="cookie-cat-name">Necesarias</p>
+        <p class="cookie-cat-desc">
+          Necesarias para que el sitio funcione y para la verificación anti-spam de los
+          formularios. No requieren consentimiento (art. 22.2 LSSI-CE).
+        </p>
+      </div>
+      <!-- Disabled rather than absent: people look for the category they were
+           told about, and a locked switch explains itself. -->
+      <label class="cookie-switch is-locked">
+        <input type="checkbox" checked disabled aria-label="Estrictamente necesarias, siempre activas" />
+        <span class="cookie-switch-ui"></span>
+        <span class="cookie-switch-note">Siempre</span>
+      </label>
+    </div>
+
+    <div class="cookie-cat">
+      <div class="cookie-cat-text">
+        <p class="cookie-cat-name">Marketing y publicidad</p>
+        <p class="cookie-cat-desc">
+          Nos permiten saber qué campañas traen clientes y evitar mostrarte los mismos
+          anuncios una y otra vez. Pueden intervenir proveedores externos de publicidad.
+        </p>
+      </div>
+      <label class="cookie-switch">
+        <input type="checkbox" id="cookie-cat-ads" aria-label="Permitir cookies de publicidad" />
+        <span class="cookie-switch-ui"></span>
+      </label>
+    </div>
+
+    <div class="cookie-cat">
+      <div class="cookie-cat-text">
+        <p class="cookie-cat-name">Analíticas</p>
+        <p class="cookie-cat-desc">
+          Medición agregada de cómo se usa el sitio: qué páginas se leen y dónde se
+          abandona. Propia o de proveedores externos de analítica. Nunca para
+          identificarte personalmente.
+        </p>
+      </div>
+      <label class="cookie-switch">
+        <input type="checkbox" id="cookie-cat-analytics" aria-label="Permitir cookies de analítica" />
+        <span class="cookie-switch-ui"></span>
+      </label>
+    </div>
+
+    <div class="cookie-prefs-actions">
+      <button id="cookie-save" type="button" class="cookie-btn-solid">Guardar preferencias</button>
     </div>
   </div>
 </div>
@@ -66,6 +117,8 @@ const { advertising = false } = Astro.props;
     padding: 1.25rem 1.5rem;
     display: none; /* shown by JS only if no consent stored */
     animation: slideUp 0.3s ease;
+    max-height: calc(100vh - 2.5rem);
+    overflow-y: auto;
   }
   .cookie-banner.visible { display: block; }
 
@@ -73,144 +126,156 @@ const { advertising = false } = Astro.props;
     from { opacity: 0; transform: translateX(-50%) translateY(12px); }
     to   { opacity: 1; transform: translateX(-50%) translateY(0); }
   }
-
-  .cookie-inner {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  @media (prefers-reduced-motion: reduce) {
+    .cookie-banner { animation: none; }
   }
-  @media (min-width: 640px) {
+
+  .cookie-inner { display: flex; flex-direction: column; gap: 1rem; }
+  @media (min-width: 720px) {
     .cookie-inner { flex-direction: row; align-items: center; justify-content: space-between; gap: 2rem; }
   }
 
   .cookie-text { flex: 1; }
 
   .cookie-title {
-    font-family: inherit;
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: #000;
-    margin: 0 0 0.25rem;
-    letter-spacing: -0.01em;
+    font-family: inherit; font-size: 0.875rem; font-weight: 700;
+    color: #000; margin: 0 0 0.25rem; letter-spacing: -0.01em;
   }
 
   .cookie-desc {
-    font-family: inherit;
-    font-size: 0.8125rem;
-    color: rgba(0,0,0,0.52);
-    font-weight: 400;
-    line-height: 1.55;
-    margin: 0;
+    font-family: inherit; font-size: 0.8125rem; color: rgba(0,0,0,0.55);
+    font-weight: 400; line-height: 1.55; margin: 0;
   }
 
-  .cookie-link {
-    color: #000;
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
+  .cookie-link { color: #000; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
   .cookie-link:hover { text-decoration: none; }
 
-  .cookie-actions {
-    display: flex;
-    gap: 0.625rem;
-    shrink: 0;
-    flex-wrap: wrap;
-  }
+  .cookie-actions { display: flex; gap: 0.5rem; flex-shrink: 0; flex-wrap: wrap; align-items: center; }
 
-  .cookie-btn-outline {
-    font-family: inherit;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    padding: 0.625rem 1.125rem;
-    border-radius: 9999px;
-    border: 1.5px solid rgba(0,0,0,0.2);
-    background: transparent;
-    color: #000;
-    cursor: pointer;
-    white-space: nowrap;
+  .cookie-btn-outline,
+  .cookie-btn-solid,
+  .cookie-btn-ghost {
+    font-family: inherit; font-size: 0.75rem; font-weight: 600;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 0.625rem 1.125rem; border-radius: 9999px;
+    cursor: pointer; white-space: nowrap;
     transition: border-color 0.18s, background 0.18s;
   }
+
+  /* Reject and accept carry identical visual weight and sit side by side —
+     nudging people toward Accept with a louder button is the dark pattern
+     this control exists to avoid. */
+  .cookie-btn-outline { border: 1.5px solid rgba(0,0,0,0.2); background: transparent; color: #000; }
   .cookie-btn-outline:hover { border-color: rgba(0,0,0,0.45); background: rgba(0,0,0,0.03); }
 
-  .cookie-btn-solid {
-    font-family: inherit;
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    padding: 0.625rem 1.25rem;
-    border-radius: 9999px;
-    border: 1.5px solid #000;
-    background: #000;
-    color: #fff;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background 0.18s, border-color 0.18s;
-  }
+  .cookie-btn-solid { border: 1.5px solid #000; background: #000; color: #fff; }
   .cookie-btn-solid:hover { background: #222; border-color: #222; }
+
+  .cookie-btn-ghost { border: 1.5px solid transparent; background: transparent; color: rgba(0,0,0,0.6); text-decoration: underline; text-underline-offset: 3px; }
+  .cookie-btn-ghost:hover { color: #000; }
+
+  .cookie-btn-outline:focus-visible,
+  .cookie-btn-solid:focus-visible,
+  .cookie-btn-ghost:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+
+  /* ── Preferences panel ── */
+  .cookie-prefs { margin-top: 1.25rem; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 1rem; }
+
+  .cookie-prefs-title {
+    font-family: inherit; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: rgba(0,0,0,0.45); margin: 0 0 0.75rem;
+  }
+
+  .cookie-cat {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 1.5rem;
+    padding: 0.75rem 0; border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+
+  .cookie-cat-name { font-family: inherit; font-size: 0.8125rem; font-weight: 700; color: #000; margin: 0 0 0.15rem; }
+  .cookie-cat-desc { font-family: inherit; font-size: 0.75rem; line-height: 1.5; color: rgba(0,0,0,0.55); margin: 0; }
+
+  .cookie-switch { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; cursor: pointer; }
+  .cookie-switch.is-locked { cursor: default; }
+  .cookie-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+
+  .cookie-switch-ui {
+    width: 40px; height: 23px; border-radius: 9999px;
+    background: rgba(0,0,0,0.18); position: relative; transition: background 0.18s;
+  }
+  .cookie-switch-ui::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 17px; height: 17px; border-radius: 50%; background: #fff;
+    transition: transform 0.18s;
+  }
+  .cookie-switch input:checked + .cookie-switch-ui { background: #000; }
+  .cookie-switch input:checked + .cookie-switch-ui::after { transform: translateX(17px); }
+  .cookie-switch input:disabled + .cookie-switch-ui { background: rgba(0,0,0,0.35); }
+  .cookie-switch input:focus-visible + .cookie-switch-ui { outline: 2px solid #000; outline-offset: 2px; }
+
+  .cookie-switch-note {
+    font-family: inherit; font-size: 0.6875rem; text-transform: uppercase;
+    letter-spacing: 0.05em; color: rgba(0,0,0,0.4); font-weight: 600;
+  }
+
+  .cookie-prefs-actions { display: flex; justify-content: flex-end; margin-top: 1rem; }
 </style>
 
 <script>
-  const CONSENT_KEY = 'ol_cookie_consent';
+  import { readConsent, writeConsent, applyConsent } from '../lib/consent';
+
   const banner = document.getElementById('cookie-banner');
-  const acceptBtn = document.getElementById('cookie-accept');
-  const rejectBtn = document.getElementById('cookie-reject');
+  const prefs = document.getElementById('cookie-prefs');
+  const adsToggle = document.getElementById('cookie-cat-ads') as HTMLInputElement | null;
+  const analyticsToggle = document.getElementById('cookie-cat-analytics') as HTMLInputElement | null;
 
-  function hideBanner() {
-    if (banner) {
-      banner.classList.remove('visible');
-    }
+  const show = () => banner?.classList.add('visible');
+  const hide = () => banner?.classList.remove('visible');
+
+  function decide(advertising: boolean, analytics: boolean) {
+    const choice = { advertising, analytics };
+    writeConsent(choice);
+    applyConsent(choice);
+    hide();
   }
 
-  // Show only if no consent stored yet
-  if (banner && !localStorage.getItem(CONSENT_KEY)) {
-    banner.classList.add('visible');
-  }
+  // No stored decision → ask. Consent Mode already defaults everything to
+  // denied in Layout, so nothing is written while the banner waits.
+  const stored = readConsent();
+  if (!stored) show();
 
-  // Reopening the banner after a decision. The cookie policy states the
-  // choice can be withdrawn at any time, and there was no way to do it: once
-  // answered, the banner never appeared again and the stored value could only
-  // be changed from devtools. Any element with [data-cookie-preferences] —
-  // a footer link, for instance — now brings it back.
-  (window as any).openCookiePreferences = () => banner?.classList.add('visible');
+  document.getElementById('cookie-accept')?.addEventListener('click', () => decide(true, true));
+  document.getElementById('cookie-reject')?.addEventListener('click', () => decide(false, false));
+
+  document.getElementById('cookie-customise')?.addEventListener('click', () => {
+    if (!prefs) return;
+    prefs.hidden = !prefs.hidden;
+    // Opens reflecting whatever is currently in force, not blank.
+    const current = readConsent();
+    if (adsToggle) adsToggle.checked = current?.advertising ?? false;
+    if (analyticsToggle) analyticsToggle.checked = current?.analytics ?? false;
+  });
+
+  document.getElementById('cookie-save')?.addEventListener('click', () => {
+    decide(adsToggle?.checked ?? false, analyticsToggle?.checked ?? false);
+    if (prefs) prefs.hidden = true;
+  });
+
+  // Reopening after a decision. The cookie policy states the choice can be
+  // withdrawn at any time, and there was no way to do it: once answered the
+  // banner never returned and the value could only be changed from devtools.
+  // Any element with [data-cookie-preferences] — a footer link — reopens it.
+  (window as any).openCookiePreferences = () => {
+    const current = readConsent();
+    if (adsToggle) adsToggle.checked = current?.advertising ?? false;
+    if (analyticsToggle) analyticsToggle.checked = current?.analytics ?? false;
+    if (prefs) prefs.hidden = false;
+    show();
+  };
 
   document.querySelectorAll('[data-cookie-preferences]').forEach((el) => {
     el.addEventListener('click', (e) => {
       e.preventDefault();
       (window as any).openCookiePreferences();
     });
-  });
-
-  // The answer has to reach something. Until now this banner only wrote a
-  // string to localStorage: accepting and rejecting produced identical
-  // behaviour, which makes the whole control theatre. On /launch the Google
-  // Ads tag loads with Consent Mode defaulting to denied (see Layout.astro),
-  // and these two handlers are what move it.
-  //
-  // Optional-chained because the tag only exists on the page the campaign
-  // points at; everywhere else there is nothing to update and nothing to
-  // consent to, and the banner still records the preference.
-  function setConsent(granted: boolean) {
-    (window as any).gtag?.('consent', 'update', {
-      ad_storage: granted ? 'granted' : 'denied',
-      ad_user_data: granted ? 'granted' : 'denied',
-      ad_personalization: granted ? 'granted' : 'denied',
-      analytics_storage: granted ? 'granted' : 'denied'
-    });
-  }
-
-  acceptBtn?.addEventListener('click', () => {
-    localStorage.setItem(CONSENT_KEY, 'accepted');
-    setConsent(true);
-    hideBanner();
-  });
-
-  rejectBtn?.addEventListener('click', () => {
-    localStorage.setItem(CONSENT_KEY, 'rejected');
-    setConsent(false);
-    hideBanner();
   });
 </script>
