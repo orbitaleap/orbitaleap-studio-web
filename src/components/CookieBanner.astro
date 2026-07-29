@@ -1,6 +1,25 @@
 ---
 // CookieBanner.astro — GDPR compliant cookie consent
 // Stored in localStorage as 'ol_cookie_consent' = 'accepted' | 'rejected'
+//
+// The copy follows what the page actually loads rather than being fixed
+// prose. It used to state flatly "no compartimos datos con terceros ni
+// usamos cookies de publicidad" — true when the Google Ads tag lived on one
+// page, false the moment it went sitewide, and a cookie banner that
+// misdescribes its own cookies is worse than none at all.
+//
+// Layout passes its own `ads` value straight through, so the two can no
+// longer disagree: if the tag loads, the banner says so.
+
+interface Props {
+  /**
+   * This page loads the advertising tag. Drives the wording and what the
+   * accept/reject pair is actually deciding.
+   */
+  advertising?: boolean;
+}
+
+const { advertising = false } = Astro.props;
 ---
 
 <div id="cookie-banner" class="cookie-banner" role="dialog" aria-label="Aviso de cookies" aria-modal="false">
@@ -8,7 +27,18 @@
     <div class="cookie-text">
       <p class="cookie-title">Usamos cookies</p>
       <p class="cookie-desc">
-        Usamos cookies propias para el funcionamiento de este sitio. No compartimos datos con terceros ni usamos cookies de publicidad.
+        {advertising ? (
+          <>
+            Usamos cookies propias para el funcionamiento del sitio y cookies de Google Ads
+            para medir la eficacia de nuestros anuncios. Puedes aceptarlas o quedarte solo
+            con las esenciales.{' '}
+          </>
+        ) : (
+          <>
+            Usamos únicamente cookies propias necesarias para el funcionamiento de este sitio.
+            No usamos cookies de publicidad ni compartimos datos con terceros.{' '}
+          </>
+        )}
         <a href="https://orbitaleap.com/cookies/" class="cookie-link">Política de cookies</a> ·
         <a href="https://orbitaleap.com/privacidad/" class="cookie-link">Privacidad</a>
       </p>
@@ -139,6 +169,20 @@
   if (banner && !localStorage.getItem(CONSENT_KEY)) {
     banner.classList.add('visible');
   }
+
+  // Reopening the banner after a decision. The cookie policy states the
+  // choice can be withdrawn at any time, and there was no way to do it: once
+  // answered, the banner never appeared again and the stored value could only
+  // be changed from devtools. Any element with [data-cookie-preferences] —
+  // a footer link, for instance — now brings it back.
+  (window as any).openCookiePreferences = () => banner?.classList.add('visible');
+
+  document.querySelectorAll('[data-cookie-preferences]').forEach((el) => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      (window as any).openCookiePreferences();
+    });
+  });
 
   // The answer has to reach something. Until now this banner only wrote a
   // string to localStorage: accepting and rejecting produced identical

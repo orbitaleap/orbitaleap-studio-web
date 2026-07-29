@@ -181,6 +181,9 @@ const googleAdsId = import.meta.env.PUBLIC_GOOGLE_ADS_ID || 'AW-18312929105';
       was imported by nothing, so it rendered on no page — the site asked for
       consent only in the sense that the code to ask existed.
     -->
-    {banner && <CookieBanner />}
+    {/* `advertising={ads}` so the wording cannot drift from what the page
+        actually loads — the banner claimed the site used no advertising
+        cookies for as long as the tag was sitewide. */}
+    {banner && <CookieBanner advertising={ads} />}
   </body>
 </html>
