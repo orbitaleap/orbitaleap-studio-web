@@ -18,9 +18,21 @@ interface Props {
   theme?: 'dark' | 'light';
   /** Distinguishes the checkbox from the other forms' when several exist. */
   id?: string;
+  /**
+   * Do not let Turnstile auto-render this widget on page load; the caller
+   * renders it explicitly instead.
+   *
+   * For the contact modal, which is in the DOM but hidden (opacity-0,
+   * pointer-events-none) until opened. Turnstile initialises every
+   * .cf-turnstile it finds at load, so it began a challenge inside a hidden
+   * container, hung, and retried on an interval — the widget reported
+   * "Widget seem to have hung" and error 300030, produced no token, and the
+   * endpoint then refused every submission for lacking one.
+   */
+  defer?: boolean;
 }
 
-const { theme = 'dark', id = 'consent' } = Astro.props;
+const { theme = 'dark', id = 'consent', defer = false } = Astro.props;
 
 // The widget's own site key. Falls back to the live one so a missing build
 // var renders a real widget rather than a broken challenge — the endpoint
@@ -55,8 +67,13 @@ const legal = [
   600xxx are client-side failures — so the cause is now named in the console
   instead of being guessed at.
 */}
+{/*
+  Without `cf-turnstile` Turnstile ignores this element entirely, which is
+  what makes deferral work — the caller renders it by hand once the container
+  is actually visible.
+*/}
 <div
-  class="cf-turnstile"
+  class={defer ? 'ol-turnstile-slot' : 'cf-turnstile'}
   data-sitekey={turnstileSiteKey}
   data-theme={theme}
   data-action="turnstile-spin-v2"
