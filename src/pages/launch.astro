@@ -44,8 +44,7 @@ const monthlyPlans = [
   title="Diseño y Desarrollo de Webs y Apps | Orbital Leap Studio"
   description="Creamos la página web o app que necesita tu empresa. Respuesta en menos de 24 horas."
   noindex
-
-  ads>
+>
   <main class="bg-[#0A0A0A] text-black overflow-x-clip">
 
     <style>
@@ -762,7 +761,27 @@ const monthlyPlans = [
         // página" conversion action for /launch watches for, since this
         // form submits via fetch() and never navigates on its own.
         form.reset();
-        window.location.href = '/launch/deployed';
+
+        // Carry the ad click identifier across to the conversion page.
+        //
+        // The Google Ads tag no longer loads here — it loads on
+        // /launch/deployed, which is only reached after the visitor has ticked
+        // the privacy checkbox and submitted. That keeps advertising cookies
+        // out of the page entirely until there is consent, but it costs the
+        // usual attribution path: normally the tag on the LANDING page reads
+        // ?gclid= and stores it, and the conversion page reads that cookie.
+        // With no tag here there is no cookie to read.
+        //
+        // gtag also accepts the identifier straight from the URL, so
+        // forwarding it restores attribution without setting anything on this
+        // page. gbraid and wbraid are the iOS and web-to-app equivalents and
+        // arrive the same way.
+        const src = new URLSearchParams(window.location.search);
+        const carried = ['gclid', 'gbraid', 'wbraid']
+          .filter((k) => src.get(k))
+          .map((k) => `${k}=${encodeURIComponent(src.get(k) as string)}`)
+          .join('&');
+        window.location.href = '/launch/deployed' + (carried ? `?${carried}` : '');
         return;
       } else {
         msg.innerHTML = `${PH_X_ICON} ${data.error || 'No se pudo enviar.'}`;
