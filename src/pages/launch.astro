@@ -41,16 +41,20 @@ const monthlyPlans = [
   description="Creamos la página web o app que necesita tu empresa. Respuesta en menos de 24 horas."
   noindex
 
-  {/* No shared Ads tag here, which is what keeps the line below true: this
-      page sets no cookies at all. gclid is forwarded in the URL to
-      /launch/deployed instead of being stored in one. */}
-  ads={false}
+  {/* The tag loads here like everywhere else — it lives in Layout precisely
+      so it does not have to be wired page by page.
 
-  {/* No cookie notice on the paid landing page. It sets no cookies — the Ads
-      tag lives on /launch/deployed, which is only reached after the form is
-      submitted — so there is nothing here to consent to, and an overlay on a
-      page bought click by click costs conversions for no legal gain. */}
-  banner={false}>
+      This page opted out while consent defaulted to GRANTED, when loading the
+      tag meant writing an advertising cookie on arrival and this page carries
+      no way to refuse one. Consent Mode advanced removed that: everything is
+      denied until the visitor says otherwise, so the tag now writes nothing
+      on load. Keeping it off only meant the traffic we actually pay for was
+      the one part of the site we could not measure or verify.
+
+      The banner comes with it. Without a way to consent, denied-by-default
+      would pin the paid funnel to cookieless pings forever — the visitor
+      could never opt in even if they wanted to. */}
+  >
   <main class="bg-[#0A0A0A] text-black overflow-x-clip">
 
     <style>
