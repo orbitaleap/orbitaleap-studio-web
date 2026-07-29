@@ -53,6 +53,14 @@ const monthlyPlans = [
   <main class="bg-[#0A0A0A] text-black overflow-x-clip">
 
     <style>
+      /* Validation styling, matching the quiz. Outline rather than a shadow
+         ring, and :user-invalid so nothing is flagged before it is touched. */
+      #hero-contact-form input:user-invalid,
+      #hero-contact-form textarea:user-invalid { border-color: #d33; }
+      #hero-contact-form input:focus-visible,
+      #hero-contact-form textarea:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+      .launch-req { opacity: 0.5; }
+      .launch-hint { display:block; margin-top:4px; font-size:0.7rem; line-height:1.4; opacity:0.55; }
       /* ── Type ── */
       .display    { font-size: clamp(2.4rem, 7vw, 5.5rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.04; }
       .display-sm { font-size: clamp(1.75rem, 4.5vw, 3rem); font-weight: 700; letter-spacing: -0.025em; line-height: 1.08; }
@@ -235,7 +243,7 @@ const monthlyPlans = [
               </div>
               <div>
                 <label for="hero-name" class="label-caps text-black/55 block mb-1.5">Tu nombre</label>
-                <input type="text" id="hero-name" name="name" required placeholder="Ej. María García" class="field" />
+                <input type="text" id="hero-name" name="name" required placeholder="Ej. María García" class="field"  minlength="2" />
               </div>
               <div>
                 <label for="hero-email" class="label-caps text-black/55 block mb-1.5">Correo electrónico</label>
@@ -247,7 +255,7 @@ const monthlyPlans = [
               </div>
               <div>
                 <label for="hero-message" class="label-caps text-black/55 block mb-1.5">¿Qué tienes en mente?</label>
-                <textarea id="hero-message" name="message" rows="3" required placeholder="Cuéntanos brevemente tu proyecto o qué quieres mejorar." class="field resize-none"></textarea>
+                <textarea id="hero-message" name="message" rows="3" required placeholder="Cuéntanos brevemente tu proyecto o qué quieres mejorar." class="field resize-none" minlength="20"></textarea>
               </div>
               <!--
                 Turnstile. This form had none: the endpoint verified a token when one
