@@ -16,6 +16,12 @@ import Layout from '../../layouts/Layout.astro';
   description="Hemos recibido tu solicitud. Te contactamos en menos de 24 horas."
   noindex
 
+  {/* NOT the shared tag. The conversion action for this page is URL-based, so
+      it counts any page view here — loading the tag unconditionally would give
+      a conversion to every crawler, refresh and shared link. The gated loader
+      at the bottom of this page is the only one that may run. */}
+  ads={false}
+
   {/* No cookie notice, same as /launch — this is the second half of the same
       paid funnel and inherited the layout default only because it never said
       otherwise. The consent that gates the tag below is the privacy checkbox
@@ -73,6 +79,30 @@ import Layout from '../../layouts/Layout.astro';
       window.dataLayer = window.dataLayer || [];
       function gtag() { dataLayer.push(arguments); }
       window.gtag = gtag;
+
+      // Same consent posture as the shared tag in Layout, which does not run
+      // on this page. Declaring it here matters for the rejection below: a
+      // 'consent update' with nothing defaulted first is not applied.
+      gtag('consent', 'default', {
+        ad_storage: 'granted',
+        ad_user_data: 'granted',
+        ad_personalization: 'granted',
+        analytics_storage: 'granted'
+      });
+
+      // A visitor who declined in the cookie notice stays declined here too.
+      // This page carries no notice of its own, so without the check a
+      // rejection recorded anywhere else on the site was ignored at exactly
+      // the point an advertising cookie would be written.
+      if (localStorage.getItem('ol_cookie_consent') === 'rejected') {
+        gtag('consent', 'update', {
+          ad_storage: 'denied',
+          ad_user_data: 'denied',
+          ad_personalization: 'denied',
+          analytics_storage: 'denied'
+        });
+      }
+
       gtag('js', new Date());
       gtag('config', adsId);
     })();

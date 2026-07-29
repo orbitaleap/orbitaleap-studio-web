@@ -8,7 +8,10 @@ interface Props {
   description?: string;
   lang?: string;
   noindex?: boolean;
-  /** Load the Google Ads tag. Only the page the ads point at should. */
+  /**
+   * Load the Google Ads tag. On everywhere except the two /launch pages —
+   * see the comment above the tag itself for why each opts out.
+   */
   ads?: boolean;
   /** Show the cookie notice. Off for the paid landing page. */
   banner?: boolean;
@@ -19,7 +22,7 @@ const {
   description = "Orbital Leap - Estudio de diseño y desarrollo digital. Creamos páginas web, plataformas y aplicaciones a medida.",
   lang = "es",
   noindex = false,
-  ads = false,
+  ads = true,
   banner = true
 } = Astro.props;
 
@@ -91,12 +94,28 @@ const googleAdsId = import.meta.env.PUBLIC_GOOGLE_ADS_ID || 'AW-18312929105';
     <noscript><link rel="stylesheet" href={googleFontsHref}></noscript>
 
     <!--
-      Google Ads tag. Two conditions, not one.
+      Google Ads tag.
 
-      `ads` — this was in the shared layout, so it loaded on every page of the
-      site. The campaign points at /launch and that is the only page that needs
-      conversion tracking; loading a third-party advertising tag on the privacy
-      policy is both unnecessary and a harder thing to justify in it.
+      On by default, off on the two /launch pages — the inverse of what it was.
+
+      Google's account-level check fetches the site's own domain and looks for
+      this snippet in the HTML. With the tag living only on /launch/deployed,
+      behind a flag a crawler cannot set, there was nothing for it to find and
+      the dashboard reported "etiqueta no detectada" permanently. That warning
+      is cosmetic on its own, but the same absence costs the first-party click
+      cookie and any remarketing audience, which are not.
+
+      The exceptions are deliberate:
+
+      /launch          — opts out. It carries no cookie notice (a promo page
+                         bought click by click), so it must not set an
+                         advertising cookie either. gclid is forwarded in the
+                         URL to /launch/deployed instead.
+      /launch/deployed — opts out of THIS tag and loads its own, gated on a
+                         one-shot flag set by a real submission. The conversion
+                         action is URL-based, so any page view there counts:
+                         letting the shared tag load would hand a conversion to
+                         every crawler, refresh and shared link.
 
       Consent Mode v2, defaulting to GRANTED, and an explicit rejection is
       still honoured — CookieBanner flips every storage type to denied the
