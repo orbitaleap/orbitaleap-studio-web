@@ -2,6 +2,8 @@
 import { Icon } from 'astro-icon/components';
 import Layout from '../layouts/Layout.astro';
 import Footer from '../components/Footer.astro';
+
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAACoSt6_i55YN9YBM";
 ---
 
 <Layout
@@ -349,6 +351,13 @@ import Footer from '../components/Footer.astro';
               <textarea id="quiz-message" rows="3" placeholder="Cuéntanos más sobre tu proyecto, dudas o plazos que manejas..." class="quiz-input w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 font-sans text-sm resize-none"></textarea>
             </div>
 
+            <!--
+              Turnstile. This form had none, and it is the one that captures
+              leads off the quiz — the endpoint only verified a token when one
+              was sent, so it was unprotected in practice.
+            -->
+            <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme="dark" data-action="turnstile-spin-v2"></div>
+
             <div class="flex items-start gap-3">
               <input type="checkbox" id="test-consent" name="consent" required
                 class="mt-0.5 w-4 h-4 shrink-0 rounded border-white/20 bg-white/5 accent-white cursor-pointer" />
@@ -413,6 +422,8 @@ import Footer from '../components/Footer.astro';
       </div>
 
     </section>
+
+    <script id="turnstile-script" is:inline async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
 
     <Footer />
   </main>
@@ -499,6 +510,9 @@ import Footer from '../components/Footer.astro';
       // missing from this payload, so every lead from the test was rejected
       // with a 400 while the visitor still saw their result.
       const consent = (document.getElementById('test-consent') as HTMLInputElement)?.checked === true;
+      // Read from the hidden input Turnstile writes into the surrounding form.
+      const turnstileToken =
+        (document.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement)?.value || '';
       try {
         const res = await fetch('/api/send-email', {
           method: 'POST',
@@ -508,6 +522,7 @@ import Footer from '../components/Footer.astro';
             email,
             phone,
             consent,
+            turnstileToken,
             company: 'Lead desde Test Autodiagnóstico',
             message: `[RESULTADO TEST AUTODIAGNÓSTICO]\n\nRespuestas: ${JSON.stringify(answers)}\n\nResultado Recomendado: ${title}${extraMsg ? `\n\nMensaje adicional del cliente:\n${extraMsg}` : ''}`
           })
@@ -515,6 +530,8 @@ import Footer from '../components/Footer.astro';
         if (!res.ok) {
           // A lead is lost here, so surface why rather than failing silently.
           console.error('Lead send failed:', res.status, await res.text());
+          // Single-use token: without this a retry re-sends a redeemed one.
+          (window as any).turnstile?.reset();
         }
       } catch (err) {
         console.error('Lead send error:', err);
