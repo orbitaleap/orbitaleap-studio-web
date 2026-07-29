@@ -12,6 +12,25 @@ function escapeHtml(value: string): string {
         .replace(/'/g, "&#39;");
 }
 
+// Cloudflare Worker secrets do not arrive in process.env.
+//
+// This endpoint read `process.env.X || import.meta.env.X`, and on Workers
+// neither is populated from a binding: import.meta.env is inlined at BUILD
+// time, and process.env is a Node concept. The secrets are set correctly in
+// the dashboard — RESEND_API_KEY among them — and the endpoint still answered
+// 500 "falta RESEND_API_KEY" for every submission from every form on the site.
+//
+// On Cloudflare the bindings arrive on the request context, at
+// locals.runtime.env. Read that first and keep the other two as fallbacks so
+// `astro dev` and any Node deployment keep working unchanged.
+function readEnv(context: any, key: string): string | undefined {
+    return (
+        context?.locals?.runtime?.env?.[key] ||
+        (typeof process !== 'undefined' ? process.env?.[key] : undefined) ||
+        (import.meta.env as any)?.[key]
+    );
+}
+
 export const POST: APIRoute = async (context) => {
     const { request } = context;
     const contentType = request.headers.get("Content-Type") ?? "";
@@ -24,7 +43,7 @@ export const POST: APIRoute = async (context) => {
     }
 
     try {
-        const resendApiKey = process.env.RESEND_API_KEY || import.meta.env.RESEND_API_KEY;
+        const resendApiKey = readEnv(context, 'RESEND_API_KEY');
         if (!resendApiKey) {
             return new Response(JSON.stringify({ error: "Configuración del servidor incompleta: falta RESEND_API_KEY" }), {
                 status: 500,
@@ -71,8 +90,28 @@ export const POST: APIRoute = async (context) => {
         }
 
         // Verify Turnstile Token if present
-        const secret = process.env.TURNSTILE_SECRET_KEY || import.meta.env.TURNSTILE_SECRET_KEY;
-        if (turnstileToken && secret) {
+        // Fails closed, on both halves.
+        //
+        // This was `if (turnstileToken && secret)`, which skipped verification
+        // whenever EITHER was missing. The secret half is a misconfiguration;
+        // the token half is an open bypass — omit the field when posting
+        // directly and Turnstile never runs at all. A form that can be
+        // defeated by leaving out a parameter is not protecting anything.
+        const secret = readEnv(context, 'TURNSTILE_SECRET_KEY');
+        if (!secret) {
+            console.error('send-email: TURNSTILE_SECRET_KEY is not bound');
+            return new Response(JSON.stringify({ error: "Configuración del servidor incompleta." }), {
+                status: 503,
+                headers: { "Content-Type": "application/json" },
+            });
+        }
+        if (!turnstileToken) {
+            return new Response(JSON.stringify({ error: "Completa la verificación de seguridad e inténtalo de nuevo." }), {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+            });
+        }
+        {
             const verifyUrl = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
             const verifyResponse = await fetch(verifyUrl, {
                 method: "POST",
@@ -91,8 +130,11 @@ export const POST: APIRoute = async (context) => {
             }
         }
 
-        const emailFrom = process.env.CONTACT_FROM_EMAIL || import.meta.env.CONTACT_FROM_EMAIL || "Orbital Leap <no-reply@orbitaleap.com>";
-        const emailTo = process.env.CONTACT_TO_EMAIL || import.meta.env.CONTACT_TO_EMAIL || "contact@orbitaleap.com";
+        // mail.orbitaleap.com, not the apex: that subdomain is the one verified in
+    // Resend (DKIM at resend._domainkey.mail.orbitaleap.com), and Resend refuses
+    // to send from a domain it has not verified.
+        const emailFrom = readEnv(context, 'CONTACT_FROM_EMAIL') || "Orbital Leap <no-reply@mail.orbitaleap.com>";
+        const emailTo = readEnv(context, 'CONTACT_TO_EMAIL') || "hello@orbitaleap.com";
         const consentedAt = new Date().toISOString();
 
         const { data, error } = await resend.emails.send({
