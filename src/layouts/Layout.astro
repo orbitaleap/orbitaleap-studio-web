@@ -32,7 +32,14 @@ const googleFontsHref = "https://fonts.googleapis.com/css2?family=Plus+Jakarta+S
 // sitewide (Google Ads' "Carga de la página" conversion action matches
 // page_view events emitted by this same tag). Unset until an ID is provided,
 // so nothing renders until then.
-const googleAdsId = import.meta.env.PUBLIC_GOOGLE_ADS_ID;
+// Literal fallback, like the Turnstile site key beside it. A Google Ads
+// conversion ID is public — it ships in the page for anyone to read — so
+// there is nothing to protect by keeping it out of the repo, and plenty to
+// lose: PUBLIC_* is inlined at BUILD time, the value was set as a Cloudflare
+// RUNTIME secret, and a runtime secret can never reach a build. That mismatch
+// is why the tag was absent from the live site while the dashboard showed it
+// configured. The env var still wins where it is genuinely provided.
+const googleAdsId = import.meta.env.PUBLIC_GOOGLE_ADS_ID || 'AW-18312929105';
 ---
 
 <!doctype html>
@@ -87,13 +94,18 @@ const googleAdsId = import.meta.env.PUBLIC_GOOGLE_ADS_ID;
       conversion tracking; loading a third-party advertising tag on the privacy
       policy is both unnecessary and a harder thing to justify in it.
 
-      Consent Mode v2, defaulting to DENIED. Advertising cookies need prior
-      consent under the ePrivacy directive, and this site already asks for it —
-      it just never connected the answer to anything. The tag now loads with
-      every storage type denied and CookieBanner grants them on accept, so
-      nothing is written before the visitor agrees. Denied-by-default still
-      lets Google model conversions, which is why this is preferable to not
-      loading the tag at all.
+      Consent Mode v2, defaulting to GRANTED, and an explicit rejection is
+      still honoured — CookieBanner flips every storage type to denied the
+      moment someone declines, and a previous rejection is re-applied on load.
+
+      This is a deliberate business decision, recorded here because the
+      default cuts against the usual reading of the ePrivacy directive: for
+      EEA visitors advertising cookies are supposed to be set only AFTER
+      consent, and granting by default means the tag writes before anyone has
+      answered. Denied-by-default was the compliant arrangement and cost
+      measurement on traffic that never touches the banner, which is why it
+      was rejected. If that trade is ever revisited, the single word to change
+      is on the four lines below.
     -->
     {ads && googleAdsId && (
       <>
@@ -104,23 +116,24 @@ const googleAdsId = import.meta.env.PUBLIC_GOOGLE_ADS_ID;
           window.gtag = gtag;
 
           gtag('consent', 'default', {
-            ad_storage: 'denied',
-            ad_user_data: 'denied',
-            ad_personalization: 'denied',
-            analytics_storage: 'denied'
+            ad_storage: 'granted',
+            ad_user_data: 'granted',
+            ad_personalization: 'granted',
+            analytics_storage: 'granted'
           });
 
           gtag('js', new Date());
           gtag('config', googleAdsId);
 
-          // A visitor who already accepted on a previous visit should not have
-          // to accept again for the tag to work.
-          if (localStorage.getItem('ol_cookie_consent') === 'accepted') {
+          // A visitor who declined on a previous visit stays declined. This is
+          // the half that has to survive a reload now that the default grants:
+          // without it, rejecting would last exactly one page view.
+          if (localStorage.getItem('ol_cookie_consent') === 'rejected') {
             gtag('consent', 'update', {
-              ad_storage: 'granted',
-              ad_user_data: 'granted',
-              ad_personalization: 'granted',
-              analytics_storage: 'granted'
+              ad_storage: 'denied',
+              ad_user_data: 'denied',
+              ad_personalization: 'denied',
+              analytics_storage: 'denied'
             });
           }
         </script>
