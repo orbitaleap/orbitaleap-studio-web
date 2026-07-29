@@ -47,8 +47,41 @@ const legal = [
   Turnstile. data-action labels which form the challenge came from in the
   Cloudflare dashboard — without it every form's traffic is one undifferentiated
   line, so a form under attack is invisible.
+
+  data-error-callback exists because a failing widget was previously silent:
+  it produced no token, the endpoint refused the submission with "Completa la
+  verificación de seguridad", and nothing anywhere said why. Turnstile reports
+  a numeric code for exactly this — 110200 is an unlisted hostname, 300xxx and
+  600xxx are client-side failures — so the cause is now named in the console
+  instead of being guessed at.
 */}
-<div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-theme={theme} data-action="turnstile-spin-v2"></div>
+<div
+  class="cf-turnstile"
+  data-sitekey={turnstileSiteKey}
+  data-theme={theme}
+  data-action="turnstile-spin-v2"
+  data-error-callback="olTurnstileError"
+  data-timeout-callback="olTurnstileTimeout"
+></div>
+
+<script is:inline>
+  // Named globals because Turnstile resolves these callbacks by name off
+  // window, so they cannot be module-scoped.
+  window.olTurnstileError = function (code) {
+    console.error(
+      '[Turnstile] failed with code ' + code + ' on ' + window.location.hostname +
+      (String(code) === '110200'
+        ? ' — this hostname is not in the widget’s allowed domains.'
+        : '')
+    );
+    // Returning true tells Turnstile we handled it and stops it retrying in a
+    // loop, which is what was filling the console with postMessage errors.
+    return true;
+  };
+  window.olTurnstileTimeout = function () {
+    console.error('[Turnstile] challenge timed out on ' + window.location.hostname);
+  };
+</script>
 
 <div class="flex items-start gap-3">
   <input type="checkbox" id={id} name="consent" required class="ol-checkbox" />

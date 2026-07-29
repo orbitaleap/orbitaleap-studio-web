@@ -51,10 +51,11 @@ const { advertising = false } = Astro.props;
 
     <div class="cookie-cat">
       <div class="cookie-cat-text">
-        <p class="cookie-cat-name">Necesarias</p>
+        <p class="cookie-cat-name">Necesarias <span class="cookie-cat-qual">(Imprescindibles)</span></p>
         <p class="cookie-cat-desc">
-          Necesarias para que el sitio funcione y para la verificación anti-spam de los
-          formularios. No requieren consentimiento (art. 22.2 LSSI-CE).
+          Sostienen el funcionamiento del sitio y protegen los formularios del spam.
+          Sin ellas la web no funciona, por eso no se pueden desactivar
+          (art. 22.2 LSSI-CE).
         </p>
       </div>
       <!-- Disabled rather than absent: people look for the category they were
@@ -71,10 +72,10 @@ const { advertising = false } = Astro.props;
 
     <div class="cookie-cat">
       <div class="cookie-cat-text">
-        <p class="cookie-cat-name">Marketing y publicidad</p>
+        <p class="cookie-cat-name">Marketing <span class="cookie-cat-qual">(A tu medida)</span></p>
         <p class="cookie-cat-desc">
-          Nos permiten saber qué campañas traen clientes y evitar mostrarte los mismos
-          anuncios una y otra vez. Pueden intervenir proveedores externos de publicidad.
+          Nos permiten saber qué campañas traen clientes y evitar repetirte el mismo
+          anuncio. Pueden intervenir proveedores externos de publicidad.
         </p>
       </div>
       <label class="cookie-switch">
@@ -85,11 +86,10 @@ const { advertising = false } = Astro.props;
 
     <div class="cookie-cat">
       <div class="cookie-cat-text">
-        <p class="cookie-cat-name">Analíticas</p>
+        <p class="cookie-cat-name">Analíticas <span class="cookie-cat-qual">(Para mejorar)</span></p>
         <p class="cookie-cat-desc">
-          Medición agregada de cómo se usa el sitio: qué páginas se leen y dónde se
-          abandona. Propia o de proveedores externos de analítica. Nunca para
-          identificarte personalmente.
+          Nos ayudan a entender qué páginas funcionan y dónde se atasca la gente.
+          Siempre de forma agregada, nunca para identificarte.
         </p>
       </div>
       <label class="cookie-switch">
@@ -200,6 +200,9 @@ const { advertising = false } = Astro.props;
   }
 
   .cookie-cat-name { font-family: inherit; font-size: 0.8125rem; font-weight: 700; color: #000; margin: 0 0 0.15rem; }
+  /* The qualifier says what the category is FOR before the sentence explains
+     it. Lighter so the category name still leads. */
+  .cookie-cat-qual { font-weight: 400; color: rgba(0,0,0,0.45); }
   .cookie-cat-desc { font-family: inherit; font-size: 0.75rem; line-height: 1.5; color: rgba(0,0,0,0.55); margin: 0; }
 
   .cookie-switch { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; cursor: pointer; }
