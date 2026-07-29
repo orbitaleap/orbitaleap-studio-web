@@ -5,4 +5,4 @@ Allow: /
 # it stays crawlable on purpose — a Disallow here would stop crawlers reading
 # that tag and the page could still surface in search.
 
-Sitemap: https://orbitaleap.com/sitemap-index.xml
+Sitemap: https://studio.orbitaleap.com/sitemap-index.xml
