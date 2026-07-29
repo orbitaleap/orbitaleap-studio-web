@@ -254,12 +254,21 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || "0x4AAAAAA
         throw new Error(resData.error || 'Error al enviar el mensaje');
       }
 
+      form.reset();
+
+      // On the ads landing page, redirect to the dedicated thank-you URL
+      // instead of the normal inline success message — that URL is what the
+      // Google Ads "Carga de la página" conversion action for /launch
+      // watches for. Every other page keeps the inline-success behavior.
+      if (window.location.pathname === '/launch') {
+        window.location.href = '/launch/deployed';
+        return;
+      }
+
       if (feedback) {
         feedback.textContent = '¡Mensaje enviado con éxito! Nos pondremos en contacto contigo en menos de 24 horas.';
         feedback.className = 'p-4 rounded-lg text-sm font-sans bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
       }
-
-      form.reset();
 
       setTimeout(() => {
         closeModal();

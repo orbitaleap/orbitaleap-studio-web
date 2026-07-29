@@ -693,10 +693,10 @@ const monthlyPlans = [
   });
 
   // ── Form submit ──
-  // Phosphor's check-bold / x-bold path data — inlined since these strings
-  // build dynamic feedback markup in vanilla JS, where the Icon component
-  // (build-time only) isn't available.
-  const PH_CHECK_ICON = '<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="m232.49 80.49l-128 128a12 12 0 0 1-17 0l-56-56a12 12 0 1 1 17-17L96 183L215.51 63.51a12 12 0 0 1 17 17Z"/></svg>';
+  // Phosphor's x-bold path data — inlined since this string builds dynamic
+  // feedback markup in vanilla JS, where the Icon component (build-time
+  // only) isn't available. The success case redirects to /launch/deployed
+  // instead of rendering an inline icon, so only the error icon is needed.
   const PH_X_ICON = '<svg class="w-3.5 h-3.5 shrink-0" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M208.49 191.51a12 12 0 0 1-17 17L128 145l-63.51 63.49a12 12 0 0 1-17-17L111 128L47.51 64.49a12 12 0 0 1 17-17L128 111l63.51-63.52a12 12 0 0 1 17 17L145 128Z"/></svg>';
 
   const form  = document.getElementById('hero-contact-form') as HTMLFormElement;
@@ -731,9 +731,13 @@ const monthlyPlans = [
       orb.setState('resolving');
 
       if (res.ok) {
-        msg.innerHTML = `${PH_CHECK_ICON} Recibido. Te contactamos en menos de 24h.`;
-        msg.className = 'text-xs flex items-center justify-center gap-1.5 font-sans text-black/60 mt-1';
+        // Redirect to the dedicated thank-you URL rather than showing an
+        // inline message — this page is what the Google Ads "Carga de la
+        // página" conversion action for /launch watches for, since this
+        // form submits via fetch() and never navigates on its own.
         form.reset();
+        window.location.href = '/launch/deployed';
+        return;
       } else {
         msg.innerHTML = `${PH_X_ICON} ${data.error || 'No se pudo enviar.'}`;
         msg.className = 'text-xs flex items-center justify-center gap-1.5 font-sans text-red-600 mt-1';

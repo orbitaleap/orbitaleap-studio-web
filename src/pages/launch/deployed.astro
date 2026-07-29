@@ -1,0 +1,39 @@
+---
+import { Icon } from 'astro-icon/components';
+import Layout from '../../layouts/Layout.astro';
+
+// Dedicated thank-you URL (studio.orbitaleap.com/launch/deployed) for the
+// /launch ads landing page. Both contact forms on /launch redirect here on a
+// successful submission — this is the page Google Ads' "Carga de la página"
+// conversion action watches for, since the forms themselves submit via
+// fetch() and never navigate on their own.
+// noindex + excluded from the sitemap (astro.config.mjs filters anything
+// containing "/launch") for the same reason the parent landing page is.
+---
+
+<Layout
+  title="Gracias | Orbital Leap Studio"
+  description="Hemos recibido tu solicitud. Te contactamos en menos de 24 horas."
+  noindex
+>
+  <main class="min-h-screen flex items-center justify-center bg-[#0A0A0A] text-white px-6 py-24">
+    <div class="max-w-lg text-center">
+      <span class="font-sans text-xs font-semibold uppercase tracking-widest text-white/50 block mb-5">
+        Orbital Leap Studio
+      </span>
+      <h1 class="font-sans text-4xl sm:text-5xl font-bold tracking-tight leading-tight mb-6">
+        Gracias. Ya tenemos tu solicitud.
+      </h1>
+      <p class="font-sans text-white/65 text-lg font-light leading-relaxed mb-10">
+        Hemos recibido tu consulta y te responderemos en menos de 24 horas con un presupuesto concreto.
+      </p>
+      <a
+        href="/"
+        class="inline-flex items-center justify-center gap-2 border border-white/25 rounded-lg px-7 py-3.5 font-sans text-xs font-semibold uppercase tracking-wider text-white hover:border-white/50 hover:bg-white/5 transition-colors"
+      >
+        Volver al inicio
+        <Icon name="ph:arrow-right-bold" class="w-3.5 h-3.5" />
+      </a>
+    </div>
+  </main>
+</Layout>

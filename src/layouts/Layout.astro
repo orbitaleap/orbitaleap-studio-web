@@ -23,6 +23,13 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://studio.o
 const ogImage = new URL("/og-card.png", canonicalURL);
 
 const googleFontsHref = "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Product+Sans:wght@400;500;700&family=Roboto+Mono:wght@300;400;500&display=swap";
+
+// Google Ads conversion tracking — the /launch landing page and its
+// thank-you URL (/launch/deployed) depend on this base tag being present
+// sitewide (Google Ads' "Carga de la página" conversion action matches
+// page_view events emitted by this same tag). Unset until an ID is provided,
+// so nothing renders until then.
+const googleAdsId = import.meta.env.PUBLIC_GOOGLE_ADS_ID;
 ---
 
 <!doctype html>
@@ -68,6 +75,19 @@ const googleFontsHref = "https://fonts.googleapis.com/css2?family=Plus+Jakarta+S
     <link rel="preload" as="style" href={googleFontsHref}>
     <link rel="stylesheet" href={googleFontsHref} media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href={googleFontsHref}></noscript>
+
+    <!-- Google Ads tag — only present once PUBLIC_GOOGLE_ADS_ID is set -->
+    {googleAdsId && (
+      <>
+        <script async src={`https://www.googletagmanager.com/gtag/js?id=${googleAdsId}`}></script>
+        <script define:vars={{ googleAdsId }}>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){ dataLayer.push(arguments); }
+          gtag('js', new Date());
+          gtag('config', googleAdsId);
+        </script>
+      </>
+    )}
   </head>
   <body class="bg-brand-bg text-brand-light min-h-screen flex flex-col relative selection:bg-white selection:text-black">
     <ScrollProgress />
