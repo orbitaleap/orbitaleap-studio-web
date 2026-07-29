@@ -477,7 +477,7 @@ import FormGuard from '../components/FormGuard.astro';
     // recommendation, both known only at submit time — hence the closure.
     let recommendation = '';
     const submitLead = createLeadSubmitter(form, {
-      source: 'Test autodiagnóstico',
+      source: 'studio · autodiagnóstico',
       buildMessage: (fd) => {
         const extra = String(fd.get('message') ?? '').trim();
         return (

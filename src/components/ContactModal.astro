@@ -219,9 +219,17 @@ import FormGuard from './FormGuard.astro';
   // Handle Form Submission with Resend API
   // Wired once, at setup — the submitter stamps the moment the form became
   // available, which is what the endpoint's timing check measures against.
-  const submitLead = form
-    ? createLeadSubmitter(form, { source: 'Contacto web' })
-    : null;
+  //
+  // The label names the page, not just the component. This modal is reachable
+  // from every page including /launch, so a lead that arrived through paid
+  // traffic would otherwise be filed as an ordinary site contact — which is
+  // precisely the distinction worth having in the subject line.
+  const modalSource =
+    window.location.pathname.replace(/\/$/, '') === '/launch'
+      ? 'studio · /launch (modal)'
+      : 'studio · contacto';
+
+  const submitLead = form ? createLeadSubmitter(form, { source: modalSource }) : null;
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();

@@ -191,6 +191,16 @@ body::after {
   outline-color: var(--field-invalid);
 }
 
+/* Inline validation message under a field. Red plus text — colour alone is
+   the first thing to disappear for anyone with a red deficiency, so the
+   sentence is what actually carries the meaning. */
+.ol-field-error {
+  margin-top: 0.3rem;
+  color: var(--field-invalid);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
 .ol-label {
   display: block;
   margin-bottom: 0.375rem;

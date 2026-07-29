@@ -34,8 +34,7 @@ const { advertising = false } = Astro.props;
         {advertising
           ? 'Usamos cookies propias necesarias para el funcionamiento del sitio y, con tu permiso, cookies de medición y publicidad de proveedores externos.'
           : 'Usamos cookies propias necesarias para el funcionamiento de este sitio.'}{' '}
-        <a href="https://orbitaleap.com/cookies/" class="cookie-link">Política de cookies</a> ·
-        <a href="https://orbitaleap.com/privacidad/" class="cookie-link">Privacidad</a>
+        <a href="https://orbitaleap.com/cookies/" class="cookie-link">Política de cookies</a><span class="cookie-sep" aria-hidden="true">·</span><a href="https://orbitaleap.com/privacidad/" class="cookie-link">Privacidad</a>
       </p>
     </div>
     <div class="cookie-actions">
@@ -113,9 +112,11 @@ const { advertising = false } = Astro.props;
     width: calc(100% - 2.5rem);
     max-width: 64rem;
     background: #fff;
-    border: 1.5px solid rgba(0,0,0,0.12);
+    /* No shadow. A large blur with a small offset rings the card instead of
+       sitting under it, which over any photographic background reads as a
+       smudged border. The hairline is the edge. */
+    border: 1px solid rgba(0,0,0,0.1);
     border-radius: 16px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
     padding: 1.5rem 1.75rem;
     display: none; /* shown by JS only if no consent stored */
     animation: slideUp 0.3s ease;
@@ -156,6 +157,11 @@ const { advertising = false } = Astro.props;
 
   .cookie-link { color: #000; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
   .cookie-link:hover { text-decoration: none; }
+
+  /* The separator carries its own margins rather than sitting between two text
+     nodes: the template collapses the whitespace around it, so it rendered as
+     "Política de cookies ·Privacidad" — glued on one side and not the other. */
+  .cookie-sep { margin: 0 0.5rem; color: rgba(0,0,0,0.35); font-weight: 400; text-decoration: none; }
 
   .cookie-actions { display: flex; gap: 0.5rem; flex-shrink: 0; flex-wrap: wrap; align-items: center; }
 

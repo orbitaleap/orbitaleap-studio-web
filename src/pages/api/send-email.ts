@@ -2,6 +2,7 @@ export const prerender = false;
 
 import type { APIRoute } from "astro";
 import { Resend } from "resend";
+import { buildConfirmationEmail, makeReference } from '../../lib/confirmation-email';
 
 // The Workers binding namespace. Imported at module scope because
 // `cloudflare:workers` is a virtual module resolved only when bundling for
@@ -56,6 +57,56 @@ function readEnv(context: any, key: string): string | undefined {
         (typeof process !== 'undefined' ? process.env?.[key] : undefined) ||
         (import.meta.env as any)?.[key]
     );
+}
+
+// Rate limit: how many submissions one address may send, and over what window.
+const RATE_LIMIT_MAX = 2;
+const RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
+
+/**
+ * Counts submissions per email address using the Workers Cache API.
+ *
+ * Cache rather than KV because it needs no binding, no namespace and no
+ * dashboard setup — this has to work on a deploy that has never been
+ * configured for it.
+ *
+ * The trade is real and worth stating: the cache is per data centre, so
+ * someone routed through a different Cloudflare colo starts from zero. This
+ * is a speed bump against the ordinary case — the same person submitting the
+ * same form repeatedly, by accident or frustration — not a defence against a
+ * determined attacker, who is what Turnstile and the honeypot are for. If it
+ * ever needs to be airtight, the same logic moves to KV unchanged.
+ *
+ * The address is hashed before it becomes a cache key: a raw email in a key
+ * is personal data sitting somewhere it does not need to be.
+ */
+async function underRateLimit(email: string): Promise<boolean> {
+    try {
+        const cache = (caches as any).default;
+        if (!cache) return true;
+
+        const digest = await crypto.subtle.digest(
+            'SHA-256',
+            new TextEncoder().encode(email.toLowerCase())
+        );
+        const hash = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+        const key = new Request(`https://ratelimit.orbitaleap.internal/lead/${hash}`);
+
+        const hit = await cache.match(key);
+        const count = hit ? Number(await hit.text()) || 0 : 0;
+        if (count >= RATE_LIMIT_MAX) return false;
+
+        await cache.put(
+            key,
+            new Response(String(count + 1), {
+                headers: { 'Cache-Control': `max-age=${RATE_LIMIT_WINDOW_SECONDS}` },
+            })
+        );
+        return true;
+    } catch {
+        // Never let the limiter itself block a genuine lead.
+        return true;
+    }
 }
 
 export const POST: APIRoute = async (context) => {
@@ -213,6 +264,19 @@ export const POST: APIRoute = async (context) => {
             }
         }
 
+        // After Turnstile, deliberately: a bot that fails the challenge should
+        // not be able to burn a real person's allowance by submitting their
+        // address, and only a submission that would otherwise have been sent
+        // should count against the limit.
+        if (!(await underRateLimit(email))) {
+            return new Response(JSON.stringify({
+                error: "Ya hemos recibido tu mensaje. Te responderemos en breve; si es urgente, escríbenos directamente a contact@orbitaleap.com.",
+            }), {
+                status: 429,
+                headers: { "Content-Type": "application/json" },
+            });
+        }
+
         // mail.orbitaleap.com, not the apex: that subdomain is the one verified in
     // Resend (DKIM at resend._domainkey.mail.orbitaleap.com), and Resend refuses
     // to send from a domain it has not verified.
@@ -237,6 +301,9 @@ export const POST: APIRoute = async (context) => {
 
         // Digits only, for the tel: and wa.me links. A number typed as
         // "+34 600 123 456" is not dialable as written.
+        // One code, both emails: quoted back by the customer, searchable by us.
+        const reference = makeReference();
+
         const telHref = phone.replace(/[^+\d]/g, '');
         const waHref = phone.replace(/[^\d]/g, '');
 
@@ -283,6 +350,7 @@ export const POST: APIRoute = async (context) => {
             ${row('Teléfono', `<a href="tel:${escapeHtml(telHref)}" style="color:#111;">${escapeHtml(phone)}</a>`)}
             ${row('Empresa', company ? escapeHtml(company) : '<span style="color:#999;">No especificada</span>')}
             ${row('Formulario', escapeHtml(source))}
+            ${row('Referencia', escapeHtml(reference))}
             ${row('Ubicación', escapeHtml(place))}
             ${row('Enviado', escapeHtml(submittedAt))}
           </table>
@@ -300,6 +368,43 @@ export const POST: APIRoute = async (context) => {
                 status: 500,
                 headers: { "Content-Type": "application/json" },
             });
+        }
+
+        // The confirmation to the person who wrote in.
+        //
+        // Deliberately AFTER the internal notification and deliberately unable
+        // to fail the request: the lead is safe the moment the message above
+        // lands, and a courtesy email that bounces must never turn a captured
+        // lead into an error the visitor sees. If it fails it is logged and
+        // that is all.
+        //
+        // replyTo is the team address, not the no-reply it is sent from, so
+        // "just hit reply" is true rather than a figure of speech.
+        try {
+            const confirmation = buildConfirmationEmail({
+                name,
+                message,
+                source,
+                reference,
+                receivedAt: new Intl.DateTimeFormat('es-ES', {
+                    dateStyle: 'long', timeStyle: 'short', timeZone: 'Europe/Madrid',
+                }).format(new Date()),
+            });
+
+            const { error: confirmError } = await resend.emails.send({
+                from: emailFrom,
+                to: [email],
+                replyTo: emailTo,
+                subject: confirmation.subject,
+                html: confirmation.html,
+                text: confirmation.text,
+            });
+
+            if (confirmError) {
+                console.error("Confirmación al cliente no enviada:", confirmError);
+            }
+        } catch (confirmException) {
+            console.error("Confirmación al cliente no enviada:", confirmException);
         }
 
         return new Response(JSON.stringify({ message: "Mensaje enviado con éxito", id: data?.id }), {
