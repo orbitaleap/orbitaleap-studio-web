@@ -776,6 +776,11 @@ const monthlyPlans = [
         // forwarding it restores attribution without setting anything on this
         // page. gbraid and wbraid are the iOS and web-to-app equivalents and
         // arrive the same way.
+        // The one-shot flag the conversion page checks. Set here, and only
+        // here, so /launch/deployed can tell a real submission from a crawler
+        // or a shared link.
+        sessionStorage.setItem('ol_launch_conversion', '1');
+
         const src = new URLSearchParams(window.location.search);
         const carried = ['gclid', 'gbraid', 'wbraid']
           .filter((k) => src.get(k))
