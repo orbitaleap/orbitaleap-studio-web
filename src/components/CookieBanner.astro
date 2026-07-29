@@ -59,10 +59,13 @@ const { advertising = false } = Astro.props;
       </div>
       <!-- Disabled rather than absent: people look for the category they were
            told about, and a locked switch explains itself. -->
+      <!-- The note goes BEFORE the switch so all three switches sit flush to
+           the same right edge. After it, this one was pushed left by the width
+           of the word and broke the column. -->
       <label class="cookie-switch is-locked">
+        <span class="cookie-switch-note">Siempre</span>
         <input type="checkbox" checked disabled aria-label="Estrictamente necesarias, siempre activas" />
         <span class="cookie-switch-ui"></span>
-        <span class="cookie-switch-note">Siempre</span>
       </label>
     </div>
 
