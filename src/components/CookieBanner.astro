@@ -140,13 +140,33 @@
     banner.classList.add('visible');
   }
 
+  // The answer has to reach something. Until now this banner only wrote a
+  // string to localStorage: accepting and rejecting produced identical
+  // behaviour, which makes the whole control theatre. On /launch the Google
+  // Ads tag loads with Consent Mode defaulting to denied (see Layout.astro),
+  // and these two handlers are what move it.
+  //
+  // Optional-chained because the tag only exists on the page the campaign
+  // points at; everywhere else there is nothing to update and nothing to
+  // consent to, and the banner still records the preference.
+  function setConsent(granted: boolean) {
+    (window as any).gtag?.('consent', 'update', {
+      ad_storage: granted ? 'granted' : 'denied',
+      ad_user_data: granted ? 'granted' : 'denied',
+      ad_personalization: granted ? 'granted' : 'denied',
+      analytics_storage: granted ? 'granted' : 'denied'
+    });
+  }
+
   acceptBtn?.addEventListener('click', () => {
     localStorage.setItem(CONSENT_KEY, 'accepted');
+    setConsent(true);
     hideBanner();
   });
 
   rejectBtn?.addEventListener('click', () => {
     localStorage.setItem(CONSENT_KEY, 'rejected');
+    setConsent(false);
     hideBanner();
   });
 </script>

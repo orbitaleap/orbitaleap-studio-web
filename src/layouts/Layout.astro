@@ -7,13 +7,16 @@ interface Props {
   description?: string;
   lang?: string;
   noindex?: boolean;
+  /** Load the Google Ads tag. Only the page the ads point at should. */
+  ads?: boolean;
 }
 
 const {
   title,
   description = "Orbital Leap - Estudio de diseño y desarrollo digital. Creamos páginas web, plataformas y aplicaciones a medida.",
   lang = "es",
-  noindex = false
+  noindex = false,
+  ads = false
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://studio.orbitaleap.com");
@@ -76,15 +79,50 @@ const googleAdsId = import.meta.env.PUBLIC_GOOGLE_ADS_ID;
     <link rel="stylesheet" href={googleFontsHref} media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href={googleFontsHref}></noscript>
 
-    <!-- Google Ads tag — only present once PUBLIC_GOOGLE_ADS_ID is set -->
-    {googleAdsId && (
+    <!--
+      Google Ads tag. Two conditions, not one.
+
+      `ads` — this was in the shared layout, so it loaded on every page of the
+      site. The campaign points at /launch and that is the only page that needs
+      conversion tracking; loading a third-party advertising tag on the privacy
+      policy is both unnecessary and a harder thing to justify in it.
+
+      Consent Mode v2, defaulting to DENIED. Advertising cookies need prior
+      consent under the ePrivacy directive, and this site already asks for it —
+      it just never connected the answer to anything. The tag now loads with
+      every storage type denied and CookieBanner grants them on accept, so
+      nothing is written before the visitor agrees. Denied-by-default still
+      lets Google model conversions, which is why this is preferable to not
+      loading the tag at all.
+    -->
+    {ads && googleAdsId && (
       <>
         <script async src={`https://www.googletagmanager.com/gtag/js?id=${googleAdsId}`}></script>
         <script define:vars={{ googleAdsId }}>
           window.dataLayer = window.dataLayer || [];
           function gtag(){ dataLayer.push(arguments); }
+          window.gtag = gtag;
+
+          gtag('consent', 'default', {
+            ad_storage: 'denied',
+            ad_user_data: 'denied',
+            ad_personalization: 'denied',
+            analytics_storage: 'denied'
+          });
+
           gtag('js', new Date());
           gtag('config', googleAdsId);
+
+          // A visitor who already accepted on a previous visit should not have
+          // to accept again for the tag to work.
+          if (localStorage.getItem('ol_cookie_consent') === 'accepted') {
+            gtag('consent', 'update', {
+              ad_storage: 'granted',
+              ad_user_data: 'granted',
+              ad_personalization: 'granted',
+              analytics_storage: 'granted'
+            });
+          }
         </script>
       </>
     )}
