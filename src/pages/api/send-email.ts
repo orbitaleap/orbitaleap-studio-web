@@ -2,6 +2,7 @@ export const prerender = false;
 
 import type { APIRoute } from "astro";
 import { Resend } from "resend";
+import { buildConfirmationEmail } from '../../lib/confirmation-email';
 
 // The Workers binding namespace. Imported at module scope because
 // `cloudflare:workers` is a virtual module resolved only when bundling for
@@ -56,6 +57,56 @@ function readEnv(context: any, key: string): string | undefined {
         (typeof process !== 'undefined' ? process.env?.[key] : undefined) ||
         (import.meta.env as any)?.[key]
     );
+}
+
+// Rate limit: how many submissions one address may send, and over what window.
+const RATE_LIMIT_MAX = 2;
+const RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
+
+/**
+ * Counts submissions per email address using the Workers Cache API.
+ *
+ * Cache rather than KV because it needs no binding, no namespace and no
+ * dashboard setup — this has to work on a deploy that has never been
+ * configured for it.
+ *
+ * The trade is real and worth stating: the cache is per data centre, so
+ * someone routed through a different Cloudflare colo starts from zero. This
+ * is a speed bump against the ordinary case — the same person submitting the
+ * same form repeatedly, by accident or frustration — not a defence against a
+ * determined attacker, who is what Turnstile and the honeypot are for. If it
+ * ever needs to be airtight, the same logic moves to KV unchanged.
+ *
+ * The address is hashed before it becomes a cache key: a raw email in a key
+ * is personal data sitting somewhere it does not need to be.
+ */
+async function underRateLimit(email: string): Promise<boolean> {
+    try {
+        const cache = (caches as any).default;
+        if (!cache) return true;
+
+        const digest = await crypto.subtle.digest(
+            'SHA-256',
+            new TextEncoder().encode(email.toLowerCase())
+        );
+        const hash = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+        const key = new Request(`https://ratelimit.orbitaleap.internal/lead/${hash}`);
+
+        const hit = await cache.match(key);
+        const count = hit ? Number(await hit.text()) || 0 : 0;
+        if (count >= RATE_LIMIT_MAX) return false;
+
+        await cache.put(
+            key,
+            new Response(String(count + 1), {
+                headers: { 'Cache-Control': `max-age=${RATE_LIMIT_WINDOW_SECONDS}` },
+            })
+        );
+        return true;
+    } catch {
+        // Never let the limiter itself block a genuine lead.
+        return true;
+    }
 }
 
 export const POST: APIRoute = async (context) => {
@@ -137,6 +188,34 @@ export const POST: APIRoute = async (context) => {
             });
         }
 
+        // Shape checks, not emptiness checks — the fields above already cover
+        // empty. Until now a lead could arrive with a sentence in the phone
+        // field and prose in the email, and it was accepted: the only email
+        // rule was the browser's type="email", which a direct post never sees
+        // and which accepts "ana@localhost" anyway, and type="tel" validates
+        // nothing at all in any browser.
+        //
+        // A malformed address means the reply bounces and the lead is dead, so
+        // this is worth refusing at the door rather than discovering later.
+        const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+        if (!EMAIL_RE.test(email)) {
+            return new Response(JSON.stringify({ error: "Revisa el email: no parece una dirección válida." }), {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+            });
+        }
+
+        // Counted on digits alone, so +34, spaces, dashes and brackets are all
+        // fine while "llámame por la tarde" is not. 9 is a Spanish national
+        // number; 15 is the E.164 maximum.
+        const phoneDigits = phone.replace(/\D/g, '');
+        if (phoneDigits.length < 9 || phoneDigits.length > 15 || /[a-zA-Z]/.test(phone)) {
+            return new Response(JSON.stringify({ error: "Revisa el teléfono: introduce solo números, con prefijo si quieres." }), {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+            });
+        }
+
         if (!consent) {
             return new Response(JSON.stringify({ error: "Debes aceptar la Política de Privacidad para enviar el formulario." }), {
                 status: 400,
@@ -185,11 +264,24 @@ export const POST: APIRoute = async (context) => {
             }
         }
 
+        // After Turnstile, deliberately: a bot that fails the challenge should
+        // not be able to burn a real person's allowance by submitting their
+        // address, and only a submission that would otherwise have been sent
+        // should count against the limit.
+        if (!(await underRateLimit(email))) {
+            return new Response(JSON.stringify({
+                error: "Ya hemos recibido tu mensaje. Te responderemos en breve; si es urgente, escríbenos directamente a contact@orbitaleap.com.",
+            }), {
+                status: 429,
+                headers: { "Content-Type": "application/json" },
+            });
+        }
+
         // mail.orbitaleap.com, not the apex: that subdomain is the one verified in
     // Resend (DKIM at resend._domainkey.mail.orbitaleap.com), and Resend refuses
     // to send from a domain it has not verified.
         const emailFrom = readEnv(context, 'CONTACT_FROM_EMAIL') || "Orbital Leap <no-reply@mail.orbitaleap.com>";
-        const emailTo = readEnv(context, 'CONTACT_TO_EMAIL') || "hello@orbitaleap.com";
+        const emailTo = readEnv(context, "CONTACT_TO_EMAIL") || "contact@orbitaleap.com";
         const consentedAt = new Date().toISOString();
 
         // Everything below comes from the request itself — Cloudflare's own
@@ -272,6 +364,47 @@ export const POST: APIRoute = async (context) => {
                 status: 500,
                 headers: { "Content-Type": "application/json" },
             });
+        }
+
+        // The confirmation to the person who wrote in.
+        //
+        // Deliberately AFTER the internal notification and deliberately unable
+        // to fail the request: the lead is safe the moment the message above
+        // lands, and a courtesy email that bounces must never turn a captured
+        // lead into an error the visitor sees. If it fails it is logged and
+        // that is all.
+        //
+        // replyTo is the team address, not the no-reply it is sent from, so
+        // "just hit reply" is true rather than a figure of speech.
+        try {
+            const confirmation = buildConfirmationEmail({
+                name,
+                message,
+                source,
+                // Compact on purpose. dateStyle:'long' produced "30 de julio
+                // de 2026, 1:29", which wrapped to two lines at 320px and
+                // stretched that one row out of step with the rail. The year is
+                // redundant under a label that already says "Ahora".
+                receivedAt: new Intl.DateTimeFormat('es-ES', {
+                    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+                    timeZone: 'Europe/Madrid',
+                }).format(new Date()),
+            });
+
+            const { error: confirmError } = await resend.emails.send({
+                from: emailFrom,
+                to: [email],
+                replyTo: emailTo,
+                subject: confirmation.subject,
+                html: confirmation.html,
+                text: confirmation.text,
+            });
+
+            if (confirmError) {
+                console.error("Confirmación al cliente no enviada:", confirmError);
+            }
+        } catch (confirmException) {
+            console.error("Confirmación al cliente no enviada:", confirmException);
         }
 
         return new Response(JSON.stringify({ message: "Mensaje enviado con éxito", id: data?.id }), {

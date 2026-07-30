@@ -191,10 +191,15 @@ const googleAdsId = import.meta.env.PUBLIC_GOOGLE_ADS_ID || 'AW-18312929105';
     <slot />
 
     <script>
+      import { wireFieldErrors } from '../lib/field-errors';
       import { gsap } from 'gsap';
       import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
       gsap.registerPlugin(ScrollTrigger);
+
+      // Inline validation messages on every .ol-field on the page. In Layout
+      // so a new form gets them without anyone remembering to wire it.
+      wireFieldErrors('.ol-field');
     </script>
     <!--
       The cookie notice. This component has existed in the repo for weeks and

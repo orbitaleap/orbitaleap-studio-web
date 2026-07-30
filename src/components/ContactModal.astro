@@ -42,7 +42,7 @@ import FormGuard from './FormGuard.astro';
         <!-- Email -->
         <div>
           <label for="email" class="ol-label">Email de contacto <span class="ol-required">*</span></label>
-          <input type="email" id="email" name="email" required placeholder="ana@ejemplo.com" class="ol-field" />
+          <input type="email" id="email" name="email" required placeholder="ana@ejemplo.com" pattern="[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}" title="Introduce un email válido, por ejemplo nombre@empresa.com" autocomplete="email" inputmode="email" class="ol-field" />
         </div>
 
         <!-- Company / Organization / Individual -->
@@ -54,7 +54,7 @@ import FormGuard from './FormGuard.astro';
         <!-- Phone (Required) -->
         <div>
           <label for="phone" class="ol-label">Teléfono de contacto <span class="ol-required">*</span></label>
-          <input type="tel" id="phone" name="phone" required placeholder="+34 600 000 000" class="ol-field" />
+          <input type="tel" id="phone" name="phone" required placeholder="+34 600 000 000" pattern="[+]?[0-9][0-9\s().\-]{7,19}" title="Introduce un teléfono válido: solo números, con prefijo opcional" autocomplete="tel" inputmode="tel" class="ol-field" />
         </div>
       </div>
 
@@ -174,9 +174,30 @@ import FormGuard from './FormGuard.astro';
     }
   };
 
+  // Has anyone actually typed anything? Losing a half-written enquiry to a
+  // stray click on the backdrop is the cheapest way there is to lose a lead.
+  const hasContent = () =>
+    !!form && [...new FormData(form).entries()].some(
+      ([k, v]) => k !== 'consent' && k !== 'cf-turnstile-response' && k !== 'website_url' && String(v).trim() !== ''
+    );
+
   closeBtn?.addEventListener('click', closeModal);
+
+  // The backdrop no longer closes a form that has been started. The X and
+  // Escape both still work, so there is always an obvious way out — this only
+  // removes the accidental one, where a click a few pixels wide of the card
+  // discards everything typed with no warning and no undo.
   modal?.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
+    if (e.target !== modal) return;
+    if (hasContent()) {
+      // Say why nothing happened, rather than appearing to be broken.
+      modalCard?.animate(
+        [{ transform: 'scale(1)' }, { transform: 'scale(1.01)' }, { transform: 'scale(1)' }],
+        { duration: 180, easing: 'ease-out' }
+      );
+      return;
+    }
+    closeModal();
   });
 
   // Message char length counter
@@ -198,9 +219,17 @@ import FormGuard from './FormGuard.astro';
   // Handle Form Submission with Resend API
   // Wired once, at setup — the submitter stamps the moment the form became
   // available, which is what the endpoint's timing check measures against.
-  const submitLead = form
-    ? createLeadSubmitter(form, { source: 'Contacto web' })
-    : null;
+  //
+  // The label names the page, not just the component. This modal is reachable
+  // from every page including /launch, so a lead that arrived through paid
+  // traffic would otherwise be filed as an ordinary site contact — which is
+  // precisely the distinction worth having in the subject line.
+  const modalSource =
+    window.location.pathname.replace(/\/$/, '') === '/launch'
+      ? 'studio · /launch (modal)'
+      : 'studio · contacto';
+
+  const submitLead = form ? createLeadSubmitter(form, { source: modalSource }) : null;
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -302,6 +331,8 @@ import FormGuard from './FormGuard.astro';
 
   // Close on Escape — the modal is a focus trap for keyboard users otherwise.
   document.addEventListener('keydown', (e) => {
+    // Escape always closes, even with content: trapping keyboard users in a
+    // dialog to protect a draft is a worse trade than losing the draft.
     if (e.key === 'Escape' && !modal?.classList.contains('pointer-events-none')) closeModal();
   });
 </script>
