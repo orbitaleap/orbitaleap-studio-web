@@ -141,8 +141,8 @@ function variant(source: LeadSource) {
  */
 function step(opts: { done: boolean; last: boolean; when: string; what: string }): string {
     const dot = opts.done
-        ? `<div style="width:9px;height:9px;border-radius:50%;background:${INK.white};margin:5px auto 0;font-size:0;line-height:0;">&nbsp;</div>`
-        : `<div style="width:7px;height:7px;border-radius:50%;border:1px solid ${INK.rail};margin:5px auto 0;font-size:0;line-height:0;">&nbsp;</div>`;
+        ? `<div style="width:9px;height:9px;border-radius:50%;background:${INK.white};margin:6px auto 0;font-size:0;line-height:0;">&nbsp;</div>`
+        : `<div style="width:7px;height:7px;border-radius:50%;border:1px solid ${INK.rail};margin:6px auto 0;font-size:0;line-height:0;">&nbsp;</div>`;
 
     // Fixed-height connector rather than a border down the cell: Word will not
     // draw the latter but will happily paint a 1px-wide div.
@@ -164,17 +164,25 @@ function step(opts: { done: boolean; last: boolean; when: string; what: string }
     // one. Growing the rail past that just makes the left cell govern the row
     // height and pushes the next dot down by the same amount — it recurses.
     //
-    // So the break is deliberate and symmetric instead: 5 + 9 + 5 + 38 = 57,
+    // So the break is deliberate and symmetric instead: 6 + 9 + 6 + 36 = 57,
     // exactly the right cell's 20 + 3 + 12 + 22, so neither cell governs and
     // the gap above the rail equals the gap below it. An even break reads as
-    // intentional; the 0-above / 5-below it replaced read as falling short.
+    // intentional; short at one end reads as a mistake.
+    //
+    // The 6px is measured off the painted pixels, not the box model. The target
+    // is the name's CAP MIDLINE — (cap top + baseline) / 2 — which at this size
+    // sits 10.06px down, within 0.06px of the line-box centre. Cap midline
+    // rather than ink centre because two of the three names carry descenders
+    // ('proyecto', 'respuesta') and aligning to ink would drop their dots
+    // relative to the first one. A 9px dot cannot land exactly on 10.06 with an
+    // integer margin: 5px rendered its centre at 9.25, 6px lands within 0.2px.
     //
     // Both line boxes are set in px, not ratios: the mobile query drops the name
     // to 14px and a ratio would move the pitch with it, pulling the rail out of
     // alignment on exactly the screens that are hardest to check.
     const rail = opts.last
         ? ''
-        : `<div style="width:1px;height:38px;background:${INK.rail};margin:5px auto 0;font-size:0;line-height:0;">&nbsp;</div>`;
+        : `<div style="width:1px;height:36px;background:${INK.rail};margin:6px auto 0;font-size:0;line-height:0;">&nbsp;</div>`;
 
     return `
       <tr>
