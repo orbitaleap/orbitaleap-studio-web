@@ -141,9 +141,15 @@ const { advertising = false } = Astro.props;
      width from the text at in-between sizes. */
   @media (min-width: 900px) {
     .cookie-inner { flex-direction: row; align-items: center; justify-content: space-between; gap: 2.5rem; flex-wrap: wrap; }
+    .cookie-text { flex: 1 1 26rem; min-width: 20rem; }
   }
 
-  .cookie-text { flex: 1 1 26rem; min-width: 20rem; }
+  /* Deliberately NOT unconditional. `flex: 1 1 26rem` sizes the MAIN axis, and
+     below 900px .cookie-inner is a column — so the 26rem became a 416px minimum
+     HEIGHT and the banner grew to 519px with a slab of empty space between the
+     sentence and the buttons. `min-width: 20rem` had the matching fault: 320px
+     of forced content in the ~264px a 360px phone offers. Both only ever meant
+     anything in the row layout, so both live there now. */
 
   .cookie-title {
     font-family: inherit; font-size: 0.875rem; font-weight: 700;
