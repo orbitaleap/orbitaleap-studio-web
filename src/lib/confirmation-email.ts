@@ -141,21 +141,40 @@ function variant(source: LeadSource) {
  */
 function step(opts: { done: boolean; last: boolean; when: string; what: string }): string {
     const dot = opts.done
-        ? `<div style="width:9px;height:9px;border-radius:50%;background:${INK.white};margin:1px auto 0;font-size:0;line-height:0;">&nbsp;</div>`
-        : `<div style="width:7px;height:7px;border-radius:50%;border:1px solid ${INK.rail};margin:1px auto 0;font-size:0;line-height:0;">&nbsp;</div>`;
+        ? `<div style="width:9px;height:9px;border-radius:50%;background:${INK.white};margin:5px auto 0;font-size:0;line-height:0;">&nbsp;</div>`
+        : `<div style="width:7px;height:7px;border-radius:50%;border:1px solid ${INK.rail};margin:5px auto 0;font-size:0;line-height:0;">&nbsp;</div>`;
 
     // Fixed-height connector rather than a border down the cell: Word will not
     // draw the latter but will happily paint a 1px-wide div.
     //
-    // The height is not a guess. One row is a 12px label + 4px gap + 20px title
-    // + 22px bottom padding = a 58px pitch between dots. The dot box is 9px and
-    // starts 1px down, so bridging to the next dot means 3px + 43px + 3px. It
-    // was 34px, which stopped 8px short and left the rail visibly disconnected.
-    // Both line boxes above are set in px for this reason — a ratio would move
-    // with the mobile font-size and break the sum.
+    // The height is not a guess, and the order of the two lines matters to it.
+    //
+    // The step NAME comes first and the timing sits beneath it, because the dot
+    // marks the step and the name is the step. With the timing first the dot
+    // aligned to the faint mono line and every marker read as floating a line
+    // too high above the bold text the eye actually lands on.
+    //
+    // So: a 20px name + 3px gap + 12px timing + 22px bottom padding = a 57px
+    // pitch between dots. The 9px dot starts 5px down to centre on the name's
+    // line box.
+    //
+    // A rail that touches both dots is not achievable here, and it is worth
+    // saying why rather than rediscovering it: a rail can only reach the bottom
+    // of its own row, while the next dot is inset 5px from the top of the next
+    // one. Growing the rail past that just makes the left cell govern the row
+    // height and pushes the next dot down by the same amount — it recurses.
+    //
+    // So the break is deliberate and symmetric instead: 5 + 9 + 5 + 38 = 57,
+    // exactly the right cell's 20 + 3 + 12 + 22, so neither cell governs and
+    // the gap above the rail equals the gap below it. An even break reads as
+    // intentional; the 0-above / 5-below it replaced read as falling short.
+    //
+    // Both line boxes are set in px, not ratios: the mobile query drops the name
+    // to 14px and a ratio would move the pitch with it, pulling the rail out of
+    // alignment on exactly the screens that are hardest to check.
     const rail = opts.last
         ? ''
-        : `<div style="width:1px;height:43px;background:${INK.rail};margin:3px auto 0;font-size:0;line-height:0;">&nbsp;</div>`;
+        : `<div style="width:1px;height:38px;background:${INK.rail};margin:5px auto 0;font-size:0;line-height:0;">&nbsp;</div>`;
 
     return `
       <tr>
@@ -163,8 +182,8 @@ function step(opts: { done: boolean; last: boolean; when: string; what: string }
           ${dot}${rail}
         </td>
         <td valign="top" style="padding:0 0 ${opts.last ? '0' : '22px'} 14px;">
-          <div style="font-family:${MONO};font-size:10px;line-height:12px;letter-spacing:0.14em;text-transform:uppercase;color:${opts.done ? INK.soft : INK.ghost};padding-bottom:4px;">${opts.when}</div>
           <div class="ol-step" style="font-family:${SANS};font-size:15px;font-weight:600;color:${opts.done ? INK.white : INK.soft};line-height:20px;">${opts.what}</div>
+          <div style="font-family:${MONO};font-size:10px;line-height:12px;letter-spacing:0.14em;text-transform:uppercase;color:${opts.done ? INK.soft : INK.ghost};padding-top:3px;">${opts.when}</div>
         </td>
       </tr>`;
 }

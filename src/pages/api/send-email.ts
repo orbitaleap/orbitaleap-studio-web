@@ -386,8 +386,13 @@ export const POST: APIRoute = async (context) => {
                 message,
                 source,
                 reference,
+                // Compact on purpose. dateStyle:'long' produced "30 de julio
+                // de 2026, 1:29", which wrapped to two lines at 320px and
+                // stretched that one row out of step with the rail. The year is
+                // redundant under a label that already says "Ahora".
                 receivedAt: new Intl.DateTimeFormat('es-ES', {
-                    dateStyle: 'long', timeStyle: 'short', timeZone: 'Europe/Madrid',
+                    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+                    timeZone: 'Europe/Madrid',
                 }).format(new Date()),
             });
 
