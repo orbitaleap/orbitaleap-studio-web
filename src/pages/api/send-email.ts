@@ -2,7 +2,7 @@ export const prerender = false;
 
 import type { APIRoute } from "astro";
 import { Resend } from "resend";
-import { buildConfirmationEmail, makeReference } from '../../lib/confirmation-email';
+import { buildConfirmationEmail } from '../../lib/confirmation-email';
 
 // The Workers binding namespace. Imported at module scope because
 // `cloudflare:workers` is a virtual module resolved only when bundling for
@@ -301,9 +301,6 @@ export const POST: APIRoute = async (context) => {
 
         // Digits only, for the tel: and wa.me links. A number typed as
         // "+34 600 123 456" is not dialable as written.
-        // One code, both emails: quoted back by the customer, searchable by us.
-        const reference = makeReference();
-
         const telHref = phone.replace(/[^+\d]/g, '');
         const waHref = phone.replace(/[^\d]/g, '');
 
@@ -350,7 +347,6 @@ export const POST: APIRoute = async (context) => {
             ${row('Teléfono', `<a href="tel:${escapeHtml(telHref)}" style="color:#111;">${escapeHtml(phone)}</a>`)}
             ${row('Empresa', company ? escapeHtml(company) : '<span style="color:#999;">No especificada</span>')}
             ${row('Formulario', escapeHtml(source))}
-            ${row('Referencia', escapeHtml(reference))}
             ${row('Ubicación', escapeHtml(place))}
             ${row('Enviado', escapeHtml(submittedAt))}
           </table>
@@ -385,7 +381,6 @@ export const POST: APIRoute = async (context) => {
                 name,
                 message,
                 source,
-                reference,
                 // Compact on purpose. dateStyle:'long' produced "30 de julio
                 // de 2026, 1:29", which wrapped to two lines at 320px and
                 // stretched that one row out of step with the rail. The year is

@@ -16,6 +16,12 @@
  * person, they will notice when it arrives; saying so in advance only invites
  * doubt.
  *
+ * The same rule killed the reference code that used to sit in the header. A
+ * reference number implies a ticketing system, and there is none — nothing was
+ * stored and nothing could be looked up, so it signalled process we do not have.
+ * Continuity is already handled: the reply threads, the subject carries their
+ * name, and their address is a better search key than an opaque code.
+ *
  * The register is the one already shipped on the site — launch.astro,
  * test-autodiagnostico.astro and launch/deployed.astro: `tú`, `nosotros` verbs,
  * a short fragment then a short sentence, one hard number (<24 h), and a `sin …`
@@ -45,8 +51,6 @@ export interface ConfirmationInput {
     message: string;
     /** The form it came from — 'studio · contacto' | 'studio · /launch' | 'studio · autodiagnóstico'. */
     source: LeadSource;
-    /** Short human-quotable reference, e.g. OL-4F2K. */
-    reference: string;
     /** Already formatted for Europe/Madrid by the caller. */
     receivedAt: string;
 }
@@ -77,7 +81,7 @@ const firstName = (full: string): string => {
 
 const INK = {
     // Measured, not eyeballed. The previous scale bottomed out at #4A4A4A on a
-    // #0B0B0B card — 2.2:1 for the labels, the footer and the reference code,
+    // #0B0B0B card — 2.2:1 for the labels and the footer,
     // and 1.3:1 for the timeline rail, which meant the pending steps were very
     // nearly invisible. Every text tier now clears 4.5:1 and the rail clears
     // the 3:1 that WCAG asks of anything carrying state.
@@ -231,7 +235,6 @@ export function buildConfirmationEmail(input: ConfirmationInput): BuiltEmail {
     .ol-h1  { font-size: 24px !important; }
     .ol-lead { font-size: 15px !important; }
     .ol-logo { width: 124px !important; height: 21px !important; }
-    .ol-ref { font-size: 10px !important; }
     .ol-step { font-size: 14px !important; }
   }
   /* Stops iOS inflating small type and breaking the measured layout. */
@@ -251,18 +254,9 @@ export function buildConfirmationEmail(input: ConfirmationInput): BuiltEmail {
 
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:${INK.card};border:1px solid ${INK.hairline};border-radius:14px;">
 
-        <!-- Logo, and the reference on the same line. The code is here rather
-             than in the footer because it is the one thing worth quoting at us. -->
         <tr>
           <td class="ol-px" style="padding:26px 34px 22px;border-bottom:1px solid ${INK.hairline};">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td align="left" valign="middle">
-                  <img src="${LOGO_URL}" class="ol-logo" width="148" height="25" alt="Orbital Leap" style="display:block;border:0;outline:none;text-decoration:none;height:25px;width:148px;line-height:25px;white-space:nowrap;overflow:hidden;font-family:${SANS};font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${INK.soft};" />
-                </td>
-                <td align="right" valign="middle" class="ol-ref" style="font-family:${MONO};font-size:11px;letter-spacing:0.08em;color:${INK.ghost};">${escapeHtml(input.reference)}</td>
-              </tr>
-            </table>
+            <img src="${LOGO_URL}" class="ol-logo" width="148" height="25" alt="Orbital Leap" style="display:block;border:0;outline:none;text-decoration:none;height:25px;width:148px;line-height:25px;white-space:nowrap;overflow:hidden;font-family:${SANS};font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${INK.soft};" />
           </td>
         </tr>
 
@@ -339,7 +333,6 @@ export function buildConfirmationEmail(input: ConfirmationInput): BuiltEmail {
     // every spam filter treats an HTML-only email as a small strike against it.
     const text = [
         'ORBITAL LEAP STUDIO',
-        `Referencia: ${input.reference}`,
         '',
         who ? `Gracias, ${who}. Ya tenemos ${v.noun}.` : `Gracias. Ya tenemos ${v.noun}.`,
         '',
@@ -362,10 +355,3 @@ export function buildConfirmationEmail(input: ConfirmationInput): BuiltEmail {
     return { subject, html, text };
 }
 
-/**
- * Short, human-quotable, and unique enough for the volume this sees.
- * Time-based rather than random so two codes can be ordered by eye.
- */
-export function makeReference(now: number = Date.now()): string {
-    return `OL-${now.toString(36).toUpperCase().slice(-4)}`;
-}
