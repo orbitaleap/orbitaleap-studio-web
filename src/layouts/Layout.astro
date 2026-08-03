@@ -15,6 +15,11 @@ interface Props {
   ads?: boolean;
   /** Show the cookie notice. Off for the paid landing page. */
   banner?: boolean;
+  /**
+   * Page-specific JSON-LD, appended to the sitewide graph below. The service
+   * pages use it for Service/BreadcrumbList/FAQPage; most pages pass nothing.
+   */
+  schema?: Record<string, unknown>[];
 }
 
 const {
@@ -23,7 +28,8 @@ const {
   lang = "es",
   noindex = false,
   ads = true,
-  banner = true
+  banner = true,
+  schema = []
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://studio.orbitaleap.com");
@@ -31,6 +37,60 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://studio.o
 // platform (LinkedIn, WhatsApp, X, Slack, iMessage) ignores — shared links
 // rendered with no image at all.
 const ogImage = new URL("/og-card.png", canonicalURL);
+
+// Structured data. There was none on this site at all, which left search
+// engines to infer the relationship between studio.orbitaleap.com and
+// orbitaleap.com from the markup — and they inferred it wrong: the parent
+// domain's result currently shows THIS site's Spanish title.
+//
+// The Organization node is therefore deliberately the parent's @id and the
+// parent's url, not this host's. One company, described once, at one
+// identifier, referenced from both sites — that is what tells a crawler these
+// are two properties of the same entity rather than two competing companies.
+// The studio is modelled as a WebSite published by it.
+//
+// Details are the ones already published elsewhere in this codebase: the
+// registered address and NIF come from orbitaleap.com/aviso-legal, the phone,
+// email and social profiles from the footer directly below.
+const organization = {
+  '@type': 'Organization',
+  '@id': 'https://orbitaleap.com/#organization',
+  name: 'Orbital Leap',
+  legalName: 'Orbital Leap Technologies, S.L.',
+  url: 'https://orbitaleap.com/',
+  // The near-black mark (#050006), not the white one beside it in /brand: a
+  // knowledge panel draws the logo on white, where ol_imagotipo-hw would be
+  // invisible. Same reason the email uses its own asset.
+  logo: 'https://studio.orbitaleap.com/brand/ol_imagotipo-hk.svg',
+  email: 'hello@orbitaleap.com',
+  telephone: '+34623947598',
+  vatID: 'B22472674',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Calle Antonio López 138',
+    postalCode: '28026',
+    addressLocality: 'Madrid',
+    addressCountry: 'ES'
+  },
+  sameAs: [
+    'https://www.linkedin.com/company/orbital-leap/',
+    'https://www.instagram.com/orbitaleap/'
+  ]
+};
+
+const website = {
+  '@type': 'WebSite',
+  '@id': 'https://studio.orbitaleap.com/#website',
+  name: 'Orbital Leap Studio',
+  url: 'https://studio.orbitaleap.com/',
+  inLanguage: 'es-ES',
+  publisher: { '@id': 'https://orbitaleap.com/#organization' }
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [organization, website, ...schema]
+};
 
 const googleFontsHref = "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Product+Sans:wght@400;500;700&family=Roboto+Mono:wght@300;400;500&display=swap";
 
@@ -82,6 +142,8 @@ const googleAdsId = import.meta.env.PUBLIC_GOOGLE_ADS_ID || 'AW-18312929105';
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
+
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
     <!-- Fonts — loaded off the critical path. As a plain stylesheet this
          request blocked first paint by ~850ms; media="print" lets the browser

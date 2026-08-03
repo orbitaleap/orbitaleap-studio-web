@@ -5,4 +5,8 @@ Allow: /
 # it stays crawlable on purpose — a Disallow here would stop crawlers reading
 # that tag and the page could still surface in search.
 
-Sitemap: https://orbitaleap.com/sitemap-index.xml
+# This site's own sitemap, not the parent's. It used to name
+# orbitaleap.com/sitemap-index.xml, which lists only that domain's seven URLs
+# — a sitemap covers the host that serves it, so the eight URLs here were
+# never announced to anything reading this file.
+Sitemap: https://studio.orbitaleap.com/sitemap-index.xml

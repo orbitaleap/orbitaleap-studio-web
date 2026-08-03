@@ -163,9 +163,62 @@ export async function getStaticPaths() {
 }
 
 const { service } = Astro.props;
+
+const pageUrl = `https://studio.orbitaleap.com/servicios/${service.slug}/`;
+
+// Three nodes, all built from what the page already renders rather than from
+// anything written for crawlers: the service itself, the trail that leads to
+// it, and the Q&A block at the foot of the page. All six services carry
+// questions today; the FAQ node is still conditional so that adding a seventh
+// without them emits no FAQPage rather than an empty, invalid one.
+//
+// Note on FAQ: Google restricted FAQ rich results to health and government
+// sites in 2023, so this will not draw the expandable snippet it once would.
+// It is here because it is an accurate description of the page's content, and
+// that is still worth stating.
+const schema = [
+  {
+    '@type': 'Service',
+    '@id': `${pageUrl}#service`,
+    name: service.title,
+    description: service.desc,
+    serviceType: service.title,
+    url: pageUrl,
+    provider: { '@id': 'https://orbitaleap.com/#organization' },
+    areaServed: { '@type': 'Country', name: 'España' },
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: service.title,
+      itemListElement: service.capabilities.map((c) => ({
+        '@type': 'Offer',
+        itemOffered: { '@type': 'Service', name: c.title, description: c.desc }
+      }))
+    }
+  },
+  {
+    '@type': 'BreadcrumbList',
+    '@id': `${pageUrl}#breadcrumb`,
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://studio.orbitaleap.com/' },
+      { '@type': 'ListItem', position: 2, name: 'Servicios', item: 'https://studio.orbitaleap.com/#servicios' },
+      { '@type': 'ListItem', position: 3, name: service.title, item: pageUrl }
+    ]
+  },
+  ...(service.faq?.length
+    ? [{
+        '@type': 'FAQPage',
+        '@id': `${pageUrl}#faq`,
+        mainEntity: service.faq.map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a }
+        }))
+      }]
+    : [])
+];
 ---
 
-<Layout title={`${service.title} - Orbital Leap`} description={service.desc}>
+<Layout title={`${service.title} - Orbital Leap`} description={service.desc} schema={schema}>
   <Navbar />
 
   <main class="relative w-full bg-brand-bg pt-32 pb-24 px-6 md:px-12 xl:px-24 overflow-hidden">

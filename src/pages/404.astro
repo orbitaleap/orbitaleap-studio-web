@@ -1,0 +1,49 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+
+// Without this file Astro serves its own built-in 404 — a dark page with the
+// Astro logo drawn in the middle of it. It answers with the right status, so
+// nothing was broken, but it is the one page on the site carrying somebody
+// else's branding, and search results still point at addresses that reach it.
+---
+
+<Layout
+  title="Página no encontrada - Orbital Leap Studio"
+  description="La dirección solicitada no existe en studio.orbitaleap.com."
+  noindex
+>
+  <Navbar />
+
+  <main class="relative w-full min-h-[70vh] bg-brand-bg pt-40 pb-24 px-6 md:px-12 xl:px-24 flex flex-col justify-center">
+    <p class="font-mono text-xs tracking-[0.16em] uppercase text-white/40 mb-4">Error 404</p>
+
+    <h1 class="font-sans text-[2.75rem] sm:text-6xl md:text-7xl font-medium tracking-tighter leading-[0.98] text-brand-light mb-6">
+      Esta página no existe.
+    </h1>
+
+    <p class="max-w-[52ch] text-base md:text-lg text-white/60 mb-12">
+      La dirección que has seguido no corresponde a ninguna página de este sitio.
+      Puede que el enlace esté desactualizado o que la página haya cambiado de
+      sitio.
+    </p>
+
+    <nav class="flex flex-col border-t border-brand-border max-w-3xl">
+      <a href="/" class="group flex flex-col gap-1 py-6 border-b border-brand-border transition-colors hover:border-white/40">
+        <span class="font-sans text-lg md:text-xl font-medium text-brand-light">Inicio</span>
+        <span class="text-sm text-white/45 group-hover:text-white/70 transition-colors">Servicios, metodología y contacto.</span>
+      </a>
+      <a href="/#servicios" class="group flex flex-col gap-1 py-6 border-b border-brand-border transition-colors hover:border-white/40">
+        <span class="font-sans text-lg md:text-xl font-medium text-brand-light">Servicios</span>
+        <span class="text-sm text-white/45 group-hover:text-white/70 transition-colors">Branding, UI/UX, desarrollo, cloud y DevOps.</span>
+      </a>
+      <a href="/test-autodiagnostico/" class="group flex flex-col gap-1 py-6 border-b border-brand-border transition-colors hover:border-white/40">
+        <span class="font-sans text-lg md:text-xl font-medium text-brand-light">Test de autodiagnóstico</span>
+        <span class="text-sm text-white/45 group-hover:text-white/70 transition-colors">Seis preguntas para saber qué necesita tu negocio.</span>
+      </a>
+    </nav>
+  </main>
+
+  <Footer />
+</Layout>
