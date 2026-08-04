@@ -145,6 +145,17 @@ export const POST: APIRoute = async (context) => {
         const website_url = (body?.website_url ?? "").toString().trim();
         const consent = body?.consent === true || body?.consent === "true" || body?.consent === "on";
 
+        // Where the visit started, sent by the shared submitter. Trimmed to a
+        // sane length because it is client-supplied and lands in an email: a
+        // referrer or a campaign name is short, and anything longer is either
+        // a mistake or someone probing.
+        const clip = (v: unknown, max: number) => (v ?? "").toString().trim().slice(0, max);
+        const attribution = {
+            channel: clip(body?.attribution?.channel, 40),
+            detail: clip(body?.attribution?.detail, 200),
+            landing: clip(body?.attribution?.landing, 200),
+        };
+
         // Honeypot bot protection
         // Same 2.5s floor orbitaleap.com uses. A person cannot read the
         // fields, type and submit inside it; a script posting straight at the
@@ -347,6 +358,10 @@ export const POST: APIRoute = async (context) => {
             ${row('Teléfono', `<a href="tel:${escapeHtml(telHref)}" style="color:#111;">${escapeHtml(phone)}</a>`)}
             ${row('Empresa', company ? escapeHtml(company) : '<span style="color:#999;">No especificada</span>')}
             ${row('Formulario', escapeHtml(source))}
+            ${row('Origen', attribution.channel
+                ? `<strong>${escapeHtml(attribution.channel)}</strong>${attribution.detail ? ` <span style="color:#666;">${escapeHtml(attribution.detail)}</span>` : ''}`
+                : '')}
+            ${row('Entró por', attribution.landing ? escapeHtml(attribution.landing) : '')}
             ${row('Ubicación', escapeHtml(place))}
             ${row('Enviado', escapeHtml(submittedAt))}
           </table>

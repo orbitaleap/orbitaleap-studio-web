@@ -32,6 +32,8 @@ export interface LeadResult {
   error?: string;
 }
 
+import { readAttribution } from './attribution';
+
 const ENDPOINT = '/api/send-email';
 
 const CONNECTION_ERROR =
@@ -70,6 +72,10 @@ export function createLeadSubmitter(form: HTMLFormElement, options: LeadFormOpti
       // Hidden field. Anything in it means a bot filled the form blind.
       website_url: text(fd, 'website_url'),
       elapsed: Date.now() - openedAt,
+      // Where this visit started. Read here rather than per-form so all three
+      // report it the same way — see lib/attribution.ts for what is and is
+      // not stored on the device.
+      attribution: readAttribution(),
     };
 
     try {
@@ -86,6 +92,7 @@ export function createLeadSubmitter(form: HTMLFormElement, options: LeadFormOpti
       // token — Cloudflare rejects it as timeout-or-duplicate and the visitor
       // gets a second failure that has nothing to do with what they typed.
       if (!res.ok) resetTurnstile();
+      if (res.ok) reportConversion();
 
       return { ok: res.ok, status: res.status, error: res.ok ? undefined : data?.error || UNKNOWN_ERROR };
     } catch {
@@ -97,4 +104,27 @@ export function createLeadSubmitter(form: HTMLFormElement, options: LeadFormOpti
 
 function resetTurnstile() {
   (window as unknown as { turnstile?: { reset: () => void } }).turnstile?.reset();
+}
+
+/**
+ * The "Solicitud de presupuesto" conversion, fired on a submission the server
+ * accepted — every form, not just the paid one.
+ *
+ * The account's other conversion action is URL-based and watches
+ * /launch/deployed, so it only ever counted the /launch funnel. A lead
+ * through the contact modal or the autodiagnóstico test recorded nothing at
+ * all, which is why a real lead this month could not be traced to a channel.
+ * Firing on the submit itself counts the thing that actually happened.
+ *
+ * Guarded because gtag is absent by design on /launch/deployed, which loads
+ * its own gated tag; there, this is a no-op and that page's own conversion
+ * still fires. Consent Mode governs the rest: while advertising is denied the
+ * tag sends a cookieless ping rather than writing anything.
+ */
+const CONVERSION_ID = 'AW-18312929105/IONoCPbWwtgcENG-pJxE';
+
+function reportConversion() {
+  const gtag = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
+  if (typeof gtag !== 'function') return;
+  gtag('event', 'conversion', { send_to: CONVERSION_ID });
 }
