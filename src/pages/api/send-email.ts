@@ -3,6 +3,7 @@ export const prerender = false;
 import type { APIRoute } from "astro";
 import { Resend } from "resend";
 import { buildConfirmationEmail } from '../../lib/confirmation-email';
+import { recordLead } from '../../lib/leads-store';
 
 // The Workers binding namespace. Imported at module scope because
 // `cloudflare:workers` is a virtual module resolved only when bundling for
@@ -57,6 +58,23 @@ function readEnv(context: any, key: string): string | undefined {
         (typeof process !== 'undefined' ? process.env?.[key] : undefined) ||
         (import.meta.env as any)?.[key]
     );
+}
+
+/**
+ * Bindings, as opposed to the string secrets readEnv returns.
+ *
+ * Separate because a binding is an object — D1, KV, a queue — and running one
+ * through readEnv's `||` chain would type it as a string and fall through to
+ * import.meta.env, which never holds bindings. Undefined is a normal answer
+ * here: the D1 database does not exist until someone creates it, and the
+ * caller is written to carry on without it.
+ */
+function readBinding(key: string): any {
+    try {
+        return (globalThis as any).__cfEnv?.[key];
+    } catch {
+        return undefined;
+    }
 }
 
 // Rate limit: how many submissions one address may send, and over what window.
@@ -379,6 +397,29 @@ export const POST: APIRoute = async (context) => {
                 status: 500,
                 headers: { "Content-Type": "application/json" },
             });
+        }
+
+        // Our own record of the lead, for the /metrics dashboard.
+        //
+        // Same rule as the confirmation below, and for the same reason: it
+        // runs AFTER the notification and cannot fail the request. The email
+        // is what the business runs on; this table is for counting. A lead
+        // that is delivered but not counted is a gap in a chart, while a lead
+        // that is counted but not delivered is a lost customer.
+        try {
+            await recordLead(readBinding('DB'), {
+                form: source,
+                channel: attribution.channel,
+                detail: attribution.detail,
+                landing: attribution.landing,
+                country,
+                region: (cf.region ?? '') as string,
+                city: (cf.city ?? '') as string,
+                name, email, phone, company, message,
+                consentAt: consentedAt,
+            });
+        } catch (e: any) {
+            console.error('[leads] no se pudo registrar el lead:', e?.message ?? e);
         }
 
         // The confirmation to the person who wrote in.
