@@ -17,10 +17,12 @@ import Footer from '../components/Footer.astro';
 // what stops an assistant either inventing a number or scraping one off a
 // campaign page and presenting it as a rate card.
 //
-// Grouped rather than listed flat: seventeen questions in a single run is hard
-// to scan, and the groups follow the order somebody actually worries in —
-// what will this cost, how do you work, what do I need to have ready, and
-// what happens once it is live.
+// Grouped rather than listed flat: sixteen questions in a single run is hard
+// to scan. The groups follow the project's own timeline — what it costs, how
+// we work, getting it live, and what happens after delivery — so the page
+// ends where the work ends. An earlier cut had a group called "Empezar"
+// sitting last, which read as a sequence finishing at the beginning; that
+// question is now the closing call to action instead, outside the accordion.
 
 const groups = [
   {
@@ -63,10 +65,14 @@ const groups = [
         q: '¿Podéis trabajar con nuestro equipo técnico actual?',
         a: 'Sí. Podemos entrar como partner estratégico o como CTO bajo demanda para acompañar a un equipo interno, en lugar de sustituirlo. También auditamos la infraestructura existente y proponemos una hoja de ruta antes de tocar nada.',
       },
+      {
+        q: '¿Dónde estáis y con quién trabajáis?',
+        a: 'Estamos en Madrid, España, y trabajamos en remoto con clientes de toda España. Atendemos desde negocios que arrancan y necesitan su primera web hasta empresas consolidadas que quieren modernizar su tecnología.',
+      },
     ],
   },
   {
-    title: 'Dominio, hosting y puesta en marcha',
+    title: 'Dominio, hosting y correo',
     faqs: [
       {
         q: '¿El dominio lo ponéis vosotros?',
@@ -95,24 +101,11 @@ const groups = [
       },
       {
         q: '¿Y si necesito cambios después del lanzamiento?',
-        a: 'Se hacen. Puedes pedirlos sueltos según vayan surgiendo, o llevar un plan mensual que ya incluye una bolsa de cambios menores cada mes. Lo que no va a pasar es que te quedes bloqueado esperando: si un día decides llevarlo por tu cuenta o con otro equipo, el código es tuyo y está documentado.',
+        a: 'Se hacen. Puedes pedirlos sueltos según vayan surgiendo, o llevar un plan mensual que ya incluye una bolsa de cambios menores cada mes. Lo que no va a pasar es que te quedes bloqueado esperando: si un día decides llevarlo por tu cuenta o con otro equipo, el código es tuyo.',
       },
       {
         q: '¿Puedo cambiar yo los textos y las fotos?',
         a: 'Depende de cómo montemos el proyecto, y se decide antes de empezar. Si vas a querer tocar contenido a menudo, lo preparamos con un gestor para que puedas hacerlo sin saber programar. Si la web es más estable, suele salir más a cuenta pedirnos los cambios puntuales que mantener un gestor que apenas se usa.',
-      },
-    ],
-  },
-  {
-    title: 'Empezar',
-    faqs: [
-      {
-        q: '¿Dónde estáis y con quién trabajáis?',
-        a: 'Estamos en Madrid, España, y trabajamos en remoto con clientes de toda España. Atendemos desde negocios que arrancan y necesitan su primera web hasta empresas consolidadas que quieren modernizar su tecnología.',
-      },
-      {
-        q: '¿Cómo empiezo?',
-        a: 'Escríbenos a hello@orbitaleap.com, llámanos al +34 623 94 75 98 o rellena el test de autodiagnóstico: cinco preguntas que nos dicen en qué punto estás. En cualquiera de los tres casos respondemos en menos de 24 horas.',
       },
     ],
   },
@@ -207,9 +200,23 @@ const schema = [
           </section>
         ))}
 
-        <p class="mt-14 text-base text-white/60 max-w-[68ch]">
-          ¿Prefieres que te orientemos nosotros? <a href="/test-autodiagnostico/" class="text-white underline underline-offset-4">Haz el test de autodiagnóstico</a> — cinco preguntas y te decimos por dónde empezar.
-        </p>
+        {/*
+          "¿Cómo empiezo?" used to be a collapsed question inside a group of
+          its own called "Empezar", which sat last — so the page read as a
+          timeline that ended at the beginning. It is the action the page
+          exists to prompt, so it is out of the accordion entirely and always
+          visible, at the end where somebody finishes reading.
+        */}
+        <div class="mt-16 border border-brand-border rounded-xl p-8 md:p-10 max-w-[68ch]">
+          <h2 class="font-sans text-xl md:text-2xl font-medium text-brand-light tracking-tight mb-3">¿Cómo empiezo?</h2>
+          <p class="text-base text-white/60 leading-relaxed mb-6">
+            Escríbenos a <a href="mailto:hello@orbitaleap.com" class="text-white underline underline-offset-4">hello@orbitaleap.com</a>, llámanos al <a href="tel:+34623947598" class="text-white underline underline-offset-4">+34 623 94 75 98</a> o haz el test de autodiagnóstico: cinco preguntas que nos dicen en qué punto estás. En cualquiera de los tres casos respondemos en menos de 24 horas.
+          </p>
+          <a href="/test-autodiagnostico/" class="inline-flex items-center gap-2 bg-white text-black rounded-lg px-6 py-3 font-sans text-sm font-medium hover:bg-white/90 transition-colors">
+            Hacer el test
+            <Icon name="ph:arrow-right-bold" class="w-4 h-4" />
+          </a>
+        </div>
       </div>
     </div>
   </main>
