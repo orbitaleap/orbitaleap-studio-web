@@ -45,8 +45,11 @@ function messageFor(field: Field, lang: Lang): string {
   if (v.valueMissing) return t.valueMissing;
   if (v.tooShort) {
     const left = Math.max(0, field.minLength - field.value.length);
+    // "caracteres", not "car\u00e1cteres": the stress moves in the plural, so the
+    // accent is on the singular only. Suffixing 'es' onto "car\u00e1cter" spelled
+    // it wrong on every form on the site.
     return lang === 'es'
-      ? `Falta${left === 1 ? '' : 'n'} ${left} car\u00e1cter${left === 1 ? '' : 'es'}.`
+      ? `Falta${left === 1 ? '' : 'n'} ${left} ${left === 1 ? 'car\u00e1cter' : 'caracteres'}.`
       : `${left} character${left === 1 ? '' : 's'} to go.`;
   }
   if (v.typeMismatch) return t.typeMismatch;

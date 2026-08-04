@@ -7,7 +7,7 @@ import FormGuard from '../components/FormGuard.astro';
 
 <Layout
   title="Test Autodiagnóstico Digital | Orbital Leap Studio"
-  description="Descubre qué solución web, app o sistema a medida se adapta mejor al momento de tu empresa en solo 6 preguntas."
+  description="Descubre qué solución web, app o sistema a medida se adapta mejor al momento de tu empresa en solo 5 preguntas."
 >
   <main class="relative min-h-screen bg-[#0D0D0D] text-white overflow-x-hidden selection:bg-white/20">
 
@@ -65,12 +65,12 @@ import FormGuard from '../components/FormGuard.astro';
           </h1>
 
           <p class="font-sans text-white/60 text-base sm:text-lg font-light leading-relaxed max-w-lg mb-8">
-            Responde 6 preguntas sencillas y te recomendaremos la solución técnica exacta para el momento actual de tu empresa.
+            Responde 5 preguntas sencillas y te recomendaremos la solución técnica exacta para el momento actual de tu empresa.
           </p>
 
           <div class="flex flex-wrap gap-3 mb-10">
             <span class="font-mono text-xs px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/70 inline-flex items-center gap-1.5">
-              <Icon name="ph:check-bold" class="w-3 h-3" />6 Preguntas
+              <Icon name="ph:check-bold" class="w-3 h-3" />5 Preguntas
             </span>
             <span class="font-mono text-xs px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/70 inline-flex items-center gap-1.5">
               <Icon name="ph:clock" class="w-3 h-3" />2 Minutos
@@ -346,12 +346,30 @@ import FormGuard from '../components/FormGuard.astro';
             </div>
 
             <div>
-              {/* Genuinely optional here, and the only field that differs from
-                  the other two forms: the message sent to us is built from the
-                  six answers, so there is always a substantial body without
-                  this. No minlength for the same reason. */}
-              <label for="quiz-message" class="ol-label">¿Algo más que quieras contarnos? <span class="ol-optional">(opcional)</span></label>
-              <textarea id="quiz-message" name="message" rows="3" placeholder="Cuéntanos más sobre tu proyecto, dudas o plazos que manejas..." class="ol-field resize-none"></textarea>
+              {/* Required, and on the same terms as the other two forms:
+                  minlength 20, matching the hint beside the label and the
+                  endpoint's own floor.
+
+                  It used to be optional, on the reasoning that the five
+                  answers already made a substantial body. They do, but they
+                  are five picks from a fixed list — every lead that arrives
+                  saying only A/A/C/A/A is indistinguishable from the next one
+                  that picks the same, and there is nothing in it to reply to.
+                  One sentence in the visitor's own words is the only part of
+                  this form that cannot be guessed from the options. */}
+              <div class="flex justify-between items-baseline">
+                <label for="quiz-message" class="ol-label">Cuéntanos tu proyecto <span class="ol-required">*</span></label>
+                <span class="ol-label">Mínimo 20 caracteres</span>
+              </div>
+              <textarea
+                id="quiz-message"
+                name="message"
+                rows="3"
+                required
+                minlength="20"
+                placeholder="¿Qué necesitas y para qué? Cuéntanos objetivos, alcance o plazos aproximados..."
+                class="ol-field resize-none"
+              ></textarea>
             </div>
 
             <FormGuard theme="dark" id="test-consent" />
@@ -465,6 +483,30 @@ import FormGuard from '../components/FormGuard.astro';
     (window as any).nextStep(questionNum + 1);
   };
 
+  // The lead notification used to carry `{"1":"A","2":"A","3":"C",...}` and
+  // nothing else, which meant the only way to find out what somebody had
+  // actually asked for was to open this file and decode the letters by hand.
+  //
+  // Both halves are read back out of the rendered markup rather than kept in a
+  // second copy here: the question from the step's own <h2>, the answer from
+  // the button the visitor pressed. A duplicated list would go stale the first
+  // time anyone reworded an option, and it would go stale silently — the email
+  // would keep looking correct while describing a question nobody was asked.
+  const answerTranscript = () =>
+    Object.keys(answers)
+      .map(Number)
+      .sort((a, b) => a - b)
+      .map((q) => {
+        const step = document.getElementById(`step-${q}`);
+        const question = step?.querySelector('h2')?.textContent?.trim() ?? `Pregunta ${q}`;
+        const chosen = step?.querySelector(
+          `.quiz-opt[onclick="selectOption(${q}, '${answers[q]}')"]`
+        );
+        const label = chosen?.textContent?.replace(/\s+/g, ' ').trim() ?? '(sin registrar)';
+        return `${q}. ${question}\n   ${answers[q]}) ${label}`;
+      })
+      .join('\n\n');
+
   const form = document.getElementById('quiz-unlock-form') as HTMLFormElement;
   if (form) {
     const submitBtn = document.getElementById('quiz-submit-btn') as HTMLButtonElement;
@@ -473,18 +515,26 @@ import FormGuard from '../components/FormGuard.astro';
     const statusMsg = document.getElementById('quiz-status-msg') as HTMLElement;
 
     // Created once, at setup, so the timing stamp measures from when the form
-    // appeared. The body is composed from the six answers and the
-    // recommendation, both known only at submit time — hence the closure.
-    let recommendation = '';
+    // appeared. The body is composed from the five answers, known only at
+    // submit time — hence the closure.
+    //
+    // The recommendation is deliberately NOT in it any more. The notification
+    // used to end with "Resultado Recomendado: Desarrollo de App Móvil o
+    // Plataforma SaaS", which is a guess made by four lines of if/else and
+    // reads, in an inbox, like a qualified assessment. It was also wrong in
+    // ways that cost money: it names products that do not exist on the
+    // pricing page, and it cannot be overruled by the budget the visitor just
+    // gave. What is worth having is what they actually said; the diagnosis is
+    // better made by a person reading it. The visitor still sees a result on
+    // screen — that is `title`/`desc`/`items` below, unchanged.
     const submitLead = createLeadSubmitter(form, {
       source: 'studio · autodiagnóstico',
       buildMessage: (fd) => {
-        const extra = String(fd.get('message') ?? '').trim();
+        const told = String(fd.get('message') ?? '').trim();
         return (
-          `[RESULTADO TEST AUTODIAGNÓSTICO]\n\n` +
-          `Respuestas: ${JSON.stringify(answers)}\n\n` +
-          `Resultado Recomendado: ${recommendation}` +
-          (extra ? `\n\nMensaje adicional del cliente:\n${extra}` : '')
+          `[RESPUESTAS DEL TEST]\n\n` +
+          `${answerTranscript()}\n\n` +
+          `Lo que nos cuenta:\n${told}`
         );
       },
     });
@@ -518,7 +568,6 @@ import FormGuard from '../components/FormGuard.astro';
       submitOrb.classList.remove('hidden');
       const orb = mountOrb(submitOrb, { size: 18, color: '#0B0B0C', label: 'Enviando tu diagnóstico' });
 
-      recommendation = title;
       const result = await submitLead();
       orb.setState('resolving');
 
