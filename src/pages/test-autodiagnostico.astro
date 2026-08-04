@@ -283,22 +283,22 @@ import FormGuard from '../components/FormGuard.astro';
 
           <div class="flex flex-col gap-3">
             <button onclick="selectOption(5, 'A')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
-              <span class="font-sans text-sm text-white/90">Menos de 3.000 € (Proyecto inicial)</span>
+              <span class="font-sans text-sm text-white/90">Hasta 750 € — arrancar con lo esencial</span>
               <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
 
             <button onclick="selectOption(5, 'B')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
-              <span class="font-sans text-sm text-white/90">Entre 3.000 € y 7.500 € (Plataforma profesional)</span>
+              <span class="font-sans text-sm text-white/90">Entre 750 € y 1.700 € — marca y web completas</span>
               <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
 
             <button onclick="selectOption(5, 'C')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
-              <span class="font-sans text-sm text-white/90">Entre 7.500 € y 15.000 € (App móvil o sistema a medida)</span>
+              <span class="font-sans text-sm text-white/90">Entre 1.700 € y 3.000 € — incluye ecommerce o app a medida</span>
               <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
 
             <button onclick="selectOption(5, 'D')" class="quiz-opt text-left p-4 rounded-lg bg-white/[0.03] border border-white/10 flex items-center justify-between gap-4">
-              <span class="font-sans text-sm text-white/90">Más de 15.000 € (Solución enterprise a gran escala)</span>
+              <span class="font-sans text-sm text-white/90">Más de 3.000 € — proyecto a medida, lo valoramos contigo</span>
               <Icon name="ph:arrow-right-bold" class="opt-arrow w-4 h-4 text-white shrink-0" />
             </button>
           </div>
@@ -545,19 +545,54 @@ import FormGuard from '../components/FormGuard.astro';
       const name = (document.getElementById('quiz-name') as HTMLInputElement).value;
       const extraMsg = (document.getElementById('quiz-message') as HTMLTextAreaElement).value;
 
-      let title = 'Plataforma Web a Medida';
-      let desc = 'Tu empresa necesita una presencia web sólida, de alta velocidad y orientada a captar clientes con un diseño a medida.';
-      let items = ['Diseño UI/UX completo', 'Programación frontend y backend', 'Optimización SEO y velocidad', 'Soporte directo por WhatsApp'];
+      // The three packs sold on /launch, named and priced as they are there.
+      //
+      // What this replaced invented a product line: "Pack Lanzamiento Inicial
+      // (MVP)", "Plataforma Web a Medida", "Desarrollo de App Móvil o
+      // Plataforma SaaS" — none of which appear on the pricing page, so the
+      // test named something, the pricing page named another, and the gap had
+      // to be closed by hand in the reply.
+      const PACKS = [
+        {
+          title: 'Pack Essential',
+          desc: 'Logotipo y web a medida: lo necesario para arrancar con una imagen profesional desde el primer día.',
+          items: ['Logo vectorial + paleta de colores', 'Web con diseño UX/UI propio, adaptada a móvil', 'Formulario de contacto integrado'],
+          price: '750 € · 600 € en pago único',
+        },
+        {
+          title: 'Pack Pro',
+          desc: 'Identidad de marca completa y sitio multipágina, pensado para que te encuentren y te tomen en serio.',
+          items: ['Identidad de marca completa + manual básico', 'Sitio web multipágina a medida', 'SEO + GEO (optimización para IA)', 'Versiones para redes sociales'],
+          price: '1.620 € · 1.215 € en pago único',
+        },
+        {
+          title: 'Pack Premium',
+          desc: 'Marca completa más ecommerce o aplicación a medida, con su propio panel de administración.',
+          items: ['Diseño de marca completo', 'Ecommerce o app a medida', 'Panel de administración', 'Pasarela de pago integrada', 'SEO + GEO (optimización para IA)'],
+          price: '2.900 € · 2.030 € en pago único',
+        },
+      ];
 
-      if (answers[3] === 'C' || answers[4] === 'B' || answers[5] === 'C' || answers[5] === 'D') {
-        title = 'Desarrollo de App Móvil o Plataforma SaaS';
-        desc = 'Recomendamos construir una aplicación nativa o sistema a medida con arquitectura escalable.';
-        items = ['Desarrollo iOS y Android', 'Base de datos y APIs cloud', 'Código fuente 100% tuyo', 'Despliegues continuos cada semana'];
-      } else if (answers[1] === 'A' || answers[5] === 'A') {
-        title = 'Pack Lanzamiento Inicial (MVP)';
-        desc = 'La mejor opción para arrancar rápido sin presupuestos desorbitados y con la máxima calidad.';
-        items = ['Diseño de marca básico', 'Página web rápida y clara', 'Formulario de captación', 'Entrega en tiempo récord'];
-      }
+      // Two independent reads, then the lower of the two wins.
+      //
+      // Previously the first branch won outright, so the budget just given
+      // could never overrule it: someone answering "menos de 3.000 €" was
+      // shown the most expensive track because of one unrelated answer. Need
+      // says what would solve the problem; budget says what can be bought
+      // today. Recommending above the stated budget is how a test loses the
+      // lead it just qualified.
+      const needs =
+        answers[3] === 'C' || answers[4] === 'B' ? 2   // app, panel or ecommerce
+        : answers[1] === 'D' || answers[4] === 'C' ? 1 // renovación integral
+        : answers[2] === 'C' ? 0                       // brand already exists
+        : 1;                                           // starting, needs brand + web
+
+      const affords = { A: 0, B: 1, C: 2, D: 2 }[answers[5] as 'A' | 'B' | 'C' | 'D'] ?? 1;
+
+      const pack = PACKS[Math.min(needs, affords)];
+      const title = pack.title;
+      const desc = pack.desc;
+      const items = [...pack.items, pack.price];
 
       // Sent BEFORE the result is revealed, so a rejected submission leaves
       // the visitor on the form able to retry rather than looking at their

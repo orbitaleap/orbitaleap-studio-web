@@ -254,6 +254,7 @@ const googleAdsId = import.meta.env.PUBLIC_GOOGLE_ADS_ID || 'AW-18312929105';
 
     <script>
       import { wireFieldErrors } from '../lib/field-errors';
+      import { captureFirstTouch } from '../lib/attribution';
       import { gsap } from 'gsap';
       import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -262,6 +263,12 @@ const googleAdsId = import.meta.env.PUBLIC_GOOGLE_ADS_ID || 'AW-18312929105';
       // Inline validation messages on every .ol-field on the page. In Layout
       // so a new form gets them without anyone remembering to wire it.
       wireFieldErrors('.ol-field');
+
+      // Remembers where the visit started, so a lead submitted three pages
+      // later still reports the ad or the search that brought it. Does
+      // nothing at all unless analytics consent has been given — see
+      // lib/attribution.ts.
+      captureFirstTouch();
     </script>
     <!--
       The cookie notice. This component has existed in the repo for weeks and
