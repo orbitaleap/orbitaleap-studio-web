@@ -346,12 +346,30 @@ import FormGuard from '../components/FormGuard.astro';
             </div>
 
             <div>
-              {/* Genuinely optional here, and the only field that differs from
-                  the other two forms: the message sent to us is built from the
-                  five answers, so there is always a substantial body without
-                  this. No minlength for the same reason. */}
-              <label for="quiz-message" class="ol-label">¿Algo más que quieras contarnos? <span class="ol-optional">(opcional)</span></label>
-              <textarea id="quiz-message" name="message" rows="3" placeholder="Cuéntanos más sobre tu proyecto, dudas o plazos que manejas..." class="ol-field resize-none"></textarea>
+              {/* Required, and on the same terms as the other two forms:
+                  minlength 20, matching the hint beside the label and the
+                  endpoint's own floor.
+
+                  It used to be optional, on the reasoning that the five
+                  answers already made a substantial body. They do, but they
+                  are five picks from a fixed list — every lead that arrives
+                  saying only A/A/C/A/A is indistinguishable from the next one
+                  that picks the same, and there is nothing in it to reply to.
+                  One sentence in the visitor's own words is the only part of
+                  this form that cannot be guessed from the options. */}
+              <div class="flex justify-between items-baseline">
+                <label for="quiz-message" class="ol-label">Cuéntanos tu proyecto <span class="ol-required">*</span></label>
+                <span class="ol-label">Mínimo 20 caracteres</span>
+              </div>
+              <textarea
+                id="quiz-message"
+                name="message"
+                rows="3"
+                required
+                minlength="20"
+                placeholder="¿Qué necesitas y para qué? Cuéntanos objetivos, alcance o plazos aproximados..."
+                class="ol-field resize-none"
+              ></textarea>
             </div>
 
             <FormGuard theme="dark" id="test-consent" />
@@ -497,18 +515,26 @@ import FormGuard from '../components/FormGuard.astro';
     const statusMsg = document.getElementById('quiz-status-msg') as HTMLElement;
 
     // Created once, at setup, so the timing stamp measures from when the form
-    // appeared. The body is composed from the five answers and the
-    // recommendation, both known only at submit time — hence the closure.
-    let recommendation = '';
+    // appeared. The body is composed from the five answers, known only at
+    // submit time — hence the closure.
+    //
+    // The recommendation is deliberately NOT in it any more. The notification
+    // used to end with "Resultado Recomendado: Desarrollo de App Móvil o
+    // Plataforma SaaS", which is a guess made by four lines of if/else and
+    // reads, in an inbox, like a qualified assessment. It was also wrong in
+    // ways that cost money: it names products that do not exist on the
+    // pricing page, and it cannot be overruled by the budget the visitor just
+    // gave. What is worth having is what they actually said; the diagnosis is
+    // better made by a person reading it. The visitor still sees a result on
+    // screen — that is `title`/`desc`/`items` below, unchanged.
     const submitLead = createLeadSubmitter(form, {
       source: 'studio · autodiagnóstico',
       buildMessage: (fd) => {
-        const extra = String(fd.get('message') ?? '').trim();
+        const told = String(fd.get('message') ?? '').trim();
         return (
-          `[RESULTADO TEST AUTODIAGNÓSTICO]\n\n` +
+          `[RESPUESTAS DEL TEST]\n\n` +
           `${answerTranscript()}\n\n` +
-          `Resultado Recomendado: ${recommendation}` +
-          (extra ? `\n\nMensaje adicional del cliente:\n${extra}` : '')
+          `Lo que nos cuenta:\n${told}`
         );
       },
     });
@@ -542,7 +568,6 @@ import FormGuard from '../components/FormGuard.astro';
       submitOrb.classList.remove('hidden');
       const orb = mountOrb(submitOrb, { size: 18, color: '#0B0B0C', label: 'Enviando tu diagnóstico' });
 
-      recommendation = title;
       const result = await submitLead();
       orb.setState('resolving');
 
