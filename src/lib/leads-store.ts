@@ -1,13 +1,20 @@
 /**
- * Reading and writing the leads table.
+ * Reading and writing the leads table on Neon.
  *
- * Every function here treats a missing or broken database as a normal state
- * rather than an error. The binding does not exist until the D1 database is
- * created, and more importantly: recording a lead must never be able to stop
+ * The HTTP driver, not a pooled TCP client: a Worker has no long-lived
+ * process to pool connections in, and a serverless function that opens one
+ * per request is how a Postgres instance runs out of them. `neon()` issues a
+ * single fetch per statement, which is exactly the shape of this workload.
+ *
+ * Every function here treats a missing connection string or a broken query as
+ * a normal state rather than an error. DATABASE_URL is unset until someone
+ * adds it, and more importantly: recording a lead must never be able to stop
  * one being delivered. The email is what the business runs on; this table is
- * for counting. If the write fails the lead still arrives, and the only cost
- * is a gap in the dashboard.
+ * for counting. A lead that is delivered but not counted is a gap in a chart,
+ * while a lead that is counted but not delivered is a lost customer.
  */
+
+import { neon } from '@neondatabase/serverless';
 
 export interface LeadRow {
   id: number;
@@ -44,57 +51,44 @@ export interface NewLead {
 }
 
 /**
- * How long a lead is kept. Deleting on write rather than on a schedule keeps
- * this to one statement and no extra moving parts — the table only grows when
- * something is inserted, so that is the only moment it can need trimming.
+ * How long a lead is kept. Deleted on write rather than on a schedule: the
+ * table only grows when something is inserted, so that is the only moment it
+ * can need trimming, and it saves a cron nobody would remember to check.
  */
-const RETENTION_MONTHS = 24;
+const RETENTION = "24 months";
 
-/** Minimal shape we need from D1, so this file does not depend on the worker types. */
-interface D1Like {
-  prepare(sql: string): {
-    bind(...values: unknown[]): {
-      run(): Promise<unknown>;
-      all<T>(): Promise<{ results: T[] }>;
-      first<T>(): Promise<T | null>;
-    };
-    all<T>(): Promise<{ results: T[] }>;
-    first<T>(): Promise<T | null>;
-    run(): Promise<unknown>;
-  };
+type Sql = ReturnType<typeof neon>;
+
+/** null when there is no connection string — a normal state, not a failure. */
+function client(connectionString: string | undefined): Sql | null {
+  if (!connectionString) return null;
+  try {
+    return neon(connectionString);
+  } catch {
+    return null;
+  }
 }
 
-export async function recordLead(db: D1Like | undefined, lead: NewLead): Promise<void> {
-  if (!db) return;
-  const cutoff = new Date();
-  cutoff.setMonth(cutoff.getMonth() - RETENTION_MONTHS);
+export async function recordLead(connectionString: string | undefined, lead: NewLead): Promise<void> {
+  const sql = client(connectionString);
+  if (!sql) return;
 
-  await db
-    .prepare(
-      `INSERT INTO leads
-         (created_at, form, channel, detail, landing, country, region, city,
-          name, email, phone, company, message, consent_at)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-    )
-    .bind(
-      new Date().toISOString(),
-      lead.form,
-      lead.channel || null,
-      lead.detail || null,
-      lead.landing || null,
-      lead.country || null,
-      lead.region || null,
-      lead.city || null,
-      lead.name,
-      lead.email,
-      lead.phone || null,
-      lead.company || null,
-      lead.message || null,
-      lead.consentAt || null,
-    )
-    .run();
+  await sql`
+    INSERT INTO leads
+      (form, channel, detail, landing, country, region, city,
+       name, email, phone, company, message, consent_at)
+    VALUES
+      (${lead.form}, ${lead.channel || null}, ${lead.detail || null}, ${lead.landing || null},
+       ${lead.country || null}, ${lead.region || null}, ${lead.city || null},
+       ${lead.name}, ${lead.email}, ${lead.phone || null}, ${lead.company || null},
+       ${lead.message || null}, ${lead.consentAt || null})
+  `;
 
-  await db.prepare(`DELETE FROM leads WHERE created_at < ?`).bind(cutoff.toISOString()).run();
+  // Bound and cast, rather than interpolated into an INTERVAL literal.
+  // Postgres rejects a placeholder inside `INTERVAL '…'`, but it accepts one
+  // cast to interval — which keeps this a parameterised query and keeps the
+  // driver's tagged-template form, the only one its types expose.
+  await sql`DELETE FROM leads WHERE created_at < now() - ${RETENTION}::interval`;
 }
 
 export interface Metrics {
@@ -113,67 +107,64 @@ const EMPTY: Metrics = {
   byChannel: [], byForm: [], byLanding: [], daily: [], recent: [],
 };
 
-const daysAgo = (n: number) => {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return d.toISOString();
-};
-
-export async function readMetrics(db: D1Like | undefined): Promise<Metrics | null> {
-  // null, not EMPTY: the dashboard needs to distinguish "no database yet"
-  // from "a database with nothing in it", because the fix differs.
-  if (!db) return null;
+export async function readMetrics(connectionString: string | undefined): Promise<Metrics | null> {
+  // null, not EMPTY: the dashboard needs to tell "not connected yet" apart
+  // from "connected, nothing in it", because the fix differs.
+  const sql = client(connectionString);
+  if (!sql) return null;
 
   try {
-    const count = async (sql: string, ...args: unknown[]) =>
-      ((await db.prepare(sql).bind(...args).first<{ n: number }>())?.n ?? 0);
+    const num = (v: unknown) => Number(v ?? 0);
 
-    const group = async (col: string) =>
-      (
-        await db
-          .prepare(
-            `SELECT COALESCE(${col}, 'Sin registrar') AS label, COUNT(*) AS n
-               FROM leads GROUP BY label ORDER BY n DESC LIMIT 12`,
-          )
-          .all<{ label: string; n: number }>()
-      ).results;
-
-    const [total, last7, last30, byChannel, byForm, byLanding, daily, recent] = await Promise.all([
-      count(`SELECT COUNT(*) AS n FROM leads WHERE 1 = ?`, 1),
-      count(`SELECT COUNT(*) AS n FROM leads WHERE created_at >= ?`, daysAgo(7)),
-      count(`SELECT COUNT(*) AS n FROM leads WHERE created_at >= ?`, daysAgo(30)),
-      group('channel'),
-      group('form'),
-      group('landing'),
-      db
-        .prepare(
-          `SELECT substr(created_at, 1, 10) AS day, COUNT(*) AS n
-             FROM leads WHERE created_at >= ?
-            GROUP BY day ORDER BY day ASC`,
-        )
-        .bind(daysAgo(29))
-        .all<{ day: string; n: number }>()
-        .then((r) => r.results),
-      db
-        .prepare(`SELECT * FROM leads ORDER BY created_at DESC LIMIT 50`)
-        .all<LeadRow>()
-        .then((r) => r.results),
+    const [totals, byChannel, byForm, byLanding, daily, recent] = await Promise.all([
+      sql`
+        SELECT
+          COUNT(*)                                                            AS total,
+          COUNT(*) FILTER (WHERE created_at >= now() - INTERVAL '7 days')     AS last7,
+          COUNT(*) FILTER (WHERE created_at >= now() - INTERVAL '30 days')    AS last30
+        FROM leads
+      `,
+      sql`SELECT COALESCE(channel, 'Sin registrar') AS label, COUNT(*) AS n
+            FROM leads GROUP BY 1 ORDER BY n DESC LIMIT 12`,
+      sql`SELECT COALESCE(form, 'Sin registrar') AS label, COUNT(*) AS n
+            FROM leads GROUP BY 1 ORDER BY n DESC LIMIT 12`,
+      sql`SELECT COALESCE(landing, 'Sin registrar') AS label, COUNT(*) AS n
+            FROM leads GROUP BY 1 ORDER BY n DESC LIMIT 12`,
+      sql`SELECT to_char(created_at AT TIME ZONE 'Europe/Madrid', 'YYYY-MM-DD') AS day,
+                 COUNT(*) AS n
+            FROM leads
+           WHERE created_at >= now() - INTERVAL '30 days'
+           GROUP BY 1 ORDER BY 1 ASC`,
+      sql`SELECT * FROM leads ORDER BY created_at DESC LIMIT 50`,
     ]);
 
-    return { total, last7, last30, byChannel, byForm, byLanding, daily, recent };
+    const rows = <T,>(r: unknown): T[] => (Array.isArray(r) ? (r as T[]) : []);
+    const t = rows<Record<string, unknown>>(totals)[0] ?? {};
+
+    return {
+      total: num(t.total),
+      last7: num(t.last7),
+      last30: num(t.last30),
+      byChannel: rows<{ label: string; n: unknown }>(byChannel).map((r) => ({ label: r.label, n: num(r.n) })),
+      byForm: rows<{ label: string; n: unknown }>(byForm).map((r) => ({ label: r.label, n: num(r.n) })),
+      byLanding: rows<{ label: string; n: unknown }>(byLanding).map((r) => ({ label: r.label, n: num(r.n) })),
+      daily: rows<{ day: string; n: unknown }>(daily).map((r) => ({ day: r.day, n: num(r.n) })),
+      recent: rows<LeadRow>(recent),
+    };
   } catch {
-    // A binding that exists but points at a database without the migration
-    // applied lands here. Showing an empty dashboard beats a 500.
+    // A connection string that points at a database without the migration
+    // applied lands here. An empty dashboard beats a 500.
     return EMPTY;
   }
 }
 
 /** For an erasure request. Returns whether a row actually went. */
-export async function deleteLead(db: D1Like | undefined, id: number): Promise<boolean> {
-  if (!db || !Number.isInteger(id)) return false;
+export async function deleteLead(connectionString: string | undefined, id: number): Promise<boolean> {
+  const sql = client(connectionString);
+  if (!sql || !Number.isInteger(id)) return false;
   try {
-    await db.prepare(`DELETE FROM leads WHERE id = ?`).bind(id).run();
-    return true;
+    const res = await sql`DELETE FROM leads WHERE id = ${id} RETURNING id`;
+    return Array.isArray(res) && res.length > 0;
   } catch {
     return false;
   }

@@ -10,33 +10,18 @@
 	},
 	"observability": {
 		"enabled": true
-	},
+	}
 
-	// Leads, kept by us rather than only in an inbox. Powers /metrics.
+	// Leads are stored in Neon (Postgres), not in a Cloudflare database, so
+	// there is no binding here at all — the connection string is a secret:
 	//
-	// COMMENTED OUT UNTIL THE DATABASE EXISTS, and that is not tidiness — it
-	// is the only safe state. An empty database_id fails the build outright
-	// ("AssertionError: '' == true"), and a placeholder id builds but then
-	// fails `wrangler deploy`, which validates that the database is real.
-	// Either way the whole site stops deploying, not just the dashboard.
+	//   Workers & Pages → orbitaleap-studio-web → Settings →
+	//   Variables and Secrets → Add → Secret → DATABASE_URL
 	//
-	// To switch it on:
-	//
-	//   npx wrangler d1 create orbitaleap-leads
-	//   # paste the printed id below, uncomment this block, then:
-	//   npx wrangler d1 migrations apply orbitaleap-leads --remote
-	//
-	// Until then nothing is broken. send-email.ts reads the binding through
-	// readBinding(), which returns undefined, and recordLead() treats that as
-	// a normal state — leads are still delivered, they are just not counted.
-	// /metrics says so in as many words rather than erroring.
-	//
-	// "d1_databases": [
-	// 	{
-	// 		"binding": "DB",
-	// 		"database_name": "orbitaleap-leads",
-	// 		"database_id": "PASTE-THE-ID-FROM-d1-create-HERE",
-	// 		"migrations_dir": "migrations"
-	// 	}
-	// ]
+	// Deliberately a secret rather than a var: it carries the password. And
+	// deliberately not a binding — a D1 binding whose database does not exist
+	// fails `wrangler deploy` and takes the whole site's deploys down with it,
+	// whereas an unset secret is simply read as undefined. recordLead() and
+	// readMetrics() both treat that as a normal state: leads keep being
+	// delivered, they are just not counted, and /metrics says so.
 }

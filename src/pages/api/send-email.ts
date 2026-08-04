@@ -60,23 +60,6 @@ function readEnv(context: any, key: string): string | undefined {
     );
 }
 
-/**
- * Bindings, as opposed to the string secrets readEnv returns.
- *
- * Separate because a binding is an object — D1, KV, a queue — and running one
- * through readEnv's `||` chain would type it as a string and fall through to
- * import.meta.env, which never holds bindings. Undefined is a normal answer
- * here: the D1 database does not exist until someone creates it, and the
- * caller is written to carry on without it.
- */
-function readBinding(key: string): any {
-    try {
-        return (globalThis as any).__cfEnv?.[key];
-    } catch {
-        return undefined;
-    }
-}
-
 // Rate limit: how many submissions one address may send, and over what window.
 const RATE_LIMIT_MAX = 2;
 const RATE_LIMIT_WINDOW_SECONDS = 60 * 60;
@@ -407,7 +390,7 @@ export const POST: APIRoute = async (context) => {
         // that is delivered but not counted is a gap in a chart, while a lead
         // that is counted but not delivered is a lost customer.
         try {
-            await recordLead(readBinding('DB'), {
+            await recordLead(readEnv(context, 'DATABASE_URL'), {
                 form: source,
                 channel: attribution.channel,
                 detail: attribution.detail,

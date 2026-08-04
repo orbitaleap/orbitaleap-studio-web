@@ -33,10 +33,10 @@ let erased: string | null = null;
 if (Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
   const id = Number(form.get('delete'));
-  erased = (await deleteLead(env.DB, id)) ? `Registro ${id} eliminado.` : 'No se pudo eliminar.';
+  erased = (await deleteLead(env.DATABASE_URL, id)) ? `Registro ${id} eliminado.` : 'No se pudo eliminar.';
 }
 
-const m = await readMetrics(env.DB);
+const m = await readMetrics(env.DATABASE_URL);
 
 const fmt = (iso: string) =>
   new Intl.DateTimeFormat('es-ES', {
@@ -121,10 +121,13 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
 
       {m === null && (
         <div class="note">
-          <strong>Todavía no hay base de datos.</strong> Falta el binding <code>DB</code>.
-          Crea la base con <code>wrangler d1 create orbitaleap-leads</code>, pega el
-          <code>database_id</code> en <code>wrangler.jsonc</code> y aplica la migración con
-          <code>wrangler d1 migrations apply orbitaleap-leads --remote</code>.
+          <strong>Todavía no hay conexión a la base de datos.</strong> Falta el secreto
+          <code>DATABASE_URL</code>. Añádelo en Cloudflare, en
+          <em>Workers &amp; Pages → orbitaleap-studio-web → Settings → Variables and Secrets</em>,
+          como secreto (no como variable: lleva la contraseña), y aplica
+          <code>migrations/0001_create_leads.sql</code> sobre la base de Neon.
+          Mientras tanto los leads siguen llegando por correo con normalidad; solo
+          no quedan registrados aquí.
         </div>
       )}
 
