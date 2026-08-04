@@ -225,6 +225,12 @@ const schema = [
 </Layout>
 
 <style>
+  /* Opts this page into animatable intrinsic sizes, which is what lets the
+     panels below transition to `auto` instead of snapping. Scoped to the page
+     rather than set globally: it changes how `auto` behaves for every element
+     underneath it, and that is not a switch to flip sitewide in passing. */
+  main { interpolate-size: allow-keywords; }
+
   /* Safari and Chrome still draw their own disclosure triangle unless both of
      these are set; `list-style: none` alone leaves it in WebKit. */
   .faq > summary { list-style: none; }
@@ -239,6 +245,32 @@ const schema = [
   /* The plus turns into a minus by rotation rather than by swapping icons,
      so there is nothing to load on open and no flicker. */
   .faq[open] .faq-mark { transform: rotate(45deg); }
+
+  /* Smooth open and close, with no JavaScript and no animation library.
+     <details> has always snapped because `height: auto` was not animatable;
+     `interpolate-size: allow-keywords` makes it so, and
+     `transition-behavior: allow-discrete` lets content-visibility come along
+     rather than cutting the panel off mid-transition.
+
+     Deliberately not done with GSAP or a measured max-height: this runs off
+     the compositor with nothing on the main thread, and where the properties
+     are unsupported the panel simply snaps open exactly as it does today. No
+     polyfill, no layout thrash, nothing to load.
+
+     The scoped :global is because Astro scopes styles to the component, and
+     ::details-content is a pseudo-element on a child the scoper does not
+     annotate. */
+  @media (prefers-reduced-motion: no-preference) {
+    .faq::details-content {
+      block-size: 0;
+      overflow: hidden;
+      transition:
+        block-size 260ms cubic-bezier(0.22, 1, 0.36, 1),
+        content-visibility 260ms allow-discrete;
+    }
+
+    .faq[open]::details-content { block-size: auto; }
+  }
 
   @media (prefers-reduced-motion: reduce) {
     .faq-mark { transition: none; }

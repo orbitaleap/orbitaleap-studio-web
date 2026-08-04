@@ -807,16 +807,11 @@ const methodology = [
         return chars;
       }
 
-      // Fade out scroll indicator on scroll
-      gsap.to('#scroll-indicator', {
-        opacity: 0,
-        scrollTrigger: {
-          trigger: "body",
-          start: "top top",
-          end: "top -150px",
-          scrub: true
-        }
-      });
+      // The scroll-indicator tween that used to live here is gone: there is no
+      // #scroll-indicator in the markup and there has not been for a while, so
+      // it built a ScrollTrigger, registered a scroll listener and animated
+      // nothing on every page load. GSAP fails quietly on a missing target,
+      // which is what let it survive.
 
       // Remove character blur JS logic to keep typography 100% crisp
 
