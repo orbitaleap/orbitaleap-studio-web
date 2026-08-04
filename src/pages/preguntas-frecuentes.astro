@@ -1,0 +1,121 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+
+// Written to be quoted, not to fill a page.
+//
+// When someone asks an assistant "qué estudio me hace la web" or "cuánto
+// cuesta una app a medida", what gets cited is whatever states a checkable
+// fact in a sentence that can be lifted whole. This site had almost none of
+// that in public: the only page carrying figures is /launch, which is
+// noindex, so the most quotable thing about the studio was invisible.
+//
+// Prices stay off here on purpose — they are quoted per project. That makes
+// the answer to "cuánto cuesta" a fact in itself, and saying it plainly is
+// what stops an assistant either inventing a number or scraping one off a
+// campaign page and presenting it as a rate card.
+//
+// Every answer below is already true somewhere else on the site (the service
+// pages' own FAQs, the pack contents, the legal notice). This gathers them
+// into one page rather than inventing new claims.
+
+const faqs = [
+  {
+    q: '¿Cuánto cuesta un proyecto?',
+    a: 'Cada proyecto se presupuesta a medida, porque el alcance cambia mucho de un caso a otro: no es lo mismo una identidad de marca que una aplicación con panel de administración. Cuéntanos qué necesitas por correo o por teléfono y te damos una cifra cerrada, sin sorpresas después. Respondemos en menos de 24 horas.',
+  },
+  {
+    q: '¿Cuánto se tarda en tener el proyecto listo?',
+    a: 'Depende del alcance. Un proceso completo de identidad de marca suele llevar entre 4 y 6 semanas desde el descubrimiento hasta la entrega final. Un sitio web a medida se mueve en plazos parecidos, y una aplicación o plataforma con backend propio requiere más. En el presupuesto va siempre el plazo por escrito.',
+  },
+  {
+    q: '¿Usáis plantillas o herramientas no-code como Webflow o Framer?',
+    a: 'No. Programamos en código nativo — React, Next.js, Astro, TypeScript, Swift y Kotlin — para garantizar rendimiento, seguridad y control total, sin las limitaciones de una plataforma de terceros ni una cuota mensual que crece con tu proyecto.',
+  },
+  {
+    q: '¿De quién es el código y la marca cuando termina el proyecto?',
+    a: 'Tuyos, al cien por cien. Al completar el proyecto todos los derechos de propiedad intelectual pasan a ser propiedad exclusiva de tu empresa: el código fuente, los archivos vectoriales de la marca y los componentes de diseño.',
+  },
+  {
+    q: '¿La web viene optimizada para buscadores?',
+    a: 'Sí, por defecto. Todos los proyectos web incluyen optimización SEO técnica, metadatos dinámicos y etiquetado semántico, además de datos estructurados para que los buscadores y los asistentes de IA entiendan de qué trata cada página.',
+  },
+  {
+    q: '¿Dónde estáis y con quién trabajáis?',
+    a: 'Estamos en Madrid, España, y trabajamos en remoto con clientes de toda España. Atendemos desde negocios que arrancan y necesitan su primera web hasta empresas consolidadas que quieren modernizar su tecnología.',
+  },
+  {
+    q: '¿Podéis trabajar con nuestro equipo técnico actual?',
+    a: 'Sí. Podemos entrar como partner estratégico o como CTO bajo demanda para acompañar a un equipo interno, en lugar de sustituirlo. También auditamos la infraestructura existente y proponemos una hoja de ruta antes de tocar nada.',
+  },
+  {
+    q: '¿Qué pasa con la web una vez entregada?',
+    a: 'Puedes llevarla tú, porque el código es tuyo y no queda atada a ninguna plataforma nuestra. Si prefieres no ocuparte, ofrecemos mantenimiento con hosting, copias de seguridad y cambios menores cada mes.',
+  },
+  {
+    q: '¿Cómo empiezo?',
+    a: 'Escríbenos a hello@orbitaleap.com, llámanos al +34 623 94 75 98 o rellena el test de autodiagnóstico: cinco preguntas que nos dicen en qué punto estás. En cualquiera de los tres casos respondemos en menos de 24 horas.',
+  },
+];
+
+// FAQPage built from exactly the questions rendered below — schema that
+// describes content the page does not show is the kind that gets ignored.
+const schema = [
+  {
+    '@type': 'FAQPage',
+    '@id': 'https://studio.orbitaleap.com/preguntas-frecuentes/#faq',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+  {
+    '@type': 'BreadcrumbList',
+    '@id': 'https://studio.orbitaleap.com/preguntas-frecuentes/#breadcrumb',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://studio.orbitaleap.com/' },
+      { '@type': 'ListItem', position: 2, name: 'Preguntas frecuentes', item: 'https://studio.orbitaleap.com/preguntas-frecuentes/' },
+    ],
+  },
+];
+---
+
+<Layout
+  title="Preguntas frecuentes | Orbital Leap Studio"
+  description="Presupuestos, plazos, propiedad del código y forma de trabajo de Orbital Leap Studio, estudio de diseño y desarrollo digital en Madrid."
+  schema={schema}
+>
+  <Navbar />
+
+  <main class="relative w-full bg-brand-bg pt-32 pb-24 px-6 md:px-12 xl:px-24">
+    <header class="max-w-3xl mb-16">
+      <p class="font-mono text-xs tracking-[0.16em] uppercase text-white/40 mb-4">Preguntas frecuentes</p>
+      <h1 class="font-sans text-[2.5rem] sm:text-5xl md:text-6xl font-medium tracking-tighter leading-[1.02] text-brand-light mb-6">
+        Lo que nos preguntan antes de empezar.
+      </h1>
+      {/* The links sit on one line with their surrounding words. Broken
+          across lines for readability, the newline collapses and the text
+          renders as "escríbenos ahello@orbitaleap.como llámanos al". */}
+      <p class="text-base md:text-lg text-white/60">
+        Si no encuentras lo que buscas, escríbenos a <a href="mailto:hello@orbitaleap.com" class="text-white underline underline-offset-4">hello@orbitaleap.com</a> o llámanos al <a href="tel:+34623947598" class="text-white underline underline-offset-4">+34 623 94 75 98</a>.
+      </p>
+    </header>
+
+    <div class="max-w-3xl border-t border-brand-border">
+      {faqs.map((f) => (
+        <section class="border-b border-brand-border py-8">
+          <h2 class="font-sans text-xl md:text-2xl font-medium text-brand-light tracking-tight mb-3">{f.q}</h2>
+          <p class="text-base text-white/60 leading-relaxed">{f.a}</p>
+        </section>
+      ))}
+    </div>
+
+    <p class="max-w-3xl mt-14 text-base text-white/60">
+      ¿Prefieres que te orientemos nosotros? <a href="/test-autodiagnostico/" class="text-white underline underline-offset-4">Haz el test de autodiagnóstico</a> — cinco preguntas y te decimos por dónde empezar.
+    </p>
+  </main>
+
+  <Footer />
+</Layout>

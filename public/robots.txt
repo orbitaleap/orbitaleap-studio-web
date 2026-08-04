@@ -1,6 +1,36 @@
 User-agent: *
 Allow: /
 
+# The AI crawlers, named explicitly.
+#
+# `User-agent: *` above already permits every one of these, so this changes
+# nothing today — it is here so the decision is visible. Being found when
+# somebody asks an assistant for a studio is the point, and a future edit that
+# tightens the wildcard should have to step over these lines to break it.
+#
+# GPTBot trains, OAI-SearchBot and ChatGPT-User answer questions; the three are
+# separate agents and blocking one does not block the others. Google-Extended
+# governs Gemini and AI Overviews and is NOT the same as Googlebot.
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: Google-Extended
+User-agent: ClaudeBot
+User-agent: Claude-User
+User-agent: anthropic-ai
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Applebot-Extended
+User-agent: Bingbot
+User-agent: CCBot
+Allow: /
+
+# A map of the site written for language models rather than for crawlers:
+# what we do, what is verifiable, and — because it is the question people
+# actually ask — that projects are quoted individually rather than priced from
+# a public list.
+# https://studio.orbitaleap.com/llms.txt
+
 # /launch is a paid-ads landing page. It is served with a noindex meta tag, so
 # it stays crawlable on purpose — a Disallow here would stop crawlers reading
 # that tag and the page could still surface in search.

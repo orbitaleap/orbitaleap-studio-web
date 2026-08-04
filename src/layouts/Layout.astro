@@ -75,7 +75,34 @@ const organization = {
   sameAs: [
     'https://www.linkedin.com/company/orbital-leap/',
     'https://www.instagram.com/orbitaleap/'
-  ]
+  ],
+
+  // For the machines doing the answering rather than the ranking. An
+  // assistant asked "who builds apps in Madrid" is matching an entity against
+  // a description, and until now this record said what the company is called
+  // and where it is, but nothing about what it does or for whom.
+  //
+  // knowsAbout is the studio's actual stack and disciplines, not a keyword
+  // list: every term here is something described on a service page.
+  areaServed: { '@type': 'Country', name: 'España' },
+  knowsAbout: [
+    'Diseño de marca',
+    'Diseño UI/UX',
+    'Desarrollo web a medida',
+    'Aplicaciones móviles iOS y Android',
+    'Arquitectura cloud-native',
+    'DevOps y CI/CD',
+    'Consultoría tecnológica',
+    'React', 'Next.js', 'Astro', 'TypeScript', 'Swift', 'Kotlin'
+  ],
+  contactPoint: {
+    '@type': 'ContactPoint',
+    contactType: 'sales',
+    email: 'hello@orbitaleap.com',
+    telephone: '+34623947598',
+    areaServed: 'ES',
+    availableLanguage: ['es']
+  }
 };
 
 const website = {
