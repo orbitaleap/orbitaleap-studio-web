@@ -31,7 +31,7 @@ const faqs = [
   },
   {
     q: '¿Usáis plantillas o herramientas no-code como Webflow o Framer?',
-    a: 'No. Programamos en código nativo — React, Next.js, Astro, TypeScript, Swift y Kotlin — para garantizar rendimiento, seguridad y control total, sin las limitaciones de una plataforma de terceros ni una cuota mensual que crece con tu proyecto.',
+    a: 'No. Programamos en código nativo — React, Angular, Next.js, Astro, TypeScript, Rust, Swift y Kotlin — para garantizar rendimiento, seguridad y control total, sin las limitaciones de una plataforma de terceros ni una cuota mensual que crece con tu proyecto.',
   },
   {
     q: '¿De quién es el código y la marca cuando termina el proyecto?',
@@ -89,32 +89,46 @@ const schema = [
 >
   <Navbar />
 
+  {/*
+    Two columns from lg up, one below.
+
+    A single max-w-3xl column left the right half of a desktop screen empty,
+    which read as an unfinished page rather than as a measure chosen for
+    reading. Splitting it puts the heading and the way to get in touch beside
+    the questions instead of above them, and the intro sticks while the list
+    scrolls, so the contact details stay reachable through all nine answers.
+    The prose keeps its measure — the cap moved from the page to the answers.
+  */}
   <main class="relative w-full bg-brand-bg pt-32 pb-24 px-6 md:px-12 xl:px-24">
-    <header class="max-w-3xl mb-16">
-      <p class="font-mono text-xs tracking-[0.16em] uppercase text-white/40 mb-4">Preguntas frecuentes</p>
-      <h1 class="font-sans text-[2.5rem] sm:text-5xl md:text-6xl font-medium tracking-tighter leading-[1.02] text-brand-light mb-6">
-        Lo que nos preguntan antes de empezar.
-      </h1>
-      {/* The links sit on one line with their surrounding words. Broken
-          across lines for readability, the newline collapses and the text
-          renders as "escríbenos ahello@orbitaleap.como llámanos al". */}
-      <p class="text-base md:text-lg text-white/60">
-        Si no encuentras lo que buscas, escríbenos a <a href="mailto:hello@orbitaleap.com" class="text-white underline underline-offset-4">hello@orbitaleap.com</a> o llámanos al <a href="tel:+34623947598" class="text-white underline underline-offset-4">+34 623 94 75 98</a>.
-      </p>
-    </header>
+    <div class="max-w-screen-xl grid gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
+      <header class="lg:sticky lg:top-32 lg:self-start">
+        <p class="font-mono text-xs tracking-[0.16em] uppercase text-white/40 mb-4">Preguntas frecuentes</p>
+        <h1 class="font-sans text-[2.25rem] sm:text-5xl lg:text-[2.75rem] font-medium tracking-tighter leading-[1.02] text-brand-light mb-6">
+          Lo que nos preguntan antes de empezar.
+        </h1>
+        {/* The links sit on one line with their surrounding words. Broken
+            across lines for readability, the newline collapses and the text
+            renders as "escríbenos ahello@orbitaleap.como llámanos al". */}
+        <p class="text-base text-white/60 max-w-[46ch]">
+          Si no encuentras lo que buscas, escríbenos a <a href="mailto:hello@orbitaleap.com" class="text-white underline underline-offset-4">hello@orbitaleap.com</a> o llámanos al <a href="tel:+34623947598" class="text-white underline underline-offset-4">+34 623 94 75 98</a>.
+        </p>
+      </header>
 
-    <div class="max-w-3xl border-t border-brand-border">
-      {faqs.map((f) => (
-        <section class="border-b border-brand-border py-8">
-          <h2 class="font-sans text-xl md:text-2xl font-medium text-brand-light tracking-tight mb-3">{f.q}</h2>
-          <p class="text-base text-white/60 leading-relaxed">{f.a}</p>
-        </section>
-      ))}
+      <div>
+        <div class="border-t border-brand-border">
+          {faqs.map((f) => (
+            <section class="border-b border-brand-border py-8">
+              <h2 class="font-sans text-xl md:text-2xl font-medium text-brand-light tracking-tight mb-3">{f.q}</h2>
+              <p class="text-base text-white/60 leading-relaxed max-w-[68ch]">{f.a}</p>
+            </section>
+          ))}
+        </div>
+
+        <p class="mt-14 text-base text-white/60 max-w-[68ch]">
+          ¿Prefieres que te orientemos nosotros? <a href="/test-autodiagnostico/" class="text-white underline underline-offset-4">Haz el test de autodiagnóstico</a> — cinco preguntas y te decimos por dónde empezar.
+        </p>
+      </div>
     </div>
-
-    <p class="max-w-3xl mt-14 text-base text-white/60">
-      ¿Prefieres que te orientemos nosotros? <a href="/test-autodiagnostico/" class="text-white underline underline-offset-4">Haz el test de autodiagnóstico</a> — cinco preguntas y te decimos por dónde empezar.
-    </p>
   </main>
 
   <Footer />

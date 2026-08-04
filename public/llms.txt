@@ -12,8 +12,8 @@ cerradas. Para pedir presupuesto, escribe a hello@orbitaleap.com o llama al
 
 - [Branding e identidad](https://studio.orbitaleap.com/servicios/branding-e-identidad/): identidad visual, isotipo, manual de marca y design tokens listos para ingeniería. Un proceso completo suele llevar de 4 a 6 semanas.
 - [Experiencia UI/UX](https://studio.orbitaleap.com/servicios/experiencia-ui-ux/): investigación, wireframing, diseño de alta fidelidad, design systems y prototipos navegables.
-- [Desarrollo app/web](https://studio.orbitaleap.com/servicios/desarrollo-app-web/): aplicaciones web y móviles en React, Next.js, Astro, TypeScript, Swift y Kotlin.
-- [Desarrollo cloud-native](https://studio.orbitaleap.com/servicios/desarrollo-cloud-native/): backends distribuidos, APIs y arquitecturas preparadas para escalar.
+- [Desarrollo app/web](https://studio.orbitaleap.com/servicios/desarrollo-app-web/): aplicaciones web y móviles en React, Angular, Next.js, Astro, TypeScript, Swift y Kotlin.
+- [Desarrollo cloud-native](https://studio.orbitaleap.com/servicios/desarrollo-cloud-native/): backends distribuidos, APIs y arquitecturas preparadas para escalar, en Rust, Go, Node.js y Python.
 - [Consultoría estratégica](https://studio.orbitaleap.com/servicios/consultoria-estrategica/): auditoría de infraestructura, hoja de ruta técnica y CTO bajo demanda.
 - [Integraciones DevOps](https://studio.orbitaleap.com/servicios/integraciones-devops/): CI/CD, infraestructura como código y monitorización.
 
