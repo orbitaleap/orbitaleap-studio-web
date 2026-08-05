@@ -11,4 +11,17 @@
 	"observability": {
 		"enabled": true
 	}
+
+	// Leads are stored in Neon (Postgres), not in a Cloudflare database, so
+	// there is no binding here at all — the connection string is a secret:
+	//
+	//   Workers & Pages → orbitaleap-studio-web → Settings →
+	//   Variables and Secrets → Add → Secret → DATABASE_URL
+	//
+	// Deliberately a secret rather than a var: it carries the password. And
+	// deliberately not a binding — a D1 binding whose database does not exist
+	// fails `wrangler deploy` and takes the whole site's deploys down with it,
+	// whereas an unset secret is simply read as undefined. recordLead() and
+	// readMetrics() both treat that as a normal state: leads keep being
+	// delivered, they are just not counted, and /metrics says so.
 }

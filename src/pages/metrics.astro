@@ -1,0 +1,236 @@
+---
+import { verifyAccess } from '../lib/access';
+import { readMetrics, deleteLead } from '../lib/leads-store';
+import { workerEnv } from '../lib/worker-env';
+
+// Server-rendered, always. Everything else on this site is prerendered, and a
+// prerendered /metrics would be a static file in dist/ — served by the assets
+// layer, before any Worker code runs, to anyone who asked for it.
+export const prerender = false;
+
+// NOT Astro.locals.runtime.env — that was removed in Astro v6 and throws the
+// removal notice when read, which made this page answer 500 rather than 403.
+const env = await workerEnv();
+
+// Fail closed. Unset configuration, a missing token or one that does not
+// verify all land here, and the answer is the same: nothing. See lib/access.ts
+// for why checking the header's presence would not be enough.
+const identity = await verifyAccess(
+  Astro.request,
+  env.CF_ACCESS_TEAM_DOMAIN,
+  env.CF_ACCESS_AUD,
+);
+
+if (!identity) {
+  return new Response('No autorizado.', {
+    status: 403,
+    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Robots-Tag': 'noindex, nofollow' },
+  });
+}
+
+// Erasure, for an RGPD request. Behind the same gate as everything else.
+let erased: string | null = null;
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const id = Number(form.get('delete'));
+  erased = (await deleteLead(env.DATABASE_URL, id)) ? `Registro ${id} eliminado.` : 'No se pudo eliminar.';
+}
+
+const m = await readMetrics(env.DATABASE_URL);
+
+const fmt = (iso: string) =>
+  new Intl.DateTimeFormat('es-ES', {
+    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+    timeZone: 'Europe/Madrid',
+  }).format(new Date(iso));
+
+const peak = m ? Math.max(1, ...m.daily.map((d) => d.n)) : 1;
+const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Métricas · Orbital Leap Studio</title>
+    <style>
+      :root {
+        --bg: #0d0d0d; --panel: #141414; --line: rgba(255,255,255,0.10);
+        --ink: #ffffff; --mid: rgba(255,255,255,0.62); --dim: rgba(255,255,255,0.42);
+        --bar: rgba(255,255,255,0.85);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; background: var(--bg); color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        font-size: 15px; line-height: 1.5;
+      }
+      .wrap { max-width: 1180px; margin: 0 auto; padding: clamp(28px, 5vw, 56px) clamp(16px, 4vw, 40px) 80px; }
+      header { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; justify-content: space-between; margin-bottom: 36px; }
+      h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 700; letter-spacing: -0.02em; margin: 0; }
+      .who { font-size: 0.78rem; color: var(--dim); font-variant-numeric: tabular-nums; }
+      .note { border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 16px 18px; margin-bottom: 28px; color: var(--mid); font-size: 0.9rem; }
+      .note strong { color: var(--ink); }
+      .note code { background: rgba(255,255,255,0.07); padding: 2px 6px; border-radius: 4px; font-size: 0.85em; }
+
+      .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 32px; }
+      .kpi { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; padding: 18px 20px; }
+      .kpi b { display: block; font-size: clamp(1.8rem, 5vw, 2.6rem); font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.05; }
+      .kpi span { font-size: 0.72rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--dim); }
+
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-bottom: 32px; }
+      .card { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; padding: 20px; }
+      .card h2 { font-size: 0.72rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--dim); margin: 0 0 16px; font-weight: 500; }
+
+      .rows { display: flex; flex-direction: column; gap: 10px; }
+      .row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+      .row .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--mid); }
+      .row .n { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 600; }
+      .meter { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.08); overflow: hidden; }
+      .meter i { display: block; height: 100%; background: var(--bar); }
+
+      .spark { display: flex; align-items: flex-end; gap: 3px; height: 110px; }
+      .spark div { flex: 1 1 0; background: var(--bar); border-radius: 2px 2px 0 0; min-height: 2px; opacity: 0.9; }
+      .spark-x { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--dim); margin-top: 8px; font-variant-numeric: tabular-nums; }
+
+      .tablewrap { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; overflow-x: auto; }
+      table { border-collapse: collapse; width: 100%; min-width: 900px; font-size: 0.86rem; }
+      th { text-align: left; font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); font-weight: 500; padding: 14px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+      td { padding: 13px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); vertical-align: top; color: var(--mid); }
+      tr:last-child td { border-bottom: 0; }
+      td.who-cell { color: var(--ink); font-weight: 500; white-space: nowrap; }
+      td.when { white-space: nowrap; font-variant-numeric: tabular-nums; }
+      .chip { display: inline-block; padding: 3px 9px; border: 1px solid var(--line); border-radius: 999px; font-size: 0.72rem; color: var(--ink); white-space: nowrap; }
+      .msg { max-width: 340px; white-space: pre-wrap; font-size: 0.8rem; color: var(--dim); max-height: 5.4em; overflow: hidden; }
+      .del { background: none; border: 1px solid var(--line); color: var(--dim); border-radius: 6px; padding: 5px 9px; font-size: 0.72rem; cursor: pointer; }
+      .del:hover { border-color: rgba(255,120,120,0.6); color: #ff8080; }
+      .empty { padding: 40px 20px; text-align: center; color: var(--dim); }
+      a { color: inherit; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>Métricas</h1>
+        <span class="who">{identity.email}</span>
+      </header>
+
+      {erased && <div class="note">{erased}</div>}
+
+      {m === null && (
+        <div class="note">
+          <strong>Todavía no hay conexión a la base de datos.</strong> Falta el secreto
+          <code>DATABASE_URL</code>. Añádelo en Cloudflare, en
+          <em>Workers &amp; Pages → orbitaleap-studio-web → Settings → Variables and Secrets</em>,
+          como secreto (no como variable: lleva la contraseña), y aplica
+          <code>migrations/0001_create_leads.sql</code> sobre la base de Neon.
+          Mientras tanto los leads siguen llegando por correo con normalidad; solo
+          no quedan registrados aquí.
+        </div>
+      )}
+
+      {m && (
+        <>
+          <div class="kpis">
+            <div class="kpi"><b>{m.total}</b><span>Total</span></div>
+            <div class="kpi"><b>{m.last30}</b><span>Últimos 30 días</span></div>
+            <div class="kpi"><b>{m.last7}</b><span>Últimos 7 días</span></div>
+            <div class="kpi">
+              <b>{pct(m.byChannel.find((c) => c.label === 'Google Ads')?.n ?? 0, m.total)}%</b>
+              <span>Desde Google Ads</span>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:12px;">
+            <h2>Leads por día · últimos 30</h2>
+            {m.daily.length === 0 ? (
+              <p class="empty">Sin datos todavía.</p>
+            ) : (
+              <>
+                <div class="spark">
+                  {m.daily.map((d) => (
+                    <div style={`height:${Math.round((d.n / peak) * 100)}%`} title={`${d.day}: ${d.n}`}></div>
+                  ))}
+                </div>
+                <div class="spark-x">
+                  <span>{m.daily[0]?.day}</span>
+                  <span>{m.daily[m.daily.length - 1]?.day}</span>
+                </div>
+              </>
+            )}
+          </div>
+
+          <div class="grid">
+            {[
+              { title: 'Canal', data: m.byChannel },
+              { title: 'Formulario', data: m.byForm },
+              { title: 'Página de entrada', data: m.byLanding },
+            ].map((block) => (
+              <div class="card">
+                <h2>{block.title}</h2>
+                {block.data.length === 0 ? (
+                  <p class="empty">Sin datos.</p>
+                ) : (
+                  <div class="rows">
+                    {block.data.map((r) => (
+                      <div class="row">
+                        <span class="lbl">{r.label}</span>
+                        <span class="n">{r.n}</span>
+                        <span class="meter"><i style={`width:${pct(r.n, m.total)}%`}></i></span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div class="tablewrap">
+            {m.recent.length === 0 ? (
+              <p class="empty">Todavía no ha entrado ningún lead.</p>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Cuándo</th><th>Quién</th><th>Contacto</th><th>Canal</th>
+                    <th>Formulario</th><th>Entró por</th><th>Mensaje</th><th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {m.recent.map((l) => (
+                    <tr>
+                      <td class="when">{fmt(l.created_at)}</td>
+                      <td class="who-cell">
+                        {l.name}
+                        {l.company && <div style="color:var(--dim);font-weight:400;">{l.company}</div>}
+                        {l.city && <div style="color:var(--dim);font-weight:400;font-size:0.9em;">{[l.city, l.country].filter(Boolean).join(', ')}</div>}
+                      </td>
+                      <td>
+                        <a href={`mailto:${l.email}`}>{l.email}</a>
+                        {l.phone && <div><a href={`tel:${l.phone}`}>{l.phone}</a></div>}
+                      </td>
+                      <td>
+                        <span class="chip">{l.channel ?? 'Sin registrar'}</span>
+                        {l.detail && <div style="font-size:0.75rem;margin-top:5px;">{l.detail}</div>}
+                      </td>
+                      <td>{l.form}</td>
+                      <td>{l.landing ?? '—'}</td>
+                      <td><div class="msg">{l.message ?? ''}</div></td>
+                      <td>
+                        <form method="POST" onsubmit="return confirm('¿Eliminar este registro? No se puede deshacer.')">
+                          <button class="del" name="delete" value={l.id} type="submit">Eliminar</button>
+                        </form>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  </body>
+</html>
