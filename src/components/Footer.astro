@@ -54,6 +54,10 @@ const dotPattern = light
       <ul class={`flex flex-col gap-3 font-sans text-sm ${light ? 'text-black/70' : 'text-white/70'}`}>
         <li><a href="/#servicios" class={`${light ? 'hover:text-black' : 'hover:text-white'} transition-colors`}>Servicios</a></li>
         <li><a href="/#metodologia" class={`${light ? 'hover:text-black' : 'hover:text-white'} transition-colors`}>Metodología</a></li>
+        {/* Linked from every page on purpose. A page nothing points at is
+            crawled late and treated as peripheral, and this is the one that
+            answers what people actually ask before getting in touch. */}
+        <li><a href="/preguntas-frecuentes/" class={`${light ? 'hover:text-black' : 'hover:text-white'} transition-colors`}>Preguntas frecuentes</a></li>
         <li><a href="#contacto" class={`${light ? 'hover:text-black' : 'hover:text-white'} transition-colors`}>Contacto</a></li>
       </ul>
     </div>

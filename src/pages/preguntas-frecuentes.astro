@@ -1,0 +1,278 @@
+---
+import { Icon } from 'astro-icon/components';
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+
+// Written to be quoted, not to fill a page.
+//
+// When someone asks an assistant "qué estudio me hace la web" or "cuánto
+// cuesta una app a medida", what gets cited is whatever states a checkable
+// fact in a sentence that can be lifted whole. This site had almost none of
+// that in public: the only page carrying figures is /launch, which is
+// noindex, so the most quotable thing about the studio was invisible.
+//
+// Prices stay off here on purpose — they are quoted per project. That makes
+// the answer to "cuánto cuesta" a fact in itself, and saying it plainly is
+// what stops an assistant either inventing a number or scraping one off a
+// campaign page and presenting it as a rate card.
+//
+// Grouped rather than listed flat: sixteen questions in a single run is hard
+// to scan. The groups follow the project's own timeline — what it costs, how
+// we work, getting it live, and what happens after delivery — so the page
+// ends where the work ends. An earlier cut had a group called "Empezar"
+// sitting last, which read as a sequence finishing at the beginning; that
+// question is now the closing call to action instead, outside the accordion.
+
+const groups = [
+  {
+    title: 'Presupuesto y plazos',
+    faqs: [
+      {
+        q: '¿Cuánto cuesta un proyecto?',
+        a: 'Cada proyecto se presupuesta a medida, porque el alcance cambia mucho de un caso a otro: no es lo mismo una identidad de marca que una aplicación con panel de administración. Cuéntanos qué necesitas por correo o por teléfono y te damos una cifra cerrada, sin sorpresas después. Respondemos en menos de 24 horas.',
+      },
+      {
+        q: '¿Cuánto se tarda en tener el proyecto listo?',
+        a: 'Depende del alcance. Un proceso completo de identidad de marca suele llevar entre 4 y 6 semanas desde el descubrimiento hasta la entrega final. Un sitio web a medida se mueve en plazos parecidos, y una aplicación o plataforma con backend propio requiere más. En el presupuesto va siempre el plazo por escrito.',
+      },
+      {
+        q: '¿Qué necesitáis de mí para empezar?',
+        a: 'Menos de lo que la gente espera: una conversación para entender el negocio, los textos y las imágenes que ya tengas, y alguien que pueda decidir cuando haya que decidir. Si no tienes textos ni fotos, te guiamos para conseguirlos; no es motivo para retrasar el arranque.',
+      },
+    ],
+  },
+  {
+    title: 'Cómo trabajamos',
+    faqs: [
+      {
+        q: '¿Usáis plantillas o herramientas no-code como Webflow o Framer?',
+        a: 'No. Programamos en código nativo — React, Angular, Next.js, Astro, TypeScript, Rust, Swift y Kotlin — para garantizar rendimiento, seguridad y control total, sin las limitaciones de una plataforma de terceros ni una cuota mensual que crece con tu proyecto.',
+      },
+      {
+        q: '¿De quién es el código y la marca cuando termina el proyecto?',
+        a: 'Tuyos, al cien por cien. Al completar el proyecto todos los derechos de propiedad intelectual pasan a ser propiedad exclusiva de tu empresa: el código fuente, los archivos vectoriales de la marca y los componentes de diseño.',
+      },
+      {
+        q: '¿La web se verá bien en el móvil?',
+        a: 'Sí, y no como un añadido al final. Se diseña pensando primero en el móvil, porque es por donde entra la mayoría de las visitas, y se prueba en pantallas de teléfono, tablet y escritorio antes de entregar. También cuidamos que cargue rápido con datos móviles, que es donde la mayoría de las webs se caen.',
+      },
+      {
+        q: '¿La web viene optimizada para buscadores?',
+        a: 'Sí, por defecto. Todos los proyectos web incluyen optimización SEO técnica, metadatos dinámicos y etiquetado semántico, además de datos estructurados para que los buscadores y los asistentes de IA entiendan de qué trata cada página.',
+      },
+      {
+        q: '¿Podéis trabajar con nuestro equipo técnico actual?',
+        a: 'Sí. Podemos entrar como partner estratégico o como CTO bajo demanda para acompañar a un equipo interno, en lugar de sustituirlo. También auditamos la infraestructura existente y proponemos una hoja de ruta antes de tocar nada.',
+      },
+      {
+        q: '¿Dónde estáis y con quién trabajáis?',
+        a: 'Estamos en Madrid, España, y trabajamos en remoto con clientes de toda España. Atendemos desde negocios que arrancan y necesitan su primera web hasta empresas consolidadas que quieren modernizar su tecnología.',
+      },
+    ],
+  },
+  {
+    title: 'Dominio, hosting y correo',
+    faqs: [
+      {
+        q: '¿El dominio lo ponéis vosotros?',
+        a: 'El dominio queda siempre registrado a tu nombre, nunca al nuestro. Si todavía no tienes uno, te ayudamos a elegirlo y a registrarlo. Si ya lo tienes, lo conectamos con la web nueva sin que pierdas el correo ni las direcciones que ya estés usando.',
+      },
+      {
+        q: '¿El hosting y el dominio están incluidos en el precio?',
+        a: 'Van aparte del proyecto, y es deliberado: los dos quedan contratados a tu nombre, así que nunca dependes de nosotros para conservar tu web o tu dirección. Te decimos exactamente qué hace falta y lo dejamos configurado y funcionando. Si prefieres no ocuparte, tenemos un plan mensual que incluye hosting, copias de seguridad y una bolsa de cambios pequeños.',
+      },
+      {
+        q: '¿Puedo tener correo con mi propio dominio?',
+        a: 'Sí, del tipo nombre@tuempresa.com. El servicio de correo lo contratas tú —Google Workspace, Zoho o el que prefieras— porque va a tu nombre igual que el dominio, y nosotros lo dejamos configurado y verificado para que no acabe en spam.',
+      },
+      {
+        q: '¿Y si ya tengo una web?',
+        a: 'La miramos antes de proponerte nada. A veces compensa rehacerla y a veces basta con arreglar lo que falla, y decirlo es parte del trabajo. Si la rehacemos, conservamos las direcciones que ya estén posicionadas en Google y redirigimos las que cambien, para que no pierdas las visitas que ya tienes.',
+      },
+    ],
+  },
+  {
+    title: 'Después de la entrega',
+    faqs: [
+      {
+        q: '¿Tengo que gestionar yo la web?',
+        a: 'Solo si quieres. Si prefieres despreocuparte, nos encargamos del hosting, las copias de seguridad y los cambios pequeños cada mes. Y si prefieres llevarla tú, puedes hacerlo sin pedirnos permiso: el código es tuyo y no queda atada a ninguna plataforma nuestra.',
+      },
+      {
+        q: '¿Y si necesito cambios después del lanzamiento?',
+        a: 'Se hacen. Puedes pedirlos sueltos según vayan surgiendo, o llevar un plan mensual que ya incluye una bolsa de cambios menores cada mes. Lo que no va a pasar es que te quedes bloqueado esperando: si un día decides llevarlo por tu cuenta o con otro equipo, el código es tuyo.',
+      },
+      {
+        q: '¿Puedo cambiar yo los textos y las fotos?',
+        a: 'Depende de cómo montemos el proyecto, y se decide antes de empezar. Si vas a querer tocar contenido a menudo, lo preparamos con un gestor para que puedas hacerlo sin saber programar. Si la web es más estable, suele salir más a cuenta pedirnos los cambios puntuales que mantener un gestor que apenas se usa.',
+      },
+    ],
+  },
+];
+
+// FAQPage built from exactly the questions rendered below — schema that
+// describes content the page does not show is the kind that gets ignored.
+// Flattened, because FAQPage has no notion of sections.
+const allFaqs = groups.flatMap((g) => g.faqs);
+
+const schema = [
+  {
+    '@type': 'FAQPage',
+    '@id': 'https://studio.orbitaleap.com/preguntas-frecuentes/#faq',
+    mainEntity: allFaqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+  {
+    '@type': 'BreadcrumbList',
+    '@id': 'https://studio.orbitaleap.com/preguntas-frecuentes/#breadcrumb',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Inicio', item: 'https://studio.orbitaleap.com/' },
+      { '@type': 'ListItem', position: 2, name: 'Preguntas frecuentes', item: 'https://studio.orbitaleap.com/preguntas-frecuentes/' },
+    ],
+  },
+];
+---
+
+<Layout
+  title="Preguntas frecuentes | Orbital Leap Studio"
+  description="Presupuestos, plazos, dominio y hosting, mantenimiento y propiedad del código: lo que nos preguntan antes de empezar en Orbital Leap Studio, estudio de diseño y desarrollo digital en Madrid."
+  schema={schema}
+>
+  <Navbar />
+
+  {/*
+    Two columns from lg up, one below.
+
+    A single max-w-3xl column left the right half of a desktop screen empty,
+    which read as an unfinished page rather than as a measure chosen for
+    reading. Splitting it puts the heading and the way to get in touch beside
+    the questions instead of above them, and the intro sticks while the list
+    scrolls, so the contact details stay reachable through all of them.
+    The prose keeps its measure — the cap moved from the page to the answers.
+  */}
+  <main class="relative w-full bg-brand-bg pt-32 pb-24 px-6 md:px-12 xl:px-24">
+    <div class="max-w-screen-xl grid gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
+      <header class="lg:sticky lg:top-32 lg:self-start">
+        <p class="font-mono text-xs tracking-[0.16em] uppercase text-white/40 mb-4">Preguntas frecuentes</p>
+        <h1 class="font-sans text-[2.25rem] sm:text-5xl lg:text-[2.75rem] font-medium tracking-tighter leading-[1.02] text-brand-light mb-6">
+          Lo que nos preguntan antes de empezar.
+        </h1>
+        {/* The links sit on one line with their surrounding words. Broken
+            across lines for readability, the newline collapses and the text
+            renders as "escríbenos ahello@orbitaleap.como llámanos al". */}
+        <p class="text-base text-white/60 max-w-[46ch]">
+          Si no encuentras lo que buscas, escríbenos a <a href="mailto:hello@orbitaleap.com" class="text-white underline underline-offset-4">hello@orbitaleap.com</a> o llámanos al <a href="tel:+34623947598" class="text-white underline underline-offset-4">+34 623 94 75 98</a>.
+        </p>
+      </header>
+
+      <div>
+        {groups.map((g) => (
+          <section class="mb-14 last:mb-0">
+            <h2 class="font-mono text-xs tracking-[0.16em] uppercase text-white/40 mb-6">{g.title}</h2>
+            {/*
+              <details>, not a scripted accordion. The answers stay in the
+              DOM whether the panel is open or shut, so a crawler — and the
+              assistants this page exists for — read every one either way.
+              A JS accordion that injects the answer on click would hide the
+              entire point of the page from the things meant to quote it.
+
+              It also comes with keyboard support, a native open/close state
+              and find-in-page for free, none of which a div-and-onclick does.
+            */}
+            <div class="border-t border-brand-border">
+              {g.faqs.map((f, i) => (
+                <details class="faq group border-b border-brand-border" open={g.title === 'Presupuesto y plazos' && i === 0}>
+                  <summary class="flex items-start justify-between gap-6 py-6 cursor-pointer list-none">
+                    <h3 class="font-sans text-lg md:text-xl font-medium text-brand-light tracking-tight">{f.q}</h3>
+                    <Icon
+                      name="ph:plus-bold"
+                      class="faq-mark w-4 h-4 mt-1.5 shrink-0 text-white/45 group-hover:text-white transition-transform duration-200"
+                    />
+                  </summary>
+                  <p class="text-base text-white/60 leading-relaxed max-w-[68ch] pb-8 -mt-1">{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </section>
+        ))}
+
+        {/*
+          "¿Cómo empiezo?" used to be a collapsed question inside a group of
+          its own called "Empezar", which sat last — so the page read as a
+          timeline that ended at the beginning. It is the action the page
+          exists to prompt, so it is out of the accordion entirely and always
+          visible, at the end where somebody finishes reading.
+        */}
+        <div class="mt-16 border border-brand-border rounded-xl p-8 md:p-10 max-w-[68ch]">
+          <h2 class="font-sans text-xl md:text-2xl font-medium text-brand-light tracking-tight mb-3">¿Cómo empiezo?</h2>
+          <p class="text-base text-white/60 leading-relaxed mb-6">
+            Escríbenos a <a href="mailto:hello@orbitaleap.com" class="text-white underline underline-offset-4">hello@orbitaleap.com</a>, llámanos al <a href="tel:+34623947598" class="text-white underline underline-offset-4">+34 623 94 75 98</a> o haz el test de autodiagnóstico: cinco preguntas que nos dicen en qué punto estás. En cualquiera de los tres casos respondemos en menos de 24 horas.
+          </p>
+          <a href="/test-autodiagnostico/" class="inline-flex items-center gap-2 bg-white text-black rounded-lg px-6 py-3 font-sans text-sm font-medium hover:bg-white/90 transition-colors">
+            Hacer el test
+            <Icon name="ph:arrow-right-bold" class="w-4 h-4" />
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  /* Opts this page into animatable intrinsic sizes, which is what lets the
+     panels below transition to `auto` instead of snapping. Scoped to the page
+     rather than set globally: it changes how `auto` behaves for every element
+     underneath it, and that is not a switch to flip sitewide in passing. */
+  main { interpolate-size: allow-keywords; }
+
+  /* Safari and Chrome still draw their own disclosure triangle unless both of
+     these are set; `list-style: none` alone leaves it in WebKit. */
+  .faq > summary { list-style: none; }
+  .faq > summary::-webkit-details-marker { display: none; }
+
+  .faq > summary:hover h3 { color: #fff; }
+  .faq > summary:focus-visible {
+    outline: 1px solid rgba(255, 255, 255, 0.45);
+    outline-offset: 4px;
+  }
+
+  /* The plus turns into a minus by rotation rather than by swapping icons,
+     so there is nothing to load on open and no flicker. */
+  .faq[open] .faq-mark { transform: rotate(45deg); }
+
+  /* Smooth open and close, with no JavaScript and no animation library.
+     <details> has always snapped because `height: auto` was not animatable;
+     `interpolate-size: allow-keywords` makes it so, and
+     `transition-behavior: allow-discrete` lets content-visibility come along
+     rather than cutting the panel off mid-transition.
+
+     Deliberately not done with GSAP or a measured max-height: this runs off
+     the compositor with nothing on the main thread, and where the properties
+     are unsupported the panel simply snaps open exactly as it does today. No
+     polyfill, no layout thrash, nothing to load.
+
+     The scoped :global is because Astro scopes styles to the component, and
+     ::details-content is a pseudo-element on a child the scoper does not
+     annotate. */
+  @media (prefers-reduced-motion: no-preference) {
+    .faq::details-content {
+      block-size: 0;
+      overflow: hidden;
+      transition:
+        block-size 260ms cubic-bezier(0.22, 1, 0.36, 1),
+        content-visibility 260ms allow-discrete;
+    }
+
+    .faq[open]::details-content { block-size: auto; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .faq-mark { transition: none; }
+  }
+</style>

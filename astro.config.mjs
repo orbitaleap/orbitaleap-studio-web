@@ -34,9 +34,15 @@ export default defineConfig({
     '/aviso-legal': { status: 301, destination: 'https://orbitaleap.com/aviso-legal/' }
   },
   adapter: cloudflare(),
+
+  // Spanish only, and declared as such. This listed `['es', 'en']` while no
+  // English page has ever existed, which is config describing a site that is
+  // not there: nothing generated an /en/ route, nothing emitted hreflang, and
+  // the only effect was to suggest to the next reader that an English version
+  // was somewhere to be found.
   i18n: {
     defaultLocale: 'es',
-    locales: ['es', 'en'],
+    locales: ['es'],
   },
   integrations: [
     icon(),
