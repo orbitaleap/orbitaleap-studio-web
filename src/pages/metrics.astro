@@ -1,7 +1,10 @@
 ---
-import { verifyAccess } from '../lib/access';
 import { readMetrics, deleteLead } from '../lib/leads-store';
 import { workerEnv } from '../lib/worker-env';
+import {
+  checkPassword, createSession, sessionCookie, clearCookie,
+  underAttemptLimit, verifySession,
+} from '../lib/metrics-auth';
 
 // Server-rendered, always. Everything else on this site is prerendered, and a
 // prerendered /metrics would be a static file in dist/ — served by the assets
@@ -11,30 +14,91 @@ export const prerender = false;
 // NOT Astro.locals.runtime.env — that was removed in Astro v6 and throws the
 // removal notice when read, which made this page answer 500 rather than 403.
 const env = await workerEnv();
+const password = env.METRICS_PASSWORD as string | undefined;
 
-// Fail closed. Unset configuration, a missing token or one that does not
-// verify all land here, and the answer is the same: nothing. See lib/access.ts
-// for why checking the header's presence would not be enough.
-const identity = await verifyAccess(
-  Astro.request,
-  env.CF_ACCESS_TEAM_DOMAIN,
-  env.CF_ACCESS_AUD,
-);
-
-if (!identity) {
-  return new Response('No autorizado.', {
-    status: 403,
-    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'X-Robots-Tag': 'noindex, nofollow' },
-  });
-}
-
-// Erasure, for an RGPD request. Behind the same gate as everything else.
+let authed = await verifySession(Astro.request, password);
+let loginError: string | null = null;
+let setCookie: string | null = null;
 let erased: string | null = null;
+
 if (Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
-  const id = Number(form.get('delete'));
-  erased = (await deleteLead(env.DATABASE_URL, id)) ? `Registro ${id} eliminado.` : 'No se pudo eliminar.';
+
+  if (form.has('password')) {
+    // Rate limited BEFORE the comparison, so a flood of guesses is cut off
+    // rather than merely answered slowly.
+    if (!(await underAttemptLimit(Astro.request))) {
+      loginError = 'Demasiados intentos. Espera unos minutos.';
+    } else if (checkPassword(String(form.get('password') ?? ''), password)) {
+      authed = true;
+      setCookie = sessionCookie(await createSession(password as string));
+    } else {
+      // One message for both "wrong password" and "no password configured".
+      // Distinguishing them tells an attacker which of the two they are up
+      // against, and neither is useful to the person who typed it.
+      loginError = 'Contraseña incorrecta.';
+    }
+  } else if (form.has('logout')) {
+    authed = false;
+    setCookie = clearCookie;
+  } else if (authed && form.has('delete')) {
+    // Erasure, for an RGPD request. Only for an authenticated session — a
+    // logged-out POST must not be able to delete a row.
+    const id = Number(form.get('delete'));
+    erased = (await deleteLead(env.DATABASE_URL, id)) ? `Registro ${id} eliminado.` : 'No se pudo eliminar.';
+  }
 }
+
+// The login screen IS the unauthenticated response — 401 rather than 200, so
+// the page never reports success to a crawler or a monitor, and noindex so it
+// cannot be indexed even though it is reachable.
+if (!authed) {
+  const err = loginError
+    ? `<p style="color:#ff8080;font-size:.85rem;margin:0 0 14px;">${loginError}</p>`
+    : '';
+  return new Response(
+    `<!doctype html><html lang="es"><head><meta charset="utf-8">
+     <meta name="viewport" content="width=device-width,initial-scale=1">
+     <meta name="robots" content="noindex, nofollow"><title>Métricas</title>
+     <style>
+       body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0d0d0d;color:#fff;
+            font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
+       form{border:1px solid rgba(255,255,255,.1);background:#141414;border-radius:12px;
+            padding:32px;width:min(360px,90vw)}
+       h1{font-size:1.1rem;margin:0 0 6px;font-weight:600}
+       p.sub{margin:0 0 20px;color:rgba(255,255,255,.45);font-size:.85rem}
+       input{width:100%;box-sizing:border-box;padding:11px 12px;border-radius:8px;
+             border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);
+             color:#fff;font-size:.95rem;margin-bottom:14px}
+       input:focus{outline:1px solid rgba(255,255,255,.45);outline-offset:1px}
+       button{width:100%;padding:11px;border:0;border-radius:8px;background:#fff;color:#000;
+              font-weight:600;font-size:.9rem;cursor:pointer}
+     </style></head><body>
+     <form method="POST" autocomplete="on">
+       <h1>Métricas</h1>
+       <p class="sub">Panel interno de Orbital Leap Studio.</p>
+       ${err}
+       <input type="password" name="password" placeholder="Contraseña" autofocus
+              autocomplete="current-password" required>
+       <button type="submit">Entrar</button>
+     </form></body></html>`,
+    {
+      status: 401,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'X-Robots-Tag': 'noindex, nofollow',
+        'Cache-Control': 'no-store',
+        ...(setCookie ? { 'Set-Cookie': setCookie } : {}),
+      },
+    },
+  );
+}
+
+// Authenticated from here down. Never cached: it is per-session and it lists
+// personal data, so an intermediary holding a copy would be a leak.
+Astro.response.headers.set('Cache-Control', 'no-store');
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+if (setCookie) Astro.response.headers.set('Set-Cookie', setCookie);
 
 const m = await readMetrics(env.DATABASE_URL);
 
@@ -114,7 +178,12 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
     <div class="wrap">
       <header>
         <h1>Métricas</h1>
-        <span class="who">{identity.email}</span>
+        <form method="POST" style="margin:0;">
+          <button type="submit" name="logout" value="1"
+            style="background:none;border:1px solid var(--line);color:var(--dim);border-radius:6px;padding:6px 12px;font-size:0.75rem;cursor:pointer;">
+            Cerrar sesión
+          </button>
+        </form>
       </header>
 
       {erased && <div class="note">{erased}</div>}
