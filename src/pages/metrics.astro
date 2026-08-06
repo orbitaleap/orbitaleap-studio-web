@@ -1,10 +1,7 @@
 ---
 import { readMetrics, deleteLead } from '../lib/leads-store';
 import { workerEnv } from '../lib/worker-env';
-import {
-  checkPassword, createSession, sessionCookie, clearCookie,
-  underAttemptLimit, verifySession,
-} from '../lib/metrics-auth';
+import { verifyToken, readToken, TOKEN_COOKIE } from '../lib/neon-auth';
 
 // Server-rendered, always. Everything else on this site is prerendered, and a
 // prerendered /metrics would be a static file in dist/ — served by the assets
@@ -14,47 +11,27 @@ export const prerender = false;
 // NOT Astro.locals.runtime.env — that was removed in Astro v6 and throws the
 // removal notice when read, which made this page answer 500 rather than 403.
 const env = await workerEnv();
-const password = env.METRICS_PASSWORD as string | undefined;
+const authUrl = env.NEON_AUTH_URL as string | undefined;
 
-let authed = await verifySession(Astro.request, password);
-let loginError: string | null = null;
-let setCookie: string | null = null;
+// Who this is, according to a token this Worker verified itself. Fails closed:
+// no config, no token, bad signature, wrong issuer or expired all yield null.
+const identity = await verifyToken(readToken(Astro.request), authUrl);
+
 let erased: string | null = null;
-
-if (Astro.request.method === 'POST') {
+if (identity && Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
-
-  if (form.has('password')) {
-    // Rate limited BEFORE the comparison, so a flood of guesses is cut off
-    // rather than merely answered slowly.
-    if (!(await underAttemptLimit(Astro.request))) {
-      loginError = 'Demasiados intentos. Espera unos minutos.';
-    } else if (checkPassword(String(form.get('password') ?? ''), password)) {
-      authed = true;
-      setCookie = sessionCookie(await createSession(password as string));
-    } else {
-      // One message for both "wrong password" and "no password configured".
-      // Distinguishing them tells an attacker which of the two they are up
-      // against, and neither is useful to the person who typed it.
-      loginError = 'Contraseña incorrecta.';
-    }
-  } else if (form.has('logout')) {
-    authed = false;
-    setCookie = clearCookie;
-  } else if (authed && form.has('delete')) {
-    // Erasure, for an RGPD request. Only for an authenticated session — a
-    // logged-out POST must not be able to delete a row.
+  if (form.has('delete')) {
     const id = Number(form.get('delete'));
     erased = (await deleteLead(env.DATABASE_URL, id)) ? `Registro ${id} eliminado.` : 'No se pudo eliminar.';
   }
 }
 
-// The login screen IS the unauthenticated response — 401 rather than 200, so
-// the page never reports success to a crawler or a monitor, and noindex so it
-// cannot be indexed even though it is reachable.
-if (!authed) {
-  const err = loginError
-    ? `<p style="color:#ff8080;font-size:.85rem;margin:0 0 14px;">${loginError}</p>`
+if (!identity) {
+  // The sign-in screen. The redirect and the token fetch have to happen in the
+  // browser, because the browser is the only party holding the auth cookie —
+  // it lives on the auth server's own domain and is never sent here.
+  const cfg = !authUrl
+    ? '<p style="color:#ff8080;font-size:.85rem">Falta NEON_AUTH_URL.</p>'
     : '';
   return new Response(
     `<!doctype html><html lang="es"><head><meta charset="utf-8">
@@ -63,32 +40,66 @@ if (!authed) {
      <style>
        body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0d0d0d;color:#fff;
             font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
-       form{border:1px solid rgba(255,255,255,.1);background:#141414;border-radius:12px;
-            padding:32px;width:min(360px,90vw)}
+       .card{border:1px solid rgba(255,255,255,.1);background:#141414;border-radius:12px;
+             padding:32px;width:min(360px,90vw);text-align:center}
        h1{font-size:1.1rem;margin:0 0 6px;font-weight:600}
-       p.sub{margin:0 0 20px;color:rgba(255,255,255,.45);font-size:.85rem}
-       input{width:100%;box-sizing:border-box;padding:11px 12px;border-radius:8px;
-             border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);
-             color:#fff;font-size:.95rem;margin-bottom:14px}
-       input:focus{outline:1px solid rgba(255,255,255,.45);outline-offset:1px}
+       p.sub{margin:0 0 22px;color:rgba(255,255,255,.45);font-size:.85rem}
        button{width:100%;padding:11px;border:0;border-radius:8px;background:#fff;color:#000;
               font-weight:600;font-size:.9rem;cursor:pointer}
+       #msg{margin-top:14px;font-size:.8rem;color:rgba(255,255,255,.45);min-height:1em}
      </style></head><body>
-     <form method="POST" autocomplete="on">
+     <div class="card">
        <h1>Métricas</h1>
        <p class="sub">Panel interno de Orbital Leap Studio.</p>
-       ${err}
-       <input type="password" name="password" placeholder="Contraseña" autofocus
-              autocomplete="current-password" required>
-       <button type="submit">Entrar</button>
-     </form></body></html>`,
+       ${cfg}
+       <button id="go">Entrar con Google</button>
+       <div id="msg"></div>
+     </div>
+     <script>
+      const AUTH = ${JSON.stringify(authUrl ?? '')};
+      const HERE = location.origin + '/metrics';
+      const msg = document.getElementById('msg');
+
+      // Coming back from the provider: the auth cookie now exists on the auth
+      // server's domain, so ask it for a token and park that on OUR domain
+      // where the Worker can read it.
+      async function grab() {
+        try {
+          const r = await fetch(AUTH + '/token', { credentials: 'include' });
+          if (!r.ok) return false;
+          const { token } = await r.json();
+          if (!token) return false;
+          document.cookie = ${JSON.stringify(TOKEN_COOKIE)} + '=' + token +
+            '; Path=/metrics; Max-Age=3600; Secure; SameSite=Strict';
+          return true;
+        } catch { return false; }
+      }
+
+      (async () => {
+        if (!AUTH) return;
+        msg.textContent = 'Comprobando sesión…';
+        if (await grab()) { location.reload(); return; }
+        msg.textContent = '';
+      })();
+
+      document.getElementById('go').addEventListener('click', async () => {
+        msg.textContent = 'Redirigiendo…';
+        const r = await fetch(AUTH + '/sign-in/social', {
+          method: 'POST', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ provider: 'google', callbackURL: HERE }),
+        });
+        const d = await r.json().catch(() => ({}));
+        if (d.url) location.href = d.url;
+        else msg.textContent = d.message || 'No se pudo iniciar sesión.';
+      });
+     </script></body></html>`,
     {
       status: 401,
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
         'X-Robots-Tag': 'noindex, nofollow',
         'Cache-Control': 'no-store',
-        ...(setCookie ? { 'Set-Cookie': setCookie } : {}),
       },
     },
   );
@@ -178,7 +189,7 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
     <div class="wrap">
       <header>
         <h1>Métricas</h1>
-        <form method="POST" style="margin:0;">
+        <form method="POST" style="margin:0;" onsubmit="document.cookie='ol_metrics_jwt'+'=; Path=/metrics; Max-Age=0';">
           <button type="submit" name="logout" value="1"
             style="background:none;border:1px solid var(--line);color:var(--dim);border-radius:6px;padding:6px 12px;font-size:0.75rem;cursor:pointer;">
             Cerrar sesión
