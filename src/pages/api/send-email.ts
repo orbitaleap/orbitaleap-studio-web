@@ -390,7 +390,9 @@ export const POST: APIRoute = async (context) => {
             });
         }
 
-        // Our own record of the lead, for the /metrics dashboard.
+        // Our own record of the lead. The dashboard that reads it lives on
+        // orbitaleap.com, not here — every Orbital Leap site writes to this one
+        // table and `site` is what tells the rows apart.
         //
         // Same rule as the confirmation below, and for the same reason: it
         // runs AFTER the notification and cannot fail the request. The email
