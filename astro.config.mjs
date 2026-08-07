@@ -48,10 +48,7 @@ export default defineConfig({
     icon(),
     // /launch is an ads landing page and carries noindex, so keep it out of
     // the sitemap rather than inviting a crawl that is then told to go away.
-    // /metrics is the internal dashboard: it answers 403 to everyone without
-    // a valid Cloudflare Access token, so listing it would only advertise a
-    // door that never opens.
-    sitemap({ filter: (page) => !page.includes('/launch') && !page.includes('/metrics') }),
+    sitemap({ filter: (page) => !page.includes('/launch') }),
   ],
   vite: {
     plugins: [tailwindcss()]
