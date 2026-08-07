@@ -1,18 +1,24 @@
 /**
- * Who may open /metrics, and how that list is changed.
+ * Who may open /metrics.
  *
- * Two sources, in this order:
+ * One source of truth: neon_auth."user". If an account exists there and is not
+ * banned, it gets in. Accounts are created either in the Neon Auth console or
+ * from the module on this page, and both write to the same table, so there is
+ * nothing to keep in sync and no second list to forget about.
  *
- *   1. METRICS_ALLOWED_EMAILS — a Worker variable. This is the bootstrap and
- *      the break-glass: it works before the table exists, and it still works
- *      if somebody removes themselves from the table by accident. It cannot
- *      be edited from the page, which is the point of it.
+ * ─── The load-bearing setting ────────────────────────────────────────────
  *
- *   2. metrics_access — a table, managed from the page itself.
+ * This design assumes public sign-up is CLOSED. With `disableSignUp: false`
+ * anyone can create an account against the auth server with one request — no
+ * browser, no form, nothing this site can refuse — and under the rule above
+ * that account would then be allowed in. Existence only means "we created
+ * this" while nobody else is able to create one.
  *
- * Being in neon_auth."user" is deliberately NOT sufficient. That only proves
- * an account exists, and while public sign-up is open anyone can create one.
- * Access is something we grant, not something a stranger can take.
+ * So: set disableSignUp to true in the Neon Auth console. It is not a
+ * hardening step to do later, it is the thing standing between a stranger and
+ * a page listing customers' names, emails and phone numbers.
+ *
+ * The page says so, loudly, whenever it detects sign-up is still open.
  */
 
 import { neon } from '@neondatabase/serverless';
@@ -26,113 +32,95 @@ const client = (cs: string | undefined): Sql | null => {
 
 const norm = (e: string) => e.trim().toLowerCase();
 
-function fromEnv(allowList: string | undefined): string[] {
-  if (!allowList) return [];
-  return allowList.split(/[,\s]+/).map(norm).filter(Boolean);
-}
-
 /**
- * FAILS CLOSED. If neither source yields the address, the answer is no — and
- * an unreachable database is not a reason to let somebody in.
+ * FAILS CLOSED. No database, no row, or a banned row all mean no — and an
+ * unreachable database is not a reason to let somebody in.
  */
 export async function hasAccess(
   email: string,
-  allowList: string | undefined,
   connectionString: string | undefined,
 ): Promise<boolean> {
   const who = norm(email);
   if (!who) return false;
-
-  if (fromEnv(allowList).includes(who)) return true;
-
   const sql = client(connectionString);
   if (!sql) return false;
   try {
-    const r = await sql`SELECT 1 FROM metrics_access WHERE email = ${who} LIMIT 1`;
+    const r = await sql`
+      SELECT 1 FROM neon_auth."user"
+       WHERE lower(email) = ${who}
+         AND ("banned" IS NULL OR "banned" = false)
+       LIMIT 1`;
     return Array.isArray(r) && r.length > 0;
   } catch {
-    // No table yet, or no database. Either way: not a reason to admit anyone.
     return false;
   }
 }
 
-export interface AccessRow {
+export interface UserRow {
+  id: string;
+  name: string | null;
   email: string;
-  created_at: string;
-  created_by: string | null;
-  /** True when the address is pinned by the env var and cannot be revoked here. */
-  fixed?: boolean;
+  createdAt: string;
+  banned: boolean | null;
 }
 
-export async function listAccess(
-  allowList: string | undefined,
-  connectionString: string | undefined,
-): Promise<AccessRow[]> {
-  const pinned = fromEnv(allowList).map((email) => ({
-    email, created_at: '', created_by: 'configuración', fixed: true,
-  }));
-
+export async function listUsers(connectionString: string | undefined): Promise<UserRow[]> {
   const sql = client(connectionString);
-  if (!sql) return pinned;
+  if (!sql) return [];
   try {
-    const rows = (await sql`
-      SELECT email, created_at, created_by FROM metrics_access ORDER BY created_at ASC
-    `) as unknown as AccessRow[];
-    // The env var wins if an address appears in both, since it cannot be revoked.
-    const seen = new Set(pinned.map((p) => p.email));
-    return [...pinned, ...rows.filter((r) => !seen.has(norm(r.email)))];
+    return (await sql`
+      SELECT id, name, email, "createdAt", "banned"
+        FROM neon_auth."user" ORDER BY "createdAt" ASC
+    `) as unknown as UserRow[];
   } catch {
-    return pinned;
+    return [];
   }
 }
 
-export async function grantAccess(
-  email: string,
-  by: string,
-  connectionString: string | undefined,
-): Promise<{ ok: boolean; message: string }> {
-  const who = norm(email);
-  if (!/^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(who)) {
-    return { ok: false, message: 'Ese correo no tiene un formato válido.' };
-  }
+/** True when anyone on the internet can still create themselves an account. */
+export async function signUpIsOpen(connectionString: string | undefined): Promise<boolean> {
   const sql = client(connectionString);
-  if (!sql) return { ok: false, message: 'Sin conexión a la base de datos.' };
+  if (!sql) return false;
   try {
-    await sql`
-      INSERT INTO metrics_access (email, created_by) VALUES (${who}, ${by})
-      ON CONFLICT (email) DO NOTHING
-    `;
-    return { ok: true, message: `${who} ya tiene acceso.` };
+    const r = (await sql`SELECT email_and_password FROM neon_auth.project_config LIMIT 1`) as any[];
+    const cfg = r?.[0]?.email_and_password;
+    const parsed = typeof cfg === 'string' ? JSON.parse(cfg) : cfg;
+    return parsed?.disableSignUp === false;
   } catch {
-    return { ok: false, message: 'No se pudo conceder el acceso.' };
+    return false;
   }
 }
 
-export async function revokeAccess(
+/**
+ * Removes an account outright rather than banning it.
+ *
+ * Banning would leave the row in place and the person listed forever; for a
+ * three-person dashboard, gone means gone. Sessions and credentials go first
+ * because they reference the user — deleting in the other order fails on the
+ * foreign key, and deleting the user while a session survives would leave a
+ * live token pointing at nothing.
+ */
+export async function removeUser(
   email: string,
   actor: string,
-  allowList: string | undefined,
   connectionString: string | undefined,
 ): Promise<{ ok: boolean; message: string }> {
   const who = norm(email);
-
-  // Removing your own access locks you out of the page you are standing on.
   if (who === norm(actor)) {
-    return { ok: false, message: 'No puedes quitarte el acceso a ti mismo.' };
+    return { ok: false, message: 'No puedes eliminar tu propia cuenta.' };
   }
-  if (fromEnv(allowList).includes(who)) {
-    return { ok: false, message: 'Ese acceso está fijado en la configuración.' };
-  }
-
   const sql = client(connectionString);
   if (!sql) return { ok: false, message: 'Sin conexión a la base de datos.' };
   try {
-    const r = await sql`DELETE FROM metrics_access WHERE email = ${who} RETURNING email`;
-    return Array.isArray(r) && r.length
-      ? { ok: true, message: `Acceso retirado a ${who}.` }
-      : { ok: false, message: 'Ese correo no estaba en la lista.' };
+    const found = (await sql`SELECT id FROM neon_auth."user" WHERE lower(email) = ${who}`) as any[];
+    if (!found.length) return { ok: false, message: 'Esa cuenta no existe.' };
+    const id = found[0].id;
+    await sql`DELETE FROM neon_auth."session" WHERE "userId" = ${id}`;
+    await sql`DELETE FROM neon_auth."account" WHERE "userId" = ${id}`;
+    await sql`DELETE FROM neon_auth."user" WHERE id = ${id}`;
+    return { ok: true, message: `Cuenta de ${who} eliminada.` };
   } catch {
-    return { ok: false, message: 'No se pudo retirar el acceso.' };
+    return { ok: false, message: 'No se pudo eliminar la cuenta.' };
   }
 }
 
@@ -141,21 +129,18 @@ export async function revokeAccess(
  *
  * This is how a password gets set, including the first one: an account created
  * in the Neon console has a name and an email but no credential, so there is
- * nothing to sign in with until someone sets one. Rather than inventing a way
- * to write the hash — Better Auth owns that format, and reimplementing it
- * would break silently on their next change — this uses their own flow. The
- * person clicks the link in the mail and chooses their own password, which is
- * also the only version where the granter never sees it.
+ * nothing to sign in with until someone sets one. Rather than writing the hash
+ * ourselves — Better Auth owns that format and reimplementing it would break
+ * silently on their next change — this uses their own flow, which also means
+ * whoever created the account never sees the password.
  *
- * The endpoint answers identically whether or not the address exists, so this
- * cannot be used to find out who has an account. That is their design and it
- * is the right one; the message below matches it rather than pretending to
- * know more.
+ * redirectTo is the production URL rather than the current origin: the auth
+ * server validates it against its trusted origins and rejects 127.0.0.1, so
+ * deriving it locally made every reset fail with nothing to explain why.
  */
 export async function sendPasswordReset(
   email: string,
   authUrl: string | undefined,
-  redirectTo: string,
 ): Promise<{ ok: boolean; message: string }> {
   if (!authUrl) return { ok: false, message: 'Falta NEON_AUTH_URL.' };
   const who = norm(email);
@@ -163,7 +148,7 @@ export async function sendPasswordReset(
     const res = await fetch(`${authUrl.replace(/\/$/, '')}/request-password-reset`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Origin: 'https://studio.orbitaleap.com' },
-      body: JSON.stringify({ email: who, redirectTo }),
+      body: JSON.stringify({ email: who, redirectTo: 'https://studio.orbitaleap.com/metrics' }),
     });
     return res.ok
       ? { ok: true, message: `Correo enviado a ${who} para establecer su contraseña.` }
@@ -174,49 +159,55 @@ export async function sendPasswordReset(
 }
 
 /**
- * Creates the sign-in credential, then grants access.
+ * Creates an account, then emails the person to set their own password.
  *
- * The account is created through the auth server rather than by writing to
- * neon_auth."user" directly: the password hash format is Better Auth's to
- * define, and reimplementing it would be a silent breakage waiting for their
- * next change. This call is made server-side from the Worker, so the password
- * never travels to the browser of the person doing the granting.
+ * Goes through the auth server rather than inserting into neon_auth."user"
+ * directly: an account with no credential row cannot sign in, and Better Auth
+ * owns how those are written. A password is generated here only because the
+ * endpoint requires one — it is never shown to anyone and is replaced by
+ * whatever the person chooses from the email.
  *
- * An address that already has an account is not an error — that is the normal
- * path for someone who registered but was never granted access.
+ * If sign-up is disabled on the project this call is refused, which is correct
+ * and is why the message points at the console instead.
  */
 export async function createUser(
-  opts: { email: string; password: string; name: string; by: string },
+  opts: { email: string; name: string },
   authUrl: string | undefined,
-  connectionString: string | undefined,
 ): Promise<{ ok: boolean; message: string }> {
   if (!authUrl) return { ok: false, message: 'Falta NEON_AUTH_URL.' };
-  if (opts.password.length < 12) {
-    return { ok: false, message: 'La contraseña debe tener al menos 12 caracteres.' };
-  }
-
   const who = norm(opts.email);
+
+  // 32 random bytes, discarded immediately. The real password is the one the
+  // person sets from the email below.
+  const scratch = [...crypto.getRandomValues(new Uint8Array(24))]
+    .map((b) => b.toString(36)).join('').slice(0, 32);
+
   try {
     const res = await fetch(`${authUrl.replace(/\/$/, '')}/sign-up/email`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Origin: 'https://studio.orbitaleap.com' },
-      body: JSON.stringify({ name: opts.name || who, email: who, password: opts.password }),
+      body: JSON.stringify({ name: opts.name || who, email: who, password: scratch }),
     });
 
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { code?: string; message?: string };
-      const exists = res.status === 422 || /exist/i.test(body.code ?? body.message ?? '');
-      if (!exists) {
-        return { ok: false, message: body.message || 'No se pudo crear la cuenta.' };
+      if (res.status === 422 || /exist/i.test(body.code ?? '')) {
+        return { ok: false, message: 'Esa cuenta ya existe.' };
       }
-      // Already registered — fall through and grant access to the existing one.
+      if (/disabled|not allowed/i.test(body.message ?? body.code ?? '')) {
+        return {
+          ok: false,
+          message: 'El registro está cerrado. Crea la cuenta en la consola de Neon Auth.',
+        };
+      }
+      return { ok: false, message: body.message || 'No se pudo crear la cuenta.' };
     }
   } catch {
     return { ok: false, message: 'No se pudo contactar con el servidor de acceso.' };
   }
 
-  const granted = await grantAccess(who, opts.by, connectionString);
-  return granted.ok
-    ? { ok: true, message: `Cuenta lista para ${who}.` }
-    : granted;
+  const sent = await sendPasswordReset(who, authUrl);
+  return sent.ok
+    ? { ok: true, message: `Cuenta creada. ${sent.message}` }
+    : { ok: true, message: `Cuenta creada para ${who}, pero no se pudo enviar el correo.` };
 }
