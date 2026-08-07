@@ -1,10 +1,8 @@
 ---
 import { readMetrics, deleteLead } from '../lib/leads-store';
 import { workerEnv } from '../lib/worker-env';
-import {
-  checkPassword, createSession, sessionCookie, clearCookie,
-  underAttemptLimit, verifySession,
-} from '../lib/metrics-auth';
+import { verifyToken, readToken, TOKEN_COOKIE } from '../lib/neon-auth';
+import { hasAccess, listAccess, grantAccess, revokeAccess, createUser, sendPasswordReset } from '../lib/metrics-access';
 
 // Server-rendered, always. Everything else on this site is prerendered, and a
 // prerendered /metrics would be a static file in dist/ — served by the assets
@@ -14,81 +12,206 @@ export const prerender = false;
 // NOT Astro.locals.runtime.env — that was removed in Astro v6 and throws the
 // removal notice when read, which made this page answer 500 rather than 403.
 const env = await workerEnv();
-const password = env.METRICS_PASSWORD as string | undefined;
+const authUrl = env.NEON_AUTH_URL as string | undefined;
 
-let authed = await verifySession(Astro.request, password);
-let loginError: string | null = null;
-let setCookie: string | null = null;
-let erased: string | null = null;
+// Who this is, according to a token this Worker verified itself. Fails closed:
+// no config, no token, bad signature, wrong issuer or expired all yield null.
+const verified = await verifyToken(readToken(Astro.request), authUrl);
 
-if (Astro.request.method === 'POST') {
+// Authenticated is not the same as authorised. The token proves the auth
+// server knows them; the allowlist decides whether we do. See isAllowed().
+const allowed = verified
+  ? await hasAccess(verified.email, env.METRICS_ALLOWED_EMAILS, env.DATABASE_URL)
+  : false;
+const identity = allowed ? verified : null;
+const rejected = Boolean(verified) && !allowed;
+
+let notice: string | null = null;
+if (identity && Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
+  const by = identity.email;
 
-  if (form.has('password')) {
-    // Rate limited BEFORE the comparison, so a flood of guesses is cut off
-    // rather than merely answered slowly.
-    if (!(await underAttemptLimit(Astro.request))) {
-      loginError = 'Demasiados intentos. Espera unos minutos.';
-    } else if (checkPassword(String(form.get('password') ?? ''), password)) {
-      authed = true;
-      setCookie = sessionCookie(await createSession(password as string));
-    } else {
-      // One message for both "wrong password" and "no password configured".
-      // Distinguishing them tells an attacker which of the two they are up
-      // against, and neither is useful to the person who typed it.
-      loginError = 'Contraseña incorrecta.';
-    }
-  } else if (form.has('logout')) {
-    authed = false;
-    setCookie = clearCookie;
-  } else if (authed && form.has('delete')) {
-    // Erasure, for an RGPD request. Only for an authenticated session — a
-    // logged-out POST must not be able to delete a row.
+  if (form.has('delete')) {
     const id = Number(form.get('delete'));
-    erased = (await deleteLead(env.DATABASE_URL, id)) ? `Registro ${id} eliminado.` : 'No se pudo eliminar.';
+    notice = (await deleteLead(env.DATABASE_URL, id)) ? `Registro ${id} eliminado.` : 'No se pudo eliminar.';
+  } else if (form.has('grant')) {
+    notice = (await grantAccess(String(form.get('grant')), by, env.DATABASE_URL)).message;
+  } else if (form.has('revoke')) {
+    notice = (await revokeAccess(String(form.get('revoke')), by, env.METRICS_ALLOWED_EMAILS, env.DATABASE_URL)).message;
+  } else if (form.has('reset')) {
+    notice = (await sendPasswordReset(
+      // Always the production URL. The auth server validates redirectTo
+      // against its trusted origins and rejects http://127.0.0.1 outright, so
+      // sending the current origin breaks every reset attempted locally.
+      String(form.get('reset')), authUrl, 'https://studio.orbitaleap.com/metrics',
+    )).message;
+  } else if (form.has('new-email')) {
+    notice = (await createUser({
+      email: String(form.get('new-email')),
+      password: String(form.get('new-password') ?? ''),
+      name: String(form.get('new-name') ?? ''),
+      by,
+    }, authUrl, env.DATABASE_URL)).message;
   }
 }
 
-// The login screen IS the unauthenticated response — 401 rather than 200, so
-// the page never reports success to a crawler or a monitor, and noindex so it
-// cannot be indexed even though it is reachable.
-if (!authed) {
-  const err = loginError
-    ? `<p style="color:#ff8080;font-size:.85rem;margin:0 0 14px;">${loginError}</p>`
-    : '';
+// A reset link lands here as /metrics?token=… . Without this the token is
+// ignored, the visitor sees the ordinary sign-in form, and typing a password
+// fails — which is exactly what "the link says my credentials are wrong"
+// looks like from the outside.
+const resetToken = Astro.url.searchParams.get('token');
+
+if (!identity) {
+  // The sign-in screen. The credential exchange and the token fetch both have
+  // to happen in the browser: the auth cookie is set on the auth server's own
+  // domain and is never sent here, so this Worker can never see it.
+  const cfg = !authUrl
+    ? '<p class="err">Falta NEON_AUTH_URL.</p>'
+    : rejected
+      ? '<p class="err">Esta cuenta no tiene acceso al panel.</p>'
+      : '';
   return new Response(
     `<!doctype html><html lang="es"><head><meta charset="utf-8">
      <meta name="viewport" content="width=device-width,initial-scale=1">
-     <meta name="robots" content="noindex, nofollow"><title>Métricas</title>
+     <meta name="robots" content="noindex, nofollow">
+     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+     <title>Métricas</title>
      <style>
+       *{box-sizing:border-box}
        body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0d0d0d;color:#fff;
             font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
-       form{border:1px solid rgba(255,255,255,.1);background:#141414;border-radius:12px;
-            padding:32px;width:min(360px,90vw)}
-       h1{font-size:1.1rem;margin:0 0 6px;font-weight:600}
-       p.sub{margin:0 0 20px;color:rgba(255,255,255,.45);font-size:.85rem}
-       input{width:100%;box-sizing:border-box;padding:11px 12px;border-radius:8px;
-             border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);
-             color:#fff;font-size:.95rem;margin-bottom:14px}
+       .card{border:1px solid rgba(255,255,255,.1);background:#141414;border-radius:12px;
+             padding:32px;width:min(380px,92vw)}
+       h1{font-size:1.15rem;margin:0 0 4px;font-weight:600}
+       p.sub{margin:0 0 22px;color:rgba(255,255,255,.45);font-size:.85rem}
+       label{display:block;font-size:.75rem;color:rgba(255,255,255,.5);margin:0 0 6px}
+       input{width:100%;padding:11px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);
+             background:rgba(255,255,255,.04);color:#fff;font-size:.95rem;margin-bottom:14px}
        input:focus{outline:1px solid rgba(255,255,255,.45);outline-offset:1px}
        button{width:100%;padding:11px;border:0;border-radius:8px;background:#fff;color:#000;
               font-weight:600;font-size:.9rem;cursor:pointer}
+       button.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.18);margin-top:10px}
+       button[disabled]{opacity:.55;cursor:default}
+       .err{color:#ff8080;font-size:.82rem;margin:0 0 14px}
+       #msg{margin-top:14px;font-size:.8rem;color:rgba(255,255,255,.45);min-height:1.1em;text-align:center}
+       .sep{display:flex;align-items:center;gap:10px;margin:18px 0 4px;color:rgba(255,255,255,.28);font-size:.7rem}
+       .sep::before,.sep::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.12)}
      </style></head><body>
-     <form method="POST" autocomplete="on">
+     <div class="card">
        <h1>Métricas</h1>
        <p class="sub">Panel interno de Orbital Leap Studio.</p>
-       ${err}
-       <input type="password" name="password" placeholder="Contraseña" autofocus
-              autocomplete="current-password" required>
-       <button type="submit">Entrar</button>
-     </form></body></html>`,
+       ${cfg}
+       <form id="f" autocomplete="on" style="${resetToken ? 'display:none' : ''}">
+         <label for="email">Correo</label>
+         <input id="email" type="email" name="email" required autocomplete="username" autofocus>
+         <label for="password">Contraseña</label>
+         <input id="password" type="password" name="password" required autocomplete="current-password">
+         <button id="in" type="submit">Entrar</button>
+       </form>
+
+       <form id="rf" autocomplete="on" style="${resetToken ? '' : 'display:none'}">
+         <p class="sub" style="margin-bottom:16px">Elige una contraseña nueva.</p>
+         <label for="np">Contraseña nueva</label>
+         <input id="np" type="password" minlength="12" required autocomplete="new-password" autofocus>
+         <label for="np2">Repítela</label>
+         <input id="np2" type="password" minlength="12" required autocomplete="new-password">
+         <button id="rb" type="submit">Guardar contraseña</button>
+       </form>
+       <div id="msg"></div>
+     </div>
+     <script>
+      const AUTH = ${JSON.stringify(authUrl ?? '')};
+      const HERE = location.origin + '/metrics';
+      const REJECTED = ${rejected ? 'true' : 'false'};
+      const RESET_TOKEN = ${JSON.stringify(resetToken ?? '')};
+      const msg = document.getElementById('msg');
+      const say = (t) => { msg.textContent = t; };
+
+      // Exchange the auth-server session (a cookie on ITS domain) for a JWT we
+      // can park on ours, where the Worker is able to read and verify it.
+      async function grabToken() {
+        const r = await fetch(AUTH + '/token', { credentials: 'include' });
+        if (!r.ok) return false;
+        const d = await r.json().catch(() => ({}));
+        const t = d.token || d.jwt || (d.data && d.data.token);
+        if (!t) return false;
+        document.cookie = ${JSON.stringify(TOKEN_COOKIE)} + '=' + t +
+          '; Path=/metrics; Max-Age=3600; Secure; SameSite=Strict';
+        return true;
+      }
+
+      // Returning from Google, or arriving with a session already live.
+      // Picks up a session that already exists. Skipped when the server has
+      // just told us this account is not allowed, or we would reload forever.
+      (async () => {
+        if (!AUTH || REJECTED || RESET_TOKEN) return;
+        try { if (await grabToken()) { location.reload(); return; } } catch {}
+      })();
+
+      document.getElementById('rf').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const a = document.getElementById('np').value;
+        const b = document.getElementById('np2').value;
+        if (a !== b) { say('Las dos contraseñas no coinciden.'); return; }
+        const btn = document.getElementById('rb');
+        btn.disabled = true; say('Guardando…');
+        try {
+          const r = await fetch(AUTH + '/reset-password', {
+            method: 'POST', credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ newPassword: a, token: RESET_TOKEN }),
+          });
+          if (!r.ok) {
+            const d = await r.json().catch(() => ({}));
+            say(d.message || 'El enlace ya no es válido. Pide otro.');
+            btn.disabled = false; return;
+          }
+          // No auto sign-in: the reset form never asks for the address, so
+          // there is no email to sign in with. Back to a clean /metrics —
+          // without dropping the token, a reload would re-enter reset mode.
+          say('Contraseña guardada. Entra con tu correo.');
+          setTimeout(() => { location.href = '/metrics'; }, 900);
+        } catch {
+          say('No se pudo contactar con el servidor de acceso.');
+          btn.disabled = false;
+        }
+      });
+
+      document.getElementById('f').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('in');
+        btn.disabled = true; say('Entrando…');
+        try {
+          const r = await fetch(AUTH + '/sign-in/email', {
+            method: 'POST', credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: document.getElementById('email').value,
+              password: document.getElementById('password').value,
+            }),
+          });
+          if (!r.ok) {
+            const d = await r.json().catch(() => ({}));
+            say(d.code === 'INVALID_EMAIL_OR_PASSWORD'
+              ? 'Correo o contraseña incorrectos.'
+              : (d.message || 'No se pudo iniciar sesión.'));
+            btn.disabled = false; return;
+          }
+          if (await grabToken()) { location.reload(); return; }
+          say('Sesión iniciada, pero no se pudo obtener el token.');
+        } catch (err) {
+          say('No se pudo conectar con el servidor de acceso.');
+        }
+        btn.disabled = false;
+      });
+
+     </script></body></html>`,
     {
       status: 401,
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
         'X-Robots-Tag': 'noindex, nofollow',
         'Cache-Control': 'no-store',
-        ...(setCookie ? { 'Set-Cookie': setCookie } : {}),
       },
     },
   );
@@ -98,9 +221,13 @@ if (!authed) {
 // personal data, so an intermediary holding a copy would be a leak.
 Astro.response.headers.set('Cache-Control', 'no-store');
 Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
-if (setCookie) Astro.response.headers.set('Set-Cookie', setCookie);
+// No Set-Cookie here any more. The password gate issued its own session from
+// the server; the token cookie is written by client script after it fetches
+// /token, because the auth cookie it exchanges lives on another domain and
+// only the browser can reach it.
 
 const m = await readMetrics(env.DATABASE_URL);
+const access = await listAccess(env.METRICS_ALLOWED_EMAILS, env.DATABASE_URL);
 
 const fmt = (iso: string) =>
   new Intl.DateTimeFormat('es-ES', {
@@ -118,6 +245,7 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Métricas · Orbital Leap Studio</title>
     <style>
       :root {
@@ -170,6 +298,16 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
       .msg { max-width: 340px; white-space: pre-wrap; font-size: 0.8rem; color: var(--dim); max-height: 5.4em; overflow: hidden; }
       .del { background: none; border: 1px solid var(--line); color: var(--dim); border-radius: 6px; padding: 5px 9px; font-size: 0.72rem; cursor: pointer; }
       .del:hover { border-color: rgba(255,120,120,0.6); color: #ff8080; }
+      .access { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+      .access h2 { font-size: 0.72rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--dim); margin: 0 0 8px; font-weight: 500; }
+      .access-sub { margin: 0 0 20px; color: var(--mid); font-size: 0.85rem; max-width: 62ch; }
+      .access label { display: block; font-size: 0.75rem; color: var(--dim); margin-bottom: 12px; }
+      .access input { display: block; width: 100%; margin-top: 5px; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,0.04); color: var(--ink); font-size: 0.9rem; }
+      .access input:focus { outline: 1px solid rgba(255,255,255,0.45); outline-offset: 1px; }
+      .access .hint { font-size: 0.75rem; color: var(--dim); margin: 0 0 14px; line-height: 1.5; }
+      .access button.primary { width: 100%; padding: 10px; border: 0; border-radius: 8px; background: #fff; color: #000; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+      .access form.card { display: flex; flex-direction: column; }
+      .access form.card button.primary { margin-top: auto; }
       .empty { padding: 40px 20px; text-align: center; color: var(--dim); }
       a { color: inherit; }
     </style>
@@ -178,7 +316,7 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
     <div class="wrap">
       <header>
         <h1>Métricas</h1>
-        <form method="POST" style="margin:0;">
+        <form method="POST" style="margin:0;" onsubmit="document.cookie='ol_metrics_jwt'+'=; Path=/metrics; Max-Age=0';">
           <button type="submit" name="logout" value="1"
             style="background:none;border:1px solid var(--line);color:var(--dim);border-radius:6px;padding:6px 12px;font-size:0.75rem;cursor:pointer;">
             Cerrar sesión
@@ -186,7 +324,7 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
         </form>
       </header>
 
-      {erased && <div class="note">{erased}</div>}
+      {notice && <div class="note">{notice}</div>}
 
       {m === null && (
         <div class="note">
@@ -300,6 +438,89 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
           </div>
         </>
       )}
+
+      <!--
+        Access management. Kept at the foot, below the leads: it is
+        administration rather than the thing the page is for, and putting it
+        first would make a dashboard look like a settings screen.
+      -->
+      <section class="access">
+        <h2>Acceso al panel</h2>
+        <p class="access-sub">
+          Solo estas cuentas pueden abrir esta página. Crear una cuenta aquí le
+          da acceso; una cuenta registrada por su cuenta no entra hasta que
+          aparezca en esta lista.
+        </p>
+
+        <div class="tablewrap" style="margin-bottom:18px;">
+          <table>
+            <thead><tr><th>Correo</th><th>Desde</th><th>Concedido por</th><th></th></tr></thead>
+            <tbody>
+              {access.map((a) => (
+                <tr>
+                  <td class="who-cell">{a.email}</td>
+                  <td class="when">{a.created_at ? fmt(a.created_at) : '—'}</td>
+                  <td>{a.created_by ?? '—'}</td>
+                  <td>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                      <form method="POST" style="margin:0;">
+                        <button class="del" name="reset" value={a.email} type="submit"
+                          title="Envía un correo para que esta persona elija su contraseña">
+                          Contraseña
+                        </button>
+                      </form>
+                      {a.fixed ? (
+                        <span class="chip">fijado</span>
+                      ) : a.email === identity.email ? (
+                        <span class="chip">tú</span>
+                      ) : (
+                        <form method="POST" style="margin:0;" onsubmit="return confirm('¿Retirar el acceso a esta cuenta?')">
+                          <button class="del" name="revoke" value={a.email} type="submit">Retirar</button>
+                        </form>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="grid">
+          <form method="POST" class="card">
+            <h2>Crear una cuenta</h2>
+            <label>Nombre<input name="new-name" type="text" placeholder="Nombre y apellido" required /></label>
+            <label>Correo<input name="new-email" type="email" placeholder="nombre@orbitaleap.com" required /></label>
+            <label>Contraseña<input name="new-password" type="text" minlength="12" placeholder="Mínimo 12 caracteres" required /></label>
+            <p class="hint">
+              La contraseña se muestra en claro a propósito: cópiala y pásasela
+              a la persona por un canal seguro. No se puede recuperar después.
+            </p>
+            <button class="primary" type="submit">Crear y dar acceso</button>
+          </form>
+
+          <form method="POST" class="card">
+            <h2>Dar acceso a una cuenta existente</h2>
+            <label>Correo<input name="grant" type="email" placeholder="nombre@orbitaleap.com" required /></label>
+            <p class="hint">
+              Para alguien que ya se registró y solo necesita permiso. Si aún no
+              tiene cuenta, usa el formulario de la izquierda.
+            </p>
+            <button class="primary" type="submit">Dar acceso</button>
+          </form>
+
+          <form method="POST" class="card">
+            <h2>Restablecer una contraseña</h2>
+            <label>Correo<input name="reset" type="email" placeholder="nombre@orbitaleap.com" required /></label>
+            <p class="hint">
+              Envía un correo con un enlace para elegir una contraseña nueva.
+              Sirve también para una cuenta creada en la consola de Neon, que
+              nace sin contraseña y no puede entrar hasta que se establezca una.
+            </p>
+            <button class="primary" type="submit">Enviar correo</button>
+          </form>
+        </div>
+      </section>
     </div>
   </body>
 </html>
