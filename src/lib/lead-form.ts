@@ -98,7 +98,10 @@ export function createLeadSubmitter(form: HTMLFormElement, options: LeadFormOpti
       // believes it succeeded, and counting those inflated the figure with
       // exactly the traffic the honeypot exists to discard. The endpoint says
       // which it was.
-      if (res.ok && data?.delivered !== false) reportConversion();
+      // Awaited, not fired and forgotten: the caller may navigate the moment
+      // this resolves, and an unsent conversion is indistinguishable from no
+      // lead at all.
+      if (res.ok && data?.delivered !== false) await reportConversion();
 
       return { ok: res.ok, status: res.status, error: res.ok ? undefined : data?.error || UNKNOWN_ERROR };
     } catch {
@@ -129,8 +132,33 @@ function resetTurnstile() {
  */
 const CONVERSION_ID = 'AW-18312929105/IONoCPbWwtgcENG-pJxE';
 
-function reportConversion() {
-  const gtag = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
-  if (typeof gtag !== 'function') return;
-  gtag('event', 'conversion', { send_to: CONVERSION_ID });
+/**
+ * Resolves once the conversion has actually left the browser — or after a
+ * short grace period, whichever comes first.
+ *
+ * gtag('event', …) issues a network request and returns immediately. On
+ * /launch the caller then navigates to the thank-you page, and the browser
+ * cancels the in-flight request on the way out: the lead arrived, the email
+ * was sent, and Google never heard about it. That is what kept the conversion
+ * action reporting no data despite real submissions.
+ *
+ * event_callback is gtag's answer — it runs once the hit is away. The timeout
+ * is the safety net Google's own documentation recommends: if the tag is
+ * blocked or slow, a visitor must not be stranded on a form that appears to
+ * have done nothing, so the redirect goes ahead regardless.
+ */
+function reportConversion(): Promise<void> {
+  return new Promise((resolve) => {
+    const gtag = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
+    if (typeof gtag !== 'function') return resolve();
+
+    let done = false;
+    const finish = () => { if (!done) { done = true; resolve(); } };
+    setTimeout(finish, 1200);
+
+    gtag('event', 'conversion', {
+      send_to: CONVERSION_ID,
+      event_callback: finish,
+    });
+  });
 }
