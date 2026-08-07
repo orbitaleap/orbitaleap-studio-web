@@ -101,7 +101,9 @@ export function createLeadSubmitter(form: HTMLFormElement, options: LeadFormOpti
       // Awaited, not fired and forgotten: the caller may navigate the moment
       // this resolves, and an unsent conversion is indistinguishable from no
       // lead at all.
-      if (res.ok && data?.delivered !== false) await reportConversion();
+      if (res.ok && data?.delivered !== false) {
+        await reportConversion(await userData(payload.email, payload.phone));
+      }
 
       return { ok: res.ok, status: res.status, error: res.ok ? undefined : data?.error || UNKNOWN_ERROR };
     } catch {
@@ -130,7 +132,10 @@ function resetTurnstile() {
  * still fires. Consent Mode governs the rest: while advertising is denied the
  * tag sends a cookieless ping rather than writing anything.
  */
-const CONVERSION_ID = 'AW-18312929105/IONoCPbWwtgcENG-pJxE';
+// The conversion action this fires. Replaced when the previous action was
+// deleted: the old label pointed at an action that no longer existed, so every
+// conversion was accepted by the browser and discarded by Google.
+const CONVERSION_ID = 'AW-18312929105/u6KHCNSl190cENG-pJxE';
 
 /**
  * Resolves once the conversion has actually left the browser — or after a
@@ -147,7 +152,75 @@ const CONVERSION_ID = 'AW-18312929105/IONoCPbWwtgcENG-pJxE';
  * blocked or slow, a visitor must not be stranded on a form that appears to
  * have done nothing, so the redirect goes ahead regardless.
  */
-function reportConversion(): Promise<void> {
+/**
+ * Enhanced conversions: the email and phone the visitor typed, hashed, sent
+ * alongside the conversion so Google can match it to the click that earned it.
+ *
+ * It recovers attribution that cookies lose — Safari's restrictions, a click on
+ * a phone and a form filled on a laptop — typically 5-15% more conversions
+ * credited to the campaign that actually produced them. At this volume, where
+ * bidding is still trying to leave learning phase, those are the conversions
+ * that matter most.
+ *
+ * ─── What leaves the browser ─────────────────────────────────────────────
+ *
+ * SHA-256 of a normalised value, and nothing else. Never the address itself.
+ * Google's own matching works on the same digest, so hashing costs nothing in
+ * accuracy and means the plaintext never crosses the wire.
+ *
+ * Normalisation is Google's, not ours, and it has to match exactly or the
+ * hash matches nothing: trim, lowercase, and for phones E.164 — digits with a
+ * leading +, no spaces or punctuation. A Spanish number typed as
+ * "623 94 75 98" becomes "+34623947598".
+ *
+ * ─── Why this is done manually ───────────────────────────────────────────
+ *
+ * The automatic mode scans the page for anything that looks like an email
+ * field and sends what it finds. That is a lot of guessing about which inputs
+ * on a page are a customer's own address, and it would apply to every page the
+ * tag loads on. Sending exactly the field the visitor filled in, at exactly
+ * the moment they submitted it, is both more accurate and easier to describe
+ * in a privacy policy.
+ *
+ * Consent still governs it: Consent Mode denies ad_user_data until the visitor
+ * accepts the banner, and Google drops the user data when it is denied.
+ */
+async function sha256(value: string): Promise<string | undefined> {
+  const v = value.trim().toLowerCase();
+  if (!v) return undefined;
+  try {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v));
+    return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  } catch {
+    // No SubtleCrypto (an insecure context, essentially never in production).
+    // The conversion still fires; it just goes without the extra matching.
+    return undefined;
+  }
+}
+
+/** E.164, which is what Google matches on: +34623947598, not "623 94 75 98". */
+function toE164(raw: string): string {
+  const digits = raw.replace(/[^\d+]/g, '');
+  if (digits.startsWith('+')) return '+' + digits.slice(1).replace(/\D/g, '');
+  const bare = digits.replace(/\D/g, '');
+  if (!bare) return '';
+  // Spanish numbers are nine digits and the forms are Spanish-facing; anything
+  // already carrying a country code is left alone above.
+  return bare.length === 9 ? '+34' + bare : '+' + bare;
+}
+
+async function userData(email: string, phone: string): Promise<Record<string, string> | undefined> {
+  const [sha256_email_address, sha256_phone_number] = await Promise.all([
+    sha256(email),
+    sha256(toE164(phone)),
+  ]);
+  const data: Record<string, string> = {};
+  if (sha256_email_address) data.sha256_email_address = sha256_email_address;
+  if (sha256_phone_number) data.sha256_phone_number = sha256_phone_number;
+  return Object.keys(data).length ? data : undefined;
+}
+
+function reportConversion(identifiers?: Record<string, string>): Promise<void> {
   return new Promise((resolve) => {
     const gtag = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
     if (typeof gtag !== 'function') return resolve();
@@ -158,6 +231,7 @@ function reportConversion(): Promise<void> {
 
     gtag('event', 'conversion', {
       send_to: CONVERSION_ID,
+      ...(identifiers ? { user_data: identifiers } : {}),
       event_callback: finish,
     });
   });
