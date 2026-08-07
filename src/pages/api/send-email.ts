@@ -400,6 +400,11 @@ export const POST: APIRoute = async (context) => {
         try {
             await recordLead(readEnv(context, 'DATABASE_URL'), {
                 form: source,
+                // Read from the body forty lines above and then, until now,
+                // dropped on the floor right here — so every lead recorded
+                // since the column shipped has a NULL site and the dashboard's
+                // site picker had nothing to offer.
+                site,
                 channel: attribution.channel,
                 detail: attribution.detail,
                 landing: attribution.landing,
