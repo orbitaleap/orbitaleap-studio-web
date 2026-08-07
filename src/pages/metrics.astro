@@ -1,263 +1,33 @@
 ---
+import MetricsShell from '../components/MetricsShell.astro';
+import { guardMetrics } from '../lib/metrics-guard';
 import { readMetrics, deleteLead } from '../lib/leads-store';
-import { workerEnv } from '../lib/worker-env';
-import { verifyToken, readToken, TOKEN_COOKIE } from '../lib/neon-auth';
-import { hasAccess, listUsers, removeUser, createUser, sendPasswordReset, signUpIsOpen } from '../lib/metrics-access';
 
-// Server-rendered, always. Everything else on this site is prerendered, and a
-// prerendered /metrics would be a static file in dist/ — served by the assets
-// layer, before any Worker code runs, to anyone who asked for it.
+// Server-rendered, always. A prerendered /metrics would be a static file in
+// dist/, served by the assets layer before any Worker code ran — to anyone who
+// asked for it.
 export const prerender = false;
 
-// NOT Astro.locals.runtime.env — that was removed in Astro v6 and throws the
-// removal notice when read, which made this page answer 500 rather than 403.
-const env = await workerEnv();
-const authUrl = env.NEON_AUTH_URL as string | undefined;
+const { identity, response, env } = await guardMetrics(Astro.request, Astro.url);
+if (!identity) return response!;
 
-// Who this is, according to a token this Worker verified itself. Fails closed:
-// no config, no token, bad signature, wrong issuer or expired all yield null.
-const verified = await verifyToken(readToken(Astro.request), authUrl);
+// Never cached: per-session, and it lists personal data, so an intermediary
+// holding a copy would be a leak.
+Astro.response.headers.set('Cache-Control', 'no-store');
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
 
-// Authenticated is not the same as authorised. The token proves the auth
-// server knows them; the allowlist decides whether we do. See isAllowed().
-// One source of truth: an account in neon_auth."user" that is not banned.
-// Created in the Neon console or from the module below — both write there.
-const allowed = verified ? await hasAccess(verified.email, env.DATABASE_URL) : false;
-const identity = allowed ? verified : null;
-const rejected = Boolean(verified) && !allowed;
-
-let notice: string | null = null;
-if (identity && Astro.request.method === 'POST') {
+let toast: string | null = null;
+if (Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
-  const by = identity.email;
-
   if (form.has('delete')) {
     const id = Number(form.get('delete'));
-    notice = (await deleteLead(env.DATABASE_URL, id)) ? `Registro ${id} eliminado.` : 'No se pudo eliminar.';
-  } else if (form.has('remove')) {
-    notice = (await removeUser(String(form.get('remove')), by, env.DATABASE_URL)).message;
-  } else if (form.has('reset')) {
-    notice = (await sendPasswordReset(String(form.get('reset')), authUrl)).message;
-  } else if (form.has('new-email')) {
-    notice = (await createUser({
-      email: String(form.get('new-email')),
-      name: String(form.get('new-name') ?? ''),
-    }, authUrl)).message;
+    toast = (await deleteLead(env.DATABASE_URL, id))
+      ? `Registro ${id} eliminado.`
+      : 'No se pudo eliminar.';
   }
 }
 
-// A reset link lands here as /metrics?token=… . Without this the token is
-// ignored, the visitor sees the ordinary sign-in form, and typing a password
-// fails — which is exactly what "the link says my credentials are wrong"
-// looks like from the outside.
-const resetToken = Astro.url.searchParams.get('token');
-
-if (!identity) {
-  // The sign-in screen. The credential exchange and the token fetch both have
-  // to happen in the browser: the auth cookie is set on the auth server's own
-  // domain and is never sent here, so this Worker can never see it.
-  const cfg = !authUrl
-    ? '<p class="err">Falta NEON_AUTH_URL.</p>'
-    : rejected
-      ? '<p class="err">Esta cuenta no tiene acceso al panel.</p>'
-      : '';
-  return new Response(
-    `<!doctype html><html lang="es"><head><meta charset="utf-8">
-     <meta name="viewport" content="width=device-width,initial-scale=1">
-     <meta name="robots" content="noindex, nofollow">
-     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-     <title>Métricas</title>
-     <style>
-       *{box-sizing:border-box}
-       body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0d0d0d;color:#fff;
-            font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
-       .card{border:1px solid rgba(255,255,255,.1);background:#141414;border-radius:12px;
-             padding:32px;width:min(380px,92vw)}
-       h1{font-size:1.15rem;margin:0 0 4px;font-weight:600}
-       p.sub{margin:0 0 22px;color:rgba(255,255,255,.45);font-size:.85rem}
-       label{display:block;font-size:.75rem;color:rgba(255,255,255,.5);margin:0 0 6px}
-       input{width:100%;padding:11px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);
-             background:rgba(255,255,255,.04);color:#fff;font-size:.95rem;margin-bottom:14px}
-       input:focus{outline:1px solid rgba(255,255,255,.45);outline-offset:1px}
-       button{width:100%;padding:11px;border:0;border-radius:8px;background:#fff;color:#000;
-              font-weight:600;font-size:.9rem;cursor:pointer}
-       button.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.18);margin-top:10px}
-       button[disabled]{opacity:.55;cursor:default}
-       button.linky{width:100%;background:none;border:0;color:rgba(255,255,255,.45);
-                    font-size:.78rem;font-weight:400;margin-top:12px;padding:4px;
-                    text-decoration:underline;text-underline-offset:3px;cursor:pointer}
-       button.linky:hover{color:rgba(255,255,255,.8)}
-       .err{color:#ff8080;font-size:.82rem;margin:0 0 14px}
-       #msg{margin-top:14px;font-size:.8rem;color:rgba(255,255,255,.45);min-height:1.1em;text-align:center}
-       .sep{display:flex;align-items:center;gap:10px;margin:18px 0 4px;color:rgba(255,255,255,.28);font-size:.7rem}
-       .sep::before,.sep::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.12)}
-     </style></head><body>
-     <div class="card">
-       <h1>Métricas</h1>
-       <p class="sub">Panel interno de Orbital Leap Studio.</p>
-       ${cfg}
-       <form id="f" autocomplete="on" style="${resetToken ? 'display:none' : ''}">
-         <label for="email">Correo</label>
-         <input id="email" type="email" name="email" required autocomplete="username" autofocus>
-         <label for="password">Contraseña</label>
-         <input id="password" type="password" name="password" required autocomplete="current-password">
-         <button id="in" type="submit">Entrar</button>
-         <button id="forgot" type="button" class="linky">He olvidado mi contraseña</button>
-       </form>
-
-       <form id="rf" autocomplete="on" style="${resetToken ? '' : 'display:none'}">
-         <p class="sub" style="margin-bottom:16px">Elige una contraseña nueva.</p>
-         <label for="np">Contraseña nueva</label>
-         <input id="np" type="password" minlength="12" required autocomplete="new-password" autofocus>
-         <label for="np2">Repítela</label>
-         <input id="np2" type="password" minlength="12" required autocomplete="new-password">
-         <button id="rb" type="submit">Guardar contraseña</button>
-       </form>
-       <div id="msg"></div>
-     </div>
-     <script>
-      const AUTH = ${JSON.stringify(authUrl ?? '')};
-      const HERE = location.origin + '/metrics';
-      const REJECTED = ${rejected ? 'true' : 'false'};
-      const RESET_TOKEN = ${JSON.stringify(resetToken ?? '')};
-      const msg = document.getElementById('msg');
-      const say = (t) => { msg.textContent = t; };
-
-      // Exchange the auth-server session (a cookie on ITS domain) for a JWT we
-      // can park on ours, where the Worker is able to read and verify it.
-      async function grabToken() {
-        const r = await fetch(AUTH + '/token', { credentials: 'include' });
-        if (!r.ok) return false;
-        const d = await r.json().catch(() => ({}));
-        const t = d.token || d.jwt || (d.data && d.data.token);
-        if (!t) return false;
-        document.cookie = ${JSON.stringify(TOKEN_COOKIE)} + '=' + t +
-          '; Path=/metrics; Max-Age=3600; Secure; SameSite=Strict';
-        return true;
-      }
-
-      // Returning from Google, or arriving with a session already live.
-      // Picks up a session that already exists. Skipped when the server has
-      // just told us this account is not allowed, or we would reload forever.
-      (async () => {
-        if (!AUTH || REJECTED || RESET_TOKEN) return;
-        try { if (await grabToken()) { location.reload(); return; } } catch {}
-      })();
-
-      // Self-service reset, so somebody who exists can get back in without
-      // anybody already being inside. The auth server answers identically
-      // whether or not the address has an account, so this cannot be used to
-      // discover who does — the message below matches that rather than
-      // pretending to know more than it does.
-      document.getElementById('forgot').addEventListener('click', async () => {
-        const email = document.getElementById('email').value.trim();
-        if (!email) { say('Escribe tu correo primero.'); document.getElementById('email').focus(); return; }
-        const btn = document.getElementById('forgot');
-        btn.disabled = true; say('Enviando…');
-        try {
-          const r = await fetch(AUTH + '/request-password-reset', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, redirectTo: location.origin + '/metrics' }),
-          });
-          // Distinguishing a server failure from "no such account" is safe:
-          // the auth server already answers 200 with the same body either way,
-          // so a non-200 means something broke, not that the address is
-          // unknown. Reporting success on an error would leave someone waiting
-          // for a mail that was never sent.
-          if (r.ok) {
-            say('Si esa cuenta existe, te hemos enviado un correo.');
-          } else {
-            say('No se pudo enviar el correo. Inténtalo de nuevo.');
-            btn.disabled = false;
-          }
-        } catch {
-          say('No se pudo contactar con el servidor de acceso.');
-          btn.disabled = false;
-        }
-      });
-
-      document.getElementById('rf').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const a = document.getElementById('np').value;
-        const b = document.getElementById('np2').value;
-        if (a !== b) { say('Las dos contraseñas no coinciden.'); return; }
-        const btn = document.getElementById('rb');
-        btn.disabled = true; say('Guardando…');
-        try {
-          const r = await fetch(AUTH + '/reset-password', {
-            method: 'POST', credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ newPassword: a, token: RESET_TOKEN }),
-          });
-          if (!r.ok) {
-            const d = await r.json().catch(() => ({}));
-            say(d.message || 'El enlace ya no es válido. Pide otro.');
-            btn.disabled = false; return;
-          }
-          // No auto sign-in: the reset form never asks for the address, so
-          // there is no email to sign in with. Back to a clean /metrics —
-          // without dropping the token, a reload would re-enter reset mode.
-          say('Contraseña guardada. Entra con tu correo.');
-          setTimeout(() => { location.href = '/metrics'; }, 900);
-        } catch {
-          say('No se pudo contactar con el servidor de acceso.');
-          btn.disabled = false;
-        }
-      });
-
-      document.getElementById('f').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('in');
-        btn.disabled = true; say('Entrando…');
-        try {
-          const r = await fetch(AUTH + '/sign-in/email', {
-            method: 'POST', credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: document.getElementById('email').value,
-              password: document.getElementById('password').value,
-            }),
-          });
-          if (!r.ok) {
-            const d = await r.json().catch(() => ({}));
-            say(d.code === 'INVALID_EMAIL_OR_PASSWORD'
-              ? 'Correo o contraseña incorrectos.'
-              : (d.message || 'No se pudo iniciar sesión.'));
-            btn.disabled = false; return;
-          }
-          if (await grabToken()) { location.reload(); return; }
-          say('Sesión iniciada, pero no se pudo obtener el token.');
-        } catch (err) {
-          say('No se pudo conectar con el servidor de acceso.');
-        }
-        btn.disabled = false;
-      });
-
-     </script></body></html>`,
-    {
-      status: 401,
-      headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-        'X-Robots-Tag': 'noindex, nofollow',
-        'Cache-Control': 'no-store',
-      },
-    },
-  );
-}
-
-// Authenticated from here down. Never cached: it is per-session and it lists
-// personal data, so an intermediary holding a copy would be a leak.
-Astro.response.headers.set('Cache-Control', 'no-store');
-Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
-// No Set-Cookie here any more. The password gate issued its own session from
-// the server; the token cookie is written by client script after it fetches
-// /token, because the auth cookie it exchanges lives on another domain and
-// only the browser can reach it.
-
 const m = await readMetrics(env.DATABASE_URL);
-const users = await listUsers(env.DATABASE_URL);
-const signupOpen = await signUpIsOpen(env.DATABASE_URL);
 
 const fmt = (iso: string) =>
   new Intl.DateTimeFormat('es-ES', {
@@ -269,276 +39,162 @@ const peak = m ? Math.max(1, ...m.daily.map((d) => d.n)) : 1;
 const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
 ---
 
-<!doctype html>
-<html lang="es">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="robots" content="noindex, nofollow" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>Métricas · Orbital Leap Studio</title>
-    <style>
-      :root {
-        --bg: #0d0d0d; --panel: #141414; --line: rgba(255,255,255,0.10);
-        --ink: #ffffff; --mid: rgba(255,255,255,0.62); --dim: rgba(255,255,255,0.42);
-        --bar: rgba(255,255,255,0.85);
-      }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0; background: var(--bg); color: var(--ink);
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-        font-size: 15px; line-height: 1.5;
-      }
-      .wrap { max-width: 1180px; margin: 0 auto; padding: clamp(28px, 5vw, 56px) clamp(16px, 4vw, 40px) 80px; }
-      header { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; justify-content: space-between; margin-bottom: 36px; }
-      h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); font-weight: 700; letter-spacing: -0.02em; margin: 0; }
-      .who { font-size: 0.78rem; color: var(--dim); font-variant-numeric: tabular-nums; }
-      .note { border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 16px 18px; margin-bottom: 28px; color: var(--mid); font-size: 0.9rem; }
-      .note strong { color: var(--ink); }
-      .note code { background: rgba(255,255,255,0.07); padding: 2px 6px; border-radius: 4px; font-size: 0.85em; }
+<MetricsShell title="Panel" email={identity.email} active="dashboard" toast={toast}>
+  <h1>Panel</h1>
+  <p class="lede">
+    Cada lead que entra por los formularios, con el canal por el que llegó.
+  </p>
 
-      .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 32px; }
-      .kpi { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; padding: 18px 20px; }
-      .kpi b { display: block; font-size: clamp(1.8rem, 5vw, 2.6rem); font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.05; }
-      .kpi span { font-size: 0.72rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--dim); }
+  {m === null && (
+    <div class="note">
+      <strong>Sin conexión a la base de datos.</strong> Falta el secreto
+      <code>DATABASE_URL</code> en el Worker. Los leads siguen llegando por
+      correo con normalidad; solo no quedan registrados aquí.
+    </div>
+  )}
 
-      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-bottom: 32px; }
-      .card { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; padding: 20px; }
-      .card h2 { font-size: 0.72rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--dim); margin: 0 0 16px; font-weight: 500; }
-
-      .rows { display: flex; flex-direction: column; gap: 10px; }
-      .row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; font-size: 0.9rem; }
-      .row .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--mid); }
-      .row .n { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 600; }
-      .meter { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.08); overflow: hidden; }
-      .meter i { display: block; height: 100%; background: var(--bar); }
-
-      .spark { display: flex; align-items: flex-end; gap: 3px; height: 110px; }
-      .spark div { flex: 1 1 0; background: var(--bar); border-radius: 2px 2px 0 0; min-height: 2px; opacity: 0.9; }
-      .spark-x { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--dim); margin-top: 8px; font-variant-numeric: tabular-nums; }
-
-      .tablewrap { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; overflow-x: auto; }
-      table { border-collapse: collapse; width: 100%; min-width: 900px; font-size: 0.86rem; }
-      th { text-align: left; font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); font-weight: 500; padding: 14px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-      td { padding: 13px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); vertical-align: top; color: var(--mid); }
-      tr:last-child td { border-bottom: 0; }
-      td.who-cell { color: var(--ink); font-weight: 500; white-space: nowrap; }
-      td.when { white-space: nowrap; font-variant-numeric: tabular-nums; }
-      .chip { display: inline-block; padding: 3px 9px; border: 1px solid var(--line); border-radius: 999px; font-size: 0.72rem; color: var(--ink); white-space: nowrap; }
-      .msg { max-width: 340px; white-space: pre-wrap; font-size: 0.8rem; color: var(--dim); max-height: 5.4em; overflow: hidden; }
-      .del { background: none; border: 1px solid var(--line); color: var(--dim); border-radius: 6px; padding: 5px 9px; font-size: 0.72rem; cursor: pointer; }
-      .del:hover { border-color: rgba(255,120,120,0.6); color: #ff8080; }
-      .access { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
-      .access h2 { font-size: 0.72rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--dim); margin: 0 0 8px; font-weight: 500; }
-      .access-sub { margin: 0 0 20px; color: var(--mid); font-size: 0.85rem; max-width: 62ch; }
-      .access label { display: block; font-size: 0.75rem; color: var(--dim); margin-bottom: 12px; }
-      .access input { display: block; width: 100%; margin-top: 5px; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,0.04); color: var(--ink); font-size: 0.9rem; }
-      .access input:focus { outline: 1px solid rgba(255,255,255,0.45); outline-offset: 1px; }
-      .access .hint { font-size: 0.75rem; color: var(--dim); margin: 0 0 14px; line-height: 1.5; }
-      .access button.primary { width: 100%; padding: 10px; border: 0; border-radius: 8px; background: #fff; color: #000; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
-      .access form.card { display: flex; flex-direction: column; }
-      .access form.card button.primary { margin-top: auto; }
-      .note.warn { border-color: rgba(255,180,80,0.4); }
-      .empty { padding: 40px 20px; text-align: center; color: var(--dim); }
-      a { color: inherit; }
-    </style>
-  </head>
-  <body>
-    <div class="wrap">
-      <header>
-        <h1>Métricas</h1>
-        <form method="POST" style="margin:0;" onsubmit="document.cookie='ol_metrics_jwt'+'=; Path=/metrics; Max-Age=0';">
-          <button type="submit" name="logout" value="1"
-            style="background:none;border:1px solid var(--line);color:var(--dim);border-radius:6px;padding:6px 12px;font-size:0.75rem;cursor:pointer;">
-            Cerrar sesión
-          </button>
-        </form>
-      </header>
-
-      {notice && <div class="note">{notice}</div>}
-
-      {m === null && (
-        <div class="note">
-          <strong>Todavía no hay conexión a la base de datos.</strong> Falta el secreto
-          <code>DATABASE_URL</code>. Añádelo en Cloudflare, en
-          <em>Workers &amp; Pages → orbitaleap-studio-web → Settings → Variables and Secrets</em>,
-          como secreto (no como variable: lleva la contraseña), y aplica
-          <code>migrations/0001_create_leads.sql</code> sobre la base de Neon.
-          Mientras tanto los leads siguen llegando por correo con normalidad; solo
-          no quedan registrados aquí.
+  {m && (
+    <>
+      <div class="kpis">
+        <div class="kpi"><b>{m.total}</b><span>Total</span></div>
+        <div class="kpi"><b>{m.last30}</b><span>Últimos 30 días</span></div>
+        <div class="kpi"><b>{m.last7}</b><span>Últimos 7 días</span></div>
+        <div class="kpi">
+          <b>{pct(m.byChannel.find((c) => c.label === 'Google Ads')?.n ?? 0, m.total)}%</b>
+          <span>Desde Google Ads</span>
         </div>
-      )}
+      </div>
 
-      {m && (
-        <>
-          <div class="kpis">
-            <div class="kpi"><b>{m.total}</b><span>Total</span></div>
-            <div class="kpi"><b>{m.last30}</b><span>Últimos 30 días</span></div>
-            <div class="kpi"><b>{m.last7}</b><span>Últimos 7 días</span></div>
-            <div class="kpi">
-              <b>{pct(m.byChannel.find((c) => c.label === 'Google Ads')?.n ?? 0, m.total)}%</b>
-              <span>Desde Google Ads</span>
+      <div class="card" style="margin-bottom:12px;">
+        <h2>Leads por día · últimos 30</h2>
+        {m.daily.length === 0 ? (
+          <p class="empty">Sin datos todavía.</p>
+        ) : (
+          <>
+            <div class="spark">
+              {m.daily.map((d) => (
+                <div style={`height:${Math.round((d.n / peak) * 100)}%`} title={`${d.day}: ${d.n}`}></div>
+              ))}
             </div>
-          </div>
-
-          <div class="card" style="margin-bottom:12px;">
-            <h2>Leads por día · últimos 30</h2>
-            {m.daily.length === 0 ? (
-              <p class="empty">Sin datos todavía.</p>
-            ) : (
-              <>
-                <div class="spark">
-                  {m.daily.map((d) => (
-                    <div style={`height:${Math.round((d.n / peak) * 100)}%`} title={`${d.day}: ${d.n}`}></div>
-                  ))}
-                </div>
-                <div class="spark-x">
-                  <span>{m.daily[0]?.day}</span>
-                  <span>{m.daily[m.daily.length - 1]?.day}</span>
-                </div>
-              </>
-            )}
-          </div>
-
-          <div class="grid">
-            {[
-              { title: 'Canal', data: m.byChannel },
-              { title: 'Formulario', data: m.byForm },
-              { title: 'Página de entrada', data: m.byLanding },
-            ].map((block) => (
-              <div class="card">
-                <h2>{block.title}</h2>
-                {block.data.length === 0 ? (
-                  <p class="empty">Sin datos.</p>
-                ) : (
-                  <div class="rows">
-                    {block.data.map((r) => (
-                      <div class="row">
-                        <span class="lbl">{r.label}</span>
-                        <span class="n">{r.n}</span>
-                        <span class="meter"><i style={`width:${pct(r.n, m.total)}%`}></i></span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <div class="tablewrap">
-            {m.recent.length === 0 ? (
-              <p class="empty">Todavía no ha entrado ningún lead.</p>
-            ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Cuándo</th><th>Quién</th><th>Contacto</th><th>Canal</th>
-                    <th>Formulario</th><th>Entró por</th><th>Mensaje</th><th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {m.recent.map((l) => (
-                    <tr>
-                      <td class="when">{fmt(l.created_at)}</td>
-                      <td class="who-cell">
-                        {l.name}
-                        {l.company && <div style="color:var(--dim);font-weight:400;">{l.company}</div>}
-                        {l.city && <div style="color:var(--dim);font-weight:400;font-size:0.9em;">{[l.city, l.country].filter(Boolean).join(', ')}</div>}
-                      </td>
-                      <td>
-                        <a href={`mailto:${l.email}`}>{l.email}</a>
-                        {l.phone && <div><a href={`tel:${l.phone}`}>{l.phone}</a></div>}
-                      </td>
-                      <td>
-                        <span class="chip">{l.channel ?? 'Sin registrar'}</span>
-                        {l.detail && <div style="font-size:0.75rem;margin-top:5px;">{l.detail}</div>}
-                      </td>
-                      <td>{l.form}</td>
-                      <td>{l.landing ?? '—'}</td>
-                      <td><div class="msg">{l.message ?? ''}</div></td>
-                      <td>
-                        <form method="POST" onsubmit="return confirm('¿Eliminar este registro? No se puede deshacer.')">
-                          <button class="del" name="delete" value={l.id} type="submit">Eliminar</button>
-                        </form>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </>
-      )}
-
-      <!--
-        Access management. Kept at the foot, below the leads: it is
-        administration rather than the thing the page is for, and putting it
-        first would make a dashboard look like a settings screen.
-      -->
-      <!--
-        User management. Everyone listed here can open this page; there is no
-        separate allowlist, because a second list is a second thing to forget.
-      -->
-      <section class="access">
-        <h2>Usuarios</h2>
-        <p class="access-sub">
-          Cualquiera con cuenta puede abrir esta página. Créalas aquí o en la
-          consola de Neon Auth — es la misma lista. Una cuenta creada en la
-          consola nace sin contraseña: usa «Contraseña» para enviarle un correo
-          y que elija la suya.
-        </p>
-
-        {signupOpen && (
-          <div class="note warn">
-            <strong>El registro público está abierto.</strong> Cualquiera puede
-            crearse una cuenta y, con ella, entrar aquí. Desactiva
-            <code>disableSignUp</code> en la consola de Neon Auth.
-          </div>
+            <div class="spark-x">
+              <span>{m.daily[0]?.day}</span>
+              <span>{m.daily[m.daily.length - 1]?.day}</span>
+            </div>
+          </>
         )}
+      </div>
 
-        <div class="tablewrap" style="margin-bottom:18px;">
-          <table>
-            <thead><tr><th>Nombre</th><th>Correo</th><th>Desde</th><th></th></tr></thead>
+      <div class="grid">
+        {[
+          { title: 'Canal', data: m.byChannel },
+          { title: 'Formulario', data: m.byForm },
+          { title: 'Página de entrada', data: m.byLanding },
+        ].map((block) => (
+          <div class="card">
+            <h2>{block.title}</h2>
+            {block.data.length === 0 ? (
+              <p class="empty">Sin datos.</p>
+            ) : (
+              <div class="rows">
+                {block.data.map((r) => (
+                  <div class="row">
+                    <span class="lbl">{r.label}</span>
+                    <span class="n">{r.n}</span>
+                    <span class="meter"><i style={`width:${pct(r.n, m.total)}%`}></i></span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div class="tablewrap">
+        {m.recent.length === 0 ? (
+          <p class="empty">Todavía no ha entrado ningún lead.</p>
+        ) : (
+          <table style="min-width:900px">
+            <thead>
+              <tr>
+                <th>Cuándo</th><th>Quién</th><th>Contacto</th><th>Canal</th>
+                <th>Formulario</th><th>Entró por</th><th>Mensaje</th><th></th>
+              </tr>
+            </thead>
             <tbody>
-              {users.length === 0 ? (
-                <tr><td colspan="4" class="empty">No hay cuentas todavía.</td></tr>
-              ) : users.map((u) => (
+              {m.recent.map((l) => (
                 <tr>
-                  <td class="who-cell">{u.name ?? '—'}{u.banned && <span class="chip" style="margin-left:8px">bloqueada</span>}</td>
-                  <td>{u.email}</td>
-                  <td class="when">{u.createdAt ? fmt(u.createdAt) : '—'}</td>
+                  <td class="when">{fmt(l.created_at)}</td>
+                  <td class="who-cell">
+                    {l.name}
+                    {l.company && <div style="color:var(--dim);font-weight:400;">{l.company}</div>}
+                    {l.city && <div style="color:var(--dim);font-weight:400;font-size:0.9em;">{[l.city, l.country].filter(Boolean).join(', ')}</div>}
+                  </td>
                   <td>
-                    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-                      <form method="POST" style="margin:0;">
-                        <button class="del" name="reset" value={u.email} type="submit"
-                          title="Le envía un correo para elegir contraseña">Contraseña</button>
-                      </form>
-                      {u.email.toLowerCase() === identity.email.toLowerCase() ? (
-                        <span class="chip">tú</span>
-                      ) : (
-                        <form method="POST" style="margin:0;" onsubmit="return confirm('¿Eliminar esta cuenta? Perderá el acceso.')">
-                          <button class="del" name="remove" value={u.email} type="submit">Eliminar</button>
-                        </form>
-                      )}
-                    </div>
+                    <a href={`mailto:${l.email}`}>{l.email}</a>
+                    {l.phone && <div><a href={`tel:${l.phone}`}>{l.phone}</a></div>}
+                  </td>
+                  <td>
+                    <span class="chip">{l.channel ?? 'Sin registrar'}</span>
+                    {l.detail && <div style="font-size:0.75rem;margin-top:5px;">{l.detail}</div>}
+                  </td>
+                  <td>{l.form}</td>
+                  <td>{l.landing ?? '—'}</td>
+                  <td><div class="msg">{l.message ?? ''}</div></td>
+                  <td>
+                    <button class="btn danger js-del" type="button" data-id={String(l.id)} data-name={l.name}>
+                      Eliminar
+                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        )}
+      </div>
 
-        <form method="POST" class="card" style="max-width:520px;">
-          <h2>Crear una cuenta</h2>
-          <label>Nombre<input name="new-name" type="text" placeholder="Nombre y apellido" required /></label>
-          <label>Correo<input name="new-email" type="email" placeholder="nombre@orbitaleap.com" required /></label>
-          <p class="hint">
-            Se crea la cuenta y se le envía un correo para que elija su
-            contraseña. Nadie más llega a verla.
-          </p>
-          <button class="primary" type="submit">Crear y enviar invitación</button>
+      <dialog id="dlg-del">
+        <h2>Eliminar registro</h2>
+        <p class="sub">
+          Se borrará el lead de <strong id="del-name"></strong>. Úsalo para
+          atender una solicitud de supresión; no se puede deshacer.
+        </p>
+        <form method="POST">
+          <input type="hidden" name="delete" id="del-id" />
+          <div class="dialog-actions">
+            <button class="btn" type="button" data-close>Cancelar</button>
+            <button class="btn danger" type="submit">Eliminar</button>
+          </div>
         </form>
-      </section>
-    </div>
-  </body>
-</html>
+      </dialog>
+    </>
+  )}
+
+  <style>
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 32px; }
+    .kpi { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; padding: 18px 20px; }
+    .kpi b { display: block; font-size: clamp(1.8rem, 5vw, 2.6rem); font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.05; }
+    .kpi span { font-size: 0.72rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--dim); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-bottom: 32px; }
+    .rows { display: flex; flex-direction: column; gap: 10px; }
+    .row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; font-size: 0.9rem; }
+    .row .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--mid); }
+    .row .n { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 600; }
+    .meter { grid-column: 1 / -1; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.08); overflow: hidden; }
+    .meter i { display: block; height: 100%; background: var(--bar); }
+    .spark { display: flex; align-items: flex-end; gap: 3px; height: 110px; }
+    .spark div { flex: 1 1 0; background: var(--bar); border-radius: 2px 2px 0 0; min-height: 2px; opacity: 0.9; }
+    .spark-x { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--dim); margin-top: 8px; font-variant-numeric: tabular-nums; }
+    .msg { max-width: 320px; white-space: pre-wrap; font-size: 0.8rem; color: var(--dim); max-height: 5.4em; overflow: hidden; }
+  </style>
+
+  <script>
+    document.querySelectorAll<HTMLElement>('.js-del').forEach((b) =>
+      b.addEventListener('click', () => {
+        (document.getElementById('del-name') as HTMLElement).textContent = b.dataset.name ?? '';
+        (document.getElementById('del-id') as HTMLInputElement).value = b.dataset.id ?? '';
+        (document.getElementById('dlg-del') as HTMLDialogElement).showModal();
+      }));
+    document.querySelectorAll<HTMLElement>('[data-close]').forEach((b) =>
+      b.addEventListener('click', () => b.closest('dialog')?.close()));
+  </script>
+</MetricsShell>
