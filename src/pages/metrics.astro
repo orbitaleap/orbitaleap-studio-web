@@ -1,7 +1,7 @@
 ---
 import MetricsShell from '../components/MetricsShell.astro';
 import { guardMetrics } from '../lib/metrics-guard';
-import { readMetrics, deleteLead } from '../lib/leads-store';
+import { readMetrics } from '../lib/leads-store';
 
 // Server-rendered, always. A prerendered /metrics would be a static file in
 // dist/, served by the assets layer before any Worker code ran — to anyone who
@@ -16,16 +16,14 @@ if (!identity) return response!;
 Astro.response.headers.set('Cache-Control', 'no-store');
 Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
 
-let toast: string | null = null;
-if (Astro.request.method === 'POST') {
-  const form = await Astro.request.formData();
-  if (form.has('delete')) {
-    const id = Number(form.get('delete'));
-    toast = (await deleteLead(env.DATABASE_URL, id))
-      ? `Registro ${id} eliminado.`
-      : 'No se pudo eliminar.';
-  }
-}
+// No POST handler any more. This page only reads.
+//
+// It used to offer a per-row delete, for an erasure request. That put an
+// irreversible action one misclick away from a real customer's details, on a
+// list you scroll past every day, to serve something that happens rarely and
+// has to be done carefully when it does. An erasure request is answered in the
+// database, deliberately, by someone who meant to.
+const toast: string | null = null;
 
 const m = await readMetrics(env.DATABASE_URL);
 
@@ -117,7 +115,7 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
             <thead>
               <tr>
                 <th>Cuándo</th><th>Quién</th><th>Contacto</th><th>Canal</th>
-                <th>Formulario</th><th>Entró por</th><th>Mensaje</th><th></th>
+                <th>Formulario</th><th>Entró por</th><th>Mensaje</th>
               </tr>
             </thead>
             <tbody>
@@ -140,32 +138,12 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
                   <td>{l.form}</td>
                   <td>{l.landing ?? '—'}</td>
                   <td><div class="msg">{l.message ?? ''}</div></td>
-                  <td>
-                    <button class="btn danger js-del" type="button" data-id={String(l.id)} data-name={l.name}>
-                      Eliminar
-                    </button>
-                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
       </div>
-
-      <dialog id="dlg-del">
-        <h2>Eliminar registro</h2>
-        <p class="sub">
-          Se borrará el lead de <strong id="del-name"></strong>. Úsalo para
-          atender una solicitud de supresión; no se puede deshacer.
-        </p>
-        <form method="POST">
-          <input type="hidden" name="delete" id="del-id" />
-          <div class="dialog-actions">
-            <button class="btn" type="button" data-close>Cancelar</button>
-            <button class="btn danger" type="submit">Eliminar</button>
-          </div>
-        </form>
-      </dialog>
     </>
   )}
 
@@ -188,12 +166,6 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
   </style>
 
   <script>
-    document.querySelectorAll<HTMLElement>('.js-del').forEach((b) =>
-      b.addEventListener('click', () => {
-        (document.getElementById('del-name') as HTMLElement).textContent = b.dataset.name ?? '';
-        (document.getElementById('del-id') as HTMLInputElement).value = b.dataset.id ?? '';
-        (document.getElementById('dlg-del') as HTMLDialogElement).showModal();
-      }));
     document.querySelectorAll<HTMLElement>('[data-close]').forEach((b) =>
       b.addEventListener('click', () => b.closest('dialog')?.close()));
   </script>
