@@ -2,7 +2,7 @@
 import { readMetrics, deleteLead } from '../lib/leads-store';
 import { workerEnv } from '../lib/worker-env';
 import { verifyToken, readToken, TOKEN_COOKIE } from '../lib/neon-auth';
-import { hasAccess, listAccess, grantAccess, revokeAccess, createUser } from '../lib/metrics-access';
+import { hasAccess, listAccess, grantAccess, revokeAccess, createUser, sendPasswordReset } from '../lib/metrics-access';
 
 // Server-rendered, always. Everything else on this site is prerendered, and a
 // prerendered /metrics would be a static file in dist/ — served by the assets
@@ -38,6 +38,13 @@ if (identity && Astro.request.method === 'POST') {
     notice = (await grantAccess(String(form.get('grant')), by, env.DATABASE_URL)).message;
   } else if (form.has('revoke')) {
     notice = (await revokeAccess(String(form.get('revoke')), by, env.METRICS_ALLOWED_EMAILS, env.DATABASE_URL)).message;
+  } else if (form.has('reset')) {
+    notice = (await sendPasswordReset(
+      // Always the production URL. The auth server validates redirectTo
+      // against its trusted origins and rejects http://127.0.0.1 outright, so
+      // sending the current origin breaks every reset attempted locally.
+      String(form.get('reset')), authUrl, 'https://studio.orbitaleap.com/metrics',
+    )).message;
   } else if (form.has('new-email')) {
     notice = (await createUser({
       email: String(form.get('new-email')),
@@ -60,7 +67,9 @@ if (!identity) {
   return new Response(
     `<!doctype html><html lang="es"><head><meta charset="utf-8">
      <meta name="viewport" content="width=device-width,initial-scale=1">
-     <meta name="robots" content="noindex, nofollow"><title>Métricas</title>
+     <meta name="robots" content="noindex, nofollow">
+     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+     <title>Métricas</title>
      <style>
        *{box-sizing:border-box}
        body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0d0d0d;color:#fff;
@@ -191,6 +200,7 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Métricas · Orbital Leap Studio</title>
     <style>
       :root {
@@ -407,15 +417,23 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
                   <td class="when">{a.created_at ? fmt(a.created_at) : '—'}</td>
                   <td>{a.created_by ?? '—'}</td>
                   <td>
-                    {a.fixed ? (
-                      <span class="chip">fijado</span>
-                    ) : a.email === identity.email ? (
-                      <span class="chip">tú</span>
-                    ) : (
-                      <form method="POST" onsubmit="return confirm('¿Retirar el acceso a esta cuenta?')">
-                        <button class="del" name="revoke" value={a.email} type="submit">Retirar</button>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                      <form method="POST" style="margin:0;">
+                        <button class="del" name="reset" value={a.email} type="submit"
+                          title="Envía un correo para que esta persona elija su contraseña">
+                          Contraseña
+                        </button>
                       </form>
-                    )}
+                      {a.fixed ? (
+                        <span class="chip">fijado</span>
+                      ) : a.email === identity.email ? (
+                        <span class="chip">tú</span>
+                      ) : (
+                        <form method="POST" style="margin:0;" onsubmit="return confirm('¿Retirar el acceso a esta cuenta?')">
+                          <button class="del" name="revoke" value={a.email} type="submit">Retirar</button>
+                        </form>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -444,6 +462,17 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
               tiene cuenta, usa el formulario de la izquierda.
             </p>
             <button class="primary" type="submit">Dar acceso</button>
+          </form>
+
+          <form method="POST" class="card">
+            <h2>Restablecer una contraseña</h2>
+            <label>Correo<input name="reset" type="email" placeholder="nombre@orbitaleap.com" required /></label>
+            <p class="hint">
+              Envía un correo con un enlace para elegir una contraseña nueva.
+              Sirve también para una cuenta creada en la consola de Neon, que
+              nace sin contraseña y no puede entrar hasta que se establezca una.
+            </p>
+            <button class="primary" type="submit">Enviar correo</button>
           </form>
         </div>
       </section>

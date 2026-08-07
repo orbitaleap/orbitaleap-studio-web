@@ -137,6 +137,43 @@ export async function revokeAccess(
 }
 
 /**
+ * Sends a password-reset email.
+ *
+ * This is how a password gets set, including the first one: an account created
+ * in the Neon console has a name and an email but no credential, so there is
+ * nothing to sign in with until someone sets one. Rather than inventing a way
+ * to write the hash — Better Auth owns that format, and reimplementing it
+ * would break silently on their next change — this uses their own flow. The
+ * person clicks the link in the mail and chooses their own password, which is
+ * also the only version where the granter never sees it.
+ *
+ * The endpoint answers identically whether or not the address exists, so this
+ * cannot be used to find out who has an account. That is their design and it
+ * is the right one; the message below matches it rather than pretending to
+ * know more.
+ */
+export async function sendPasswordReset(
+  email: string,
+  authUrl: string | undefined,
+  redirectTo: string,
+): Promise<{ ok: boolean; message: string }> {
+  if (!authUrl) return { ok: false, message: 'Falta NEON_AUTH_URL.' };
+  const who = norm(email);
+  try {
+    const res = await fetch(`${authUrl.replace(/\/$/, '')}/request-password-reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Origin: 'https://studio.orbitaleap.com' },
+      body: JSON.stringify({ email: who, redirectTo }),
+    });
+    return res.ok
+      ? { ok: true, message: `Correo enviado a ${who} para establecer su contraseña.` }
+      : { ok: false, message: 'No se pudo enviar el correo.' };
+  } catch {
+    return { ok: false, message: 'No se pudo contactar con el servidor de acceso.' };
+  }
+}
+
+/**
  * Creates the sign-in credential, then grants access.
  *
  * The account is created through the auth server rather than by writing to
