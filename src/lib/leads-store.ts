@@ -158,14 +158,8 @@ export async function readMetrics(connectionString: string | undefined): Promise
   }
 }
 
-/** For an erasure request. Returns whether a row actually went. */
-export async function deleteLead(connectionString: string | undefined, id: number): Promise<boolean> {
-  const sql = client(connectionString);
-  if (!sql || !Number.isInteger(id)) return false;
-  try {
-    const res = await sql`DELETE FROM leads WHERE id = ${id} RETURNING id`;
-    return Array.isArray(res) && res.length > 0;
-  } catch {
-    return false;
-  }
-}
+// No delete here.
+//
+// The dashboard no longer offers one, and an exported helper that deletes
+// customer records — with no caller — is an invitation. An erasure request is
+// answered in the database, by someone who opened it meaning to.
