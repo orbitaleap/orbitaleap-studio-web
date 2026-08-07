@@ -83,6 +83,10 @@ if (!identity) {
               font-weight:600;font-size:.9rem;cursor:pointer}
        button.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.18);margin-top:10px}
        button[disabled]{opacity:.55;cursor:default}
+       button.linky{width:100%;background:none;border:0;color:rgba(255,255,255,.45);
+                    font-size:.78rem;font-weight:400;margin-top:12px;padding:4px;
+                    text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+       button.linky:hover{color:rgba(255,255,255,.8)}
        .err{color:#ff8080;font-size:.82rem;margin:0 0 14px}
        #msg{margin-top:14px;font-size:.8rem;color:rgba(255,255,255,.45);min-height:1.1em;text-align:center}
        .sep{display:flex;align-items:center;gap:10px;margin:18px 0 4px;color:rgba(255,255,255,.28);font-size:.7rem}
@@ -98,6 +102,7 @@ if (!identity) {
          <label for="password">Contraseña</label>
          <input id="password" type="password" name="password" required autocomplete="current-password">
          <button id="in" type="submit">Entrar</button>
+         <button id="forgot" type="button" class="linky">He olvidado mi contraseña</button>
        </form>
 
        <form id="rf" autocomplete="on" style="${resetToken ? '' : 'display:none'}">
@@ -138,6 +143,39 @@ if (!identity) {
         if (!AUTH || REJECTED || RESET_TOKEN) return;
         try { if (await grabToken()) { location.reload(); return; } } catch {}
       })();
+
+      // Self-service reset, so somebody who exists can get back in without
+      // anybody already being inside. The auth server answers identically
+      // whether or not the address has an account, so this cannot be used to
+      // discover who does — the message below matches that rather than
+      // pretending to know more than it does.
+      document.getElementById('forgot').addEventListener('click', async () => {
+        const email = document.getElementById('email').value.trim();
+        if (!email) { say('Escribe tu correo primero.'); document.getElementById('email').focus(); return; }
+        const btn = document.getElementById('forgot');
+        btn.disabled = true; say('Enviando…');
+        try {
+          const r = await fetch(AUTH + '/request-password-reset', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, redirectTo: location.origin + '/metrics' }),
+          });
+          // Distinguishing a server failure from "no such account" is safe:
+          // the auth server already answers 200 with the same body either way,
+          // so a non-200 means something broke, not that the address is
+          // unknown. Reporting success on an error would leave someone waiting
+          // for a mail that was never sent.
+          if (r.ok) {
+            say('Si esa cuenta existe, te hemos enviado un correo.');
+          } else {
+            say('No se pudo enviar el correo. Inténtalo de nuevo.');
+            btn.disabled = false;
+          }
+        } catch {
+          say('No se pudo contactar con el servidor de acceso.');
+          btn.disabled = false;
+        }
+      });
 
       document.getElementById('rf').addEventListener('submit', async (e) => {
         e.preventDefault();
