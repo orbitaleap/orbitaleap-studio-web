@@ -7,7 +7,7 @@ interface Props {
   title: string;
   email: string;
   /** Which sidebar entry is current. */
-  active: 'dashboard' | 'usuarios';
+  active: 'dashboard' | 'users';
   /** Result of the last POST, shown as a toast. */
   toast?: string | null;
 }
@@ -15,7 +15,7 @@ const { title, email, active, toast } = Astro.props;
 
 const nav = [
   { href: '/metrics', label: 'Panel', key: 'dashboard' },
-  { href: '/metrics/usuarios', label: 'Usuarios', key: 'usuarios' },
+  { href: '/metrics/users', label: 'Usuarios', key: 'users' },
 ];
 ---
 
@@ -27,7 +27,16 @@ const nav = [
     <meta name="robots" content="noindex, nofollow" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title} · Orbital Leap Studio</title>
-    <style>
+    <!--
+      is:global, and not by accident. Astro scopes a component's <style> to
+      that component, and everything a page passes through <slot /> carries a
+      different scope id — so .card, .btn, .tablewrap and the table rules
+      defined here matched nothing on the pages that use them, and the users
+      page rendered as raw HTML. The selectors below stay namespaced under
+      .layout, dialog and .toast, and Astro only ships this CSS on pages that
+      import the shell, so global here means "the whole panel", not the site.
+    -->
+    <style is:global>
       :root {
         --bg: #0d0d0d; --panel: #141414; --line: rgba(255,255,255,0.10);
         --ink: #ffffff; --mid: rgba(255,255,255,0.62); --dim: rgba(255,255,255,0.42);
