@@ -151,6 +151,9 @@ export const POST: APIRoute = async (context) => {
         // referrer or a campaign name is short, and anything longer is either
         // a mistake or someone probing.
         const clip = (v: unknown, max: number) => (v ?? "").toString().trim().slice(0, max);
+        // Client-supplied, so clipped like the rest. A URL is short; anything
+        // longer is a mistake or someone probing.
+        const site = clip(body?.site, 200);
         const attribution = {
             channel: clip(body?.attribution?.channel, 40),
             detail: clip(body?.attribution?.detail, 200),

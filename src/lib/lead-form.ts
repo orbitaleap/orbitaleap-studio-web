@@ -66,6 +66,10 @@ export function createLeadSubmitter(form: HTMLFormElement, options: LeadFormOpti
       company: text(fd, 'company'),
       message: options.buildMessage ? options.buildMessage(fd) : text(fd, 'message'),
       source: options.source,
+      // The full URL this was submitted from, so the dashboard can say which
+      // site AND which page without inferring either from the form name. Not
+      // the same as attribution.landing, which is where the visit started.
+      site: location.origin + location.pathname,
       // RGPD art. 7 — the endpoint refuses a submission without it.
       consent: fd.get('consent') === 'on',
       turnstileToken: text(fd, 'cf-turnstile-response'),
@@ -132,14 +136,10 @@ function resetTurnstile() {
  * still fires. Consent Mode governs the rest: while advertising is denied the
  * tag sends a cookieless ping rather than writing anything.
  */
-// The conversion action this fires.
-//
-// This label is a hard dependency on a specific action existing in Google Ads:
-// delete the action and every conversion is still accepted by the browser and
-// then silently discarded, with nothing in either system to say why. It has
-// now been rebuilt twice, so if the action is ever recreated again this line
-// has to change with it.
-const CONVERSION_ID = 'AW-18312929105/rAIrCP7Z2N0cENG-pJxE';
+// The conversion action this fires. Replaced when the previous action was
+// deleted: the old label pointed at an action that no longer existed, so every
+// conversion was accepted by the browser and discarded by Google.
+const CONVERSION_ID = 'AW-18312929105/u6KHCNSl190cENG-pJxE';
 
 /**
  * Resolves once the conversion has actually left the browser — or after a

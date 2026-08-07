@@ -20,6 +20,7 @@ export interface LeadRow {
   id: number;
   created_at: string;
   form: string;
+  site: string | null;
   channel: string | null;
   detail: string | null;
   landing: string | null;
@@ -36,6 +37,8 @@ export interface LeadRow {
 
 export interface NewLead {
   form: string;
+  /** Full URL the form was submitted from, e.g. https://orbitaleap.com/. */
+  site: string;
   channel: string;
   detail: string;
   landing: string;
@@ -75,10 +78,10 @@ export async function recordLead(connectionString: string | undefined, lead: New
 
   await sql`
     INSERT INTO leads
-      (form, channel, detail, landing, country, region, city,
+      (form, site, channel, detail, landing, country, region, city,
        name, email, phone, company, message, consent_at)
     VALUES
-      (${lead.form}, ${lead.channel || null}, ${lead.detail || null}, ${lead.landing || null},
+      (${lead.form}, ${lead.site || null}, ${lead.channel || null}, ${lead.detail || null}, ${lead.landing || null},
        ${lead.country || null}, ${lead.region || null}, ${lead.city || null},
        ${lead.name}, ${lead.email}, ${lead.phone || null}, ${lead.company || null},
        ${lead.message || null}, ${lead.consentAt || null})
@@ -98,16 +101,37 @@ export interface Metrics {
   byChannel: { label: string; n: number }[];
   byForm: { label: string; n: number }[];
   byLanding: { label: string; n: number }[];
+  bySite: { label: string; n: number }[];
+  byPage: { label: string; n: number }[];
   daily: { day: string; n: number }[];
   recent: LeadRow[];
+  /** Every host ever seen, filtered or not — this populates the site picker. */
+  sites: string[];
 }
 
 const EMPTY: Metrics = {
   total: 0, last7: 0, last30: 0,
-  byChannel: [], byForm: [], byLanding: [], daily: [], recent: [],
+  byChannel: [], byForm: [], byLanding: [], bySite: [], byPage: [],
+  daily: [], recent: [], sites: [],
 };
 
-export async function readMetrics(connectionString: string | undefined): Promise<Metrics | null> {
+/**
+ * Reads the dashboard's figures, optionally narrowed to one host.
+ *
+ * The host is derived in SQL — `split_part(site, '/', 3)` is the host of
+ * 'https://host/path' — rather than stored in its own column, so a row can
+ * never end up claiming a host its URL disagrees with.
+ *
+ * `site` is an exact host match rather than a prefix, so orbitaleap.com and
+ * www.orbitaleap.com stay separate buckets — which is the point, since telling
+ * them apart is how we find out whether the www duplicate is still taking
+ * traffic. An empty string means every site, and rows written before the
+ * column existed (site IS NULL) only appear in that unfiltered view.
+ */
+export async function readMetrics(
+  connectionString: string | undefined,
+  site = '',
+): Promise<Metrics | null> {
   // null, not EMPTY: the dashboard needs to tell "not connected yet" apart
   // from "connected, nothing in it", because the fix differs.
   const sql = client(connectionString);
@@ -116,40 +140,72 @@ export async function readMetrics(connectionString: string | undefined): Promise
   try {
     const num = (v: unknown) => Number(v ?? 0);
 
-    const [totals, byChannel, byForm, byLanding, daily, recent] = await Promise.all([
-      sql`
-        SELECT
-          COUNT(*)                                                            AS total,
-          COUNT(*) FILTER (WHERE created_at >= now() - INTERVAL '7 days')     AS last7,
-          COUNT(*) FILTER (WHERE created_at >= now() - INTERVAL '30 days')    AS last30
-        FROM leads
-      `,
-      sql`SELECT COALESCE(channel, 'Sin registrar') AS label, COUNT(*) AS n
-            FROM leads GROUP BY 1 ORDER BY n DESC LIMIT 12`,
-      sql`SELECT COALESCE(form, 'Sin registrar') AS label, COUNT(*) AS n
-            FROM leads GROUP BY 1 ORDER BY n DESC LIMIT 12`,
-      sql`SELECT COALESCE(landing, 'Sin registrar') AS label, COUNT(*) AS n
-            FROM leads GROUP BY 1 ORDER BY n DESC LIMIT 12`,
-      sql`SELECT to_char(created_at AT TIME ZONE 'Europe/Madrid', 'YYYY-MM-DD') AS day,
-                 COUNT(*) AS n
-            FROM leads
-           WHERE created_at >= now() - INTERVAL '30 days'
-           GROUP BY 1 ORDER BY 1 ASC`,
-      sql`SELECT * FROM leads ORDER BY created_at DESC LIMIT 50`,
-    ]);
+    // Passed as a parameter and compared in SQL rather than concatenated into
+    // the query: an empty string selects everything, and the value still goes
+    // through the driver's placeholder rather than into the statement text.
+    const s = site;
+
+    const [totals, byChannel, byForm, byLanding, bySite, byPage, daily, recent, sites] =
+      await Promise.all([
+        sql`
+          SELECT
+            COUNT(*)                                                            AS total,
+            COUNT(*) FILTER (WHERE created_at >= now() - INTERVAL '7 days')     AS last7,
+            COUNT(*) FILTER (WHERE created_at >= now() - INTERVAL '30 days')    AS last30
+          FROM leads
+           WHERE (${s} = '' OR split_part(site, '/', 3) = ${s})
+        `,
+        sql`SELECT COALESCE(channel, 'Sin registrar') AS label, COUNT(*) AS n
+              FROM leads WHERE (${s} = '' OR split_part(site, '/', 3) = ${s})
+             GROUP BY 1 ORDER BY n DESC LIMIT 12`,
+        sql`SELECT COALESCE(form, 'Sin registrar') AS label, COUNT(*) AS n
+              FROM leads WHERE (${s} = '' OR split_part(site, '/', 3) = ${s})
+             GROUP BY 1 ORDER BY n DESC LIMIT 12`,
+        sql`SELECT COALESCE(landing, 'Sin registrar') AS label, COUNT(*) AS n
+              FROM leads WHERE (${s} = '' OR split_part(site, '/', 3) = ${s})
+             GROUP BY 1 ORDER BY n DESC LIMIT 12`,
+        sql`SELECT COALESCE(NULLIF(split_part(site, '/', 3), ''), 'Sin registrar') AS label,
+                   COUNT(*) AS n
+              FROM leads WHERE (${s} = '' OR split_part(site, '/', 3) = ${s})
+             GROUP BY 1 ORDER BY n DESC LIMIT 12`,
+        // The path, not the whole URL: the host is already its own breakdown
+        // and repeating it on every row would push the path off the card.
+        sql`SELECT COALESCE(NULLIF(regexp_replace(site, '^https?://[^/]*', ''), ''), 'Sin registrar') AS label,
+                   COUNT(*) AS n
+              FROM leads WHERE (${s} = '' OR split_part(site, '/', 3) = ${s})
+             GROUP BY 1 ORDER BY n DESC LIMIT 12`,
+        sql`SELECT to_char(created_at AT TIME ZONE 'Europe/Madrid', 'YYYY-MM-DD') AS day,
+                   COUNT(*) AS n
+              FROM leads
+             WHERE created_at >= now() - INTERVAL '30 days'
+               AND (${s} = '' OR split_part(site, '/', 3) = ${s})
+             GROUP BY 1 ORDER BY 1 ASC`,
+        sql`SELECT * FROM leads
+             WHERE (${s} = '' OR split_part(site, '/', 3) = ${s})
+             ORDER BY created_at DESC LIMIT 50`,
+        // Deliberately unfiltered: the picker has to keep offering the other
+        // sites once one of them is selected, or it is a one-way door.
+        sql`SELECT DISTINCT split_part(site, '/', 3) AS host
+              FROM leads WHERE site IS NOT NULL AND site <> '' ORDER BY 1 ASC`,
+      ]);
 
     const rows = <T,>(r: unknown): T[] => (Array.isArray(r) ? (r as T[]) : []);
     const t = rows<Record<string, unknown>>(totals)[0] ?? {};
+    const tally = (r: unknown) =>
+      rows<{ label: string; n: unknown }>(r).map((x) => ({ label: x.label, n: num(x.n) }));
 
     return {
       total: num(t.total),
       last7: num(t.last7),
       last30: num(t.last30),
-      byChannel: rows<{ label: string; n: unknown }>(byChannel).map((r) => ({ label: r.label, n: num(r.n) })),
-      byForm: rows<{ label: string; n: unknown }>(byForm).map((r) => ({ label: r.label, n: num(r.n) })),
-      byLanding: rows<{ label: string; n: unknown }>(byLanding).map((r) => ({ label: r.label, n: num(r.n) })),
+      byChannel: tally(byChannel),
+      byForm: tally(byForm),
+      byLanding: tally(byLanding),
+      bySite: tally(bySite),
+      byPage: tally(byPage),
       daily: rows<{ day: string; n: unknown }>(daily).map((r) => ({ day: r.day, n: num(r.n) })),
       recent: rows<LeadRow>(recent),
+      sites: rows<{ host: string }>(sites).map((r) => r.host).filter(Boolean),
     };
   } catch {
     // A connection string that points at a database without the migration

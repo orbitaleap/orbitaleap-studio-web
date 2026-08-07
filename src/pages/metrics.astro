@@ -25,7 +25,17 @@ Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
 // database, deliberately, by someone who meant to.
 const toast: string | null = null;
 
-const m = await readMetrics(env.DATABASE_URL);
+// Which site is being looked at, from the query string rather than a cookie or
+// a POST: it makes the filtered view a real URL that can be bookmarked and
+// reloaded, and it keeps the page a GET, which is what a read-only page should
+// be. An unknown value simply matches nothing, and the picker offers the way
+// back — the parameter reaches SQL as a placeholder, never as query text.
+const site = Astro.url.searchParams.get('site') ?? '';
+
+const m = await readMetrics(env.DATABASE_URL, site);
+
+const sitePath = (url: string | null) =>
+  url ? url.replace(/^https?:\/\/[^/]*/, '') || '/' : '—';
 
 const fmt = (iso: string) =>
   new Intl.DateTimeFormat('es-ES', {
@@ -49,6 +59,15 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
       <code>DATABASE_URL</code> en el Worker. Los leads siguen llegando por
       correo con normalidad; solo no quedan registrados aquí.
     </div>
+  )}
+
+  {m && m.sites.length > 0 && (
+    <nav class="sites" aria-label="Filtrar por sitio">
+      <a href="/metrics" class={site === '' ? 'on' : ''}>Todos</a>
+      {m.sites.map((h) => (
+        <a href={`/metrics?site=${encodeURIComponent(h)}`} class={site === h ? 'on' : ''}>{h}</a>
+      ))}
+    </nav>
   )}
 
   {m && (
@@ -86,6 +105,10 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
         {[
           { title: 'Canal', data: m.byChannel },
           { title: 'Formulario', data: m.byForm },
+          // Only worth a card when more than one site is in view; filtered to
+          // one host it would be a single bar reading 100%.
+          ...(site === '' ? [{ title: 'Sitio', data: m.bySite }] : []),
+          { title: 'Página de envío', data: m.byPage },
           { title: 'Página de entrada', data: m.byLanding },
         ].map((block) => (
           <div class="card">
@@ -115,7 +138,7 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
             <thead>
               <tr>
                 <th>Cuándo</th><th>Quién</th><th>Contacto</th><th>Canal</th>
-                <th>Formulario</th><th>Entró por</th><th>Mensaje</th>
+                <th>Formulario</th><th>Enviado desde</th><th>Entró por</th><th>Mensaje</th>
               </tr>
             </thead>
             <tbody>
@@ -136,6 +159,14 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
                     {l.detail && <div style="font-size:0.75rem;margin-top:5px;">{l.detail}</div>}
                   </td>
                   <td>{l.form}</td>
+                  <td class="site-cell">
+                    {sitePath(l.site)}
+                    {/* The host only when every site is in view — filtered to
+                        one, repeating it on all fifty rows says nothing. */}
+                    {site === '' && l.site && (
+                      <div style="color:var(--dim);font-size:0.8em;">{l.site.replace(/^https?:\/\//, '').split('/')[0]}</div>
+                    )}
+                  </td>
                   <td>{l.landing ?? '—'}</td>
                   <td><div class="msg">{l.message ?? ''}</div></td>
                 </tr>
@@ -148,6 +179,13 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
   )}
 
   <style>
+    /* Links, not a <select> — the filtered view is a real URL, and it works
+       with scripting off, which a JS-driven picker would not. */
+    .sites { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px; }
+    .sites a { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 6px 14px; font-size: 0.82rem; color: var(--mid); text-decoration: none; }
+    .sites a:hover { color: var(--ink); }
+    .sites a.on { background: var(--ink); border-color: var(--ink); color: var(--panel); font-weight: 600; }
+    .site-cell { font-variant-numeric: tabular-nums; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
     .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 32px; }
     .kpi { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; padding: 18px 20px; }
     .kpi b { display: block; font-size: clamp(1.8rem, 5vw, 2.6rem); font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.05; }
