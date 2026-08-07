@@ -85,14 +85,20 @@ export function createLeadSubmitter(form: HTMLFormElement, options: LeadFormOpti
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json().catch(() => ({} as { error?: string }));
+      const data = await res.json().catch(() => ({} as { error?: string; delivered?: boolean }));
 
       // Turnstile tokens are single-use. None of these forms navigate on a
       // failed submit, so without a reset the next attempt re-sends a redeemed
       // token — Cloudflare rejects it as timeout-or-duplicate and the visitor
       // gets a second failure that has nothing to do with what they typed.
       if (!res.ok) resetTurnstile();
-      if (res.ok) reportConversion();
+
+      // A conversion is a LEAD — somebody whose message actually reached the
+      // inbox. Not merely a 200: the honeypot answers 200 on purpose so a bot
+      // believes it succeeded, and counting those inflated the figure with
+      // exactly the traffic the honeypot exists to discard. The endpoint says
+      // which it was.
+      if (res.ok && data?.delivered !== false) reportConversion();
 
       return { ok: res.ok, status: res.status, error: res.ok ? undefined : data?.error || UNKNOWN_ERROR };
     } catch {

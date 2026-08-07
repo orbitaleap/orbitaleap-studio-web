@@ -165,7 +165,12 @@ export const POST: APIRoute = async (context) => {
         // that has not been updated yet.
         const elapsed = Number(body?.elapsed);
         if (Number.isFinite(elapsed) && elapsed < 2500) {
-            return new Response(JSON.stringify({ ok: true }), {
+            // Still a 200, and still says ok — a bot that learns it was caught
+            // is a bot that adapts. But `delivered: false` lets our own client
+            // tell this apart from a real send, which matters because it fires
+            // the Ads conversion on the answer: without it, every bot that
+            // tripped this check was counted as a lead.
+            return new Response(JSON.stringify({ ok: true, delivered: false }), {
                 status: 200,
                 headers: { "Content-Type": "application/json" },
             });
@@ -446,7 +451,9 @@ export const POST: APIRoute = async (context) => {
             console.error("Confirmación al cliente no enviada:", confirmException);
         }
 
-        return new Response(JSON.stringify({ message: "Mensaje enviado con éxito", id: data?.id }), {
+        // delivered: true is the only thing that makes the client count a
+        // conversion. Reached only after the notification actually went out.
+        return new Response(JSON.stringify({ message: "Mensaje enviado con éxito", delivered: true, id: data?.id }), {
             status: 200,
             headers: { "Content-Type": "application/json" },
         });
