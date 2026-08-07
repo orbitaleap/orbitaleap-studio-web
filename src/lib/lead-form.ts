@@ -66,6 +66,10 @@ export function createLeadSubmitter(form: HTMLFormElement, options: LeadFormOpti
       company: text(fd, 'company'),
       message: options.buildMessage ? options.buildMessage(fd) : text(fd, 'message'),
       source: options.source,
+      // The full URL this was submitted from, so the dashboard can say which
+      // site AND which page without inferring either from the form name. Not
+      // the same as attribution.landing, which is where the visit started.
+      site: location.origin + location.pathname,
       // RGPD art. 7 — the endpoint refuses a submission without it.
       consent: fd.get('consent') === 'on',
       turnstileToken: text(fd, 'cf-turnstile-response'),

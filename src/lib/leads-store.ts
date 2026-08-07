@@ -20,6 +20,7 @@ export interface LeadRow {
   id: number;
   created_at: string;
   form: string;
+  site: string | null;
   channel: string | null;
   detail: string | null;
   landing: string | null;
@@ -36,6 +37,8 @@ export interface LeadRow {
 
 export interface NewLead {
   form: string;
+  /** Full URL the form was submitted from. */
+  site: string;
   channel: string;
   detail: string;
   landing: string;
@@ -75,10 +78,10 @@ export async function recordLead(connectionString: string | undefined, lead: New
 
   await sql`
     INSERT INTO leads
-      (form, channel, detail, landing, country, region, city,
+      (form, site, channel, detail, landing, country, region, city,
        name, email, phone, company, message, consent_at)
     VALUES
-      (${lead.form}, ${lead.channel || null}, ${lead.detail || null}, ${lead.landing || null},
+      (${lead.form}, ${lead.site || null}, ${lead.channel || null}, ${lead.detail || null}, ${lead.landing || null},
        ${lead.country || null}, ${lead.region || null}, ${lead.city || null},
        ${lead.name}, ${lead.email}, ${lead.phone || null}, ${lead.company || null},
        ${lead.message || null}, ${lead.consentAt || null})
