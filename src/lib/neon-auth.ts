@@ -141,6 +141,29 @@ export async function verifyToken(
   }
 }
 
+/**
+ * Second gate: is this person allowed, not merely authenticated?
+ *
+ * A valid token proves the auth server knows them. It does not prove we want
+ * them — those are the same thing only while sign-up is closed, and that is a
+ * console setting which can be changed, forgotten, or reset by a migration.
+ * `disableSignUp: true` is the primary control and belongs in the console;
+ * this is the backstop that keeps a re-opened registration door from becoming
+ * an open dashboard.
+ *
+ * FAILS CLOSED. An unset or empty list admits nobody. That is deliberate: the
+ * failure mode of "I forgot to configure it" must not be "everyone gets in".
+ */
+export function isAllowed(email: string, allowList: string | undefined): boolean {
+  if (!allowList) return false;
+  const allowed = allowList
+    .split(/[,\s]+/)
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  if (allowed.length === 0) return false;
+  return allowed.includes(email.trim().toLowerCase());
+}
+
 export const TOKEN_COOKIE = 'ol_metrics_jwt';
 
 /**

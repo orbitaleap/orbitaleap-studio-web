@@ -2,6 +2,7 @@
 import { readMetrics, deleteLead } from '../lib/leads-store';
 import { workerEnv } from '../lib/worker-env';
 import { verifyToken, readToken, TOKEN_COOKIE } from '../lib/neon-auth';
+import { hasAccess, listAccess, grantAccess, revokeAccess, createUser } from '../lib/metrics-access';
 
 // Server-rendered, always. Everything else on this site is prerendered, and a
 // prerendered /metrics would be a static file in dist/ — served by the assets
@@ -15,14 +16,35 @@ const authUrl = env.NEON_AUTH_URL as string | undefined;
 
 // Who this is, according to a token this Worker verified itself. Fails closed:
 // no config, no token, bad signature, wrong issuer or expired all yield null.
-const identity = await verifyToken(readToken(Astro.request), authUrl);
+const verified = await verifyToken(readToken(Astro.request), authUrl);
 
-let erased: string | null = null;
+// Authenticated is not the same as authorised. The token proves the auth
+// server knows them; the allowlist decides whether we do. See isAllowed().
+const allowed = verified
+  ? await hasAccess(verified.email, env.METRICS_ALLOWED_EMAILS, env.DATABASE_URL)
+  : false;
+const identity = allowed ? verified : null;
+const rejected = Boolean(verified) && !allowed;
+
+let notice: string | null = null;
 if (identity && Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
+  const by = identity.email;
+
   if (form.has('delete')) {
     const id = Number(form.get('delete'));
-    erased = (await deleteLead(env.DATABASE_URL, id)) ? `Registro ${id} eliminado.` : 'No se pudo eliminar.';
+    notice = (await deleteLead(env.DATABASE_URL, id)) ? `Registro ${id} eliminado.` : 'No se pudo eliminar.';
+  } else if (form.has('grant')) {
+    notice = (await grantAccess(String(form.get('grant')), by, env.DATABASE_URL)).message;
+  } else if (form.has('revoke')) {
+    notice = (await revokeAccess(String(form.get('revoke')), by, env.METRICS_ALLOWED_EMAILS, env.DATABASE_URL)).message;
+  } else if (form.has('new-email')) {
+    notice = (await createUser({
+      email: String(form.get('new-email')),
+      password: String(form.get('new-password') ?? ''),
+      name: String(form.get('new-name') ?? ''),
+      by,
+    }, authUrl, env.DATABASE_URL)).message;
   }
 }
 
@@ -30,7 +52,11 @@ if (!identity) {
   // The sign-in screen. The credential exchange and the token fetch both have
   // to happen in the browser: the auth cookie is set on the auth server's own
   // domain and is never sent here, so this Worker can never see it.
-  const cfg = !authUrl ? '<p class="err">Falta NEON_AUTH_URL.</p>' : '';
+  const cfg = !authUrl
+    ? '<p class="err">Falta NEON_AUTH_URL.</p>'
+    : rejected
+      ? '<p class="err">Esta cuenta no tiene acceso al panel.</p>'
+      : '';
   return new Response(
     `<!doctype html><html lang="es"><head><meta charset="utf-8">
      <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -67,13 +93,12 @@ if (!identity) {
          <input id="password" type="password" name="password" required autocomplete="current-password">
          <button id="in" type="submit">Entrar</button>
        </form>
-       <div class="sep">o</div>
-       <button id="google" class="ghost" type="button">Entrar con Google</button>
        <div id="msg"></div>
      </div>
      <script>
       const AUTH = ${JSON.stringify(authUrl ?? '')};
       const HERE = location.origin + '/metrics';
+      const REJECTED = ${rejected ? 'true' : 'false'};
       const msg = document.getElementById('msg');
       const say = (t) => { msg.textContent = t; };
 
@@ -91,8 +116,10 @@ if (!identity) {
       }
 
       // Returning from Google, or arriving with a session already live.
+      // Picks up a session that already exists. Skipped when the server has
+      // just told us this account is not allowed, or we would reload forever.
       (async () => {
-        if (!AUTH) return;
+        if (!AUTH || REJECTED) return;
         try { if (await grabToken()) { location.reload(); return; } } catch {}
       })();
 
@@ -124,18 +151,6 @@ if (!identity) {
         btn.disabled = false;
       });
 
-      document.getElementById('google').addEventListener('click', async () => {
-        say('Redirigiendo…');
-        try {
-          const r = await fetch(AUTH + '/sign-in/social', {
-            method: 'POST', credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ provider: 'google', callbackURL: HERE }),
-          });
-          const d = await r.json().catch(() => ({}));
-          if (d.url) location.href = d.url; else say(d.message || 'No se pudo iniciar sesión.');
-        } catch { say('No se pudo conectar con el servidor de acceso.'); }
-      });
      </script></body></html>`,
     {
       status: 401,
@@ -158,6 +173,7 @@ Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
 // only the browser can reach it.
 
 const m = await readMetrics(env.DATABASE_URL);
+const access = await listAccess(env.METRICS_ALLOWED_EMAILS, env.DATABASE_URL);
 
 const fmt = (iso: string) =>
   new Intl.DateTimeFormat('es-ES', {
@@ -227,6 +243,16 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
       .msg { max-width: 340px; white-space: pre-wrap; font-size: 0.8rem; color: var(--dim); max-height: 5.4em; overflow: hidden; }
       .del { background: none; border: 1px solid var(--line); color: var(--dim); border-radius: 6px; padding: 5px 9px; font-size: 0.72rem; cursor: pointer; }
       .del:hover { border-color: rgba(255,120,120,0.6); color: #ff8080; }
+      .access { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+      .access h2 { font-size: 0.72rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--dim); margin: 0 0 8px; font-weight: 500; }
+      .access-sub { margin: 0 0 20px; color: var(--mid); font-size: 0.85rem; max-width: 62ch; }
+      .access label { display: block; font-size: 0.75rem; color: var(--dim); margin-bottom: 12px; }
+      .access input { display: block; width: 100%; margin-top: 5px; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,0.04); color: var(--ink); font-size: 0.9rem; }
+      .access input:focus { outline: 1px solid rgba(255,255,255,0.45); outline-offset: 1px; }
+      .access .hint { font-size: 0.75rem; color: var(--dim); margin: 0 0 14px; line-height: 1.5; }
+      .access button.primary { width: 100%; padding: 10px; border: 0; border-radius: 8px; background: #fff; color: #000; font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+      .access form.card { display: flex; flex-direction: column; }
+      .access form.card button.primary { margin-top: auto; }
       .empty { padding: 40px 20px; text-align: center; color: var(--dim); }
       a { color: inherit; }
     </style>
@@ -243,7 +269,7 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
         </form>
       </header>
 
-      {erased && <div class="note">{erased}</div>}
+      {notice && <div class="note">{notice}</div>}
 
       {m === null && (
         <div class="note">
@@ -357,6 +383,70 @@ const pct = (n: number, of: number) => (of ? Math.round((n / of) * 100) : 0);
           </div>
         </>
       )}
+
+      <!--
+        Access management. Kept at the foot, below the leads: it is
+        administration rather than the thing the page is for, and putting it
+        first would make a dashboard look like a settings screen.
+      -->
+      <section class="access">
+        <h2>Acceso al panel</h2>
+        <p class="access-sub">
+          Solo estas cuentas pueden abrir esta página. Crear una cuenta aquí le
+          da acceso; una cuenta registrada por su cuenta no entra hasta que
+          aparezca en esta lista.
+        </p>
+
+        <div class="tablewrap" style="margin-bottom:18px;">
+          <table>
+            <thead><tr><th>Correo</th><th>Desde</th><th>Concedido por</th><th></th></tr></thead>
+            <tbody>
+              {access.map((a) => (
+                <tr>
+                  <td class="who-cell">{a.email}</td>
+                  <td class="when">{a.created_at ? fmt(a.created_at) : '—'}</td>
+                  <td>{a.created_by ?? '—'}</td>
+                  <td>
+                    {a.fixed ? (
+                      <span class="chip">fijado</span>
+                    ) : a.email === identity.email ? (
+                      <span class="chip">tú</span>
+                    ) : (
+                      <form method="POST" onsubmit="return confirm('¿Retirar el acceso a esta cuenta?')">
+                        <button class="del" name="revoke" value={a.email} type="submit">Retirar</button>
+                      </form>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="grid">
+          <form method="POST" class="card">
+            <h2>Crear una cuenta</h2>
+            <label>Nombre<input name="new-name" type="text" placeholder="Nombre y apellido" required /></label>
+            <label>Correo<input name="new-email" type="email" placeholder="nombre@orbitaleap.com" required /></label>
+            <label>Contraseña<input name="new-password" type="text" minlength="12" placeholder="Mínimo 12 caracteres" required /></label>
+            <p class="hint">
+              La contraseña se muestra en claro a propósito: cópiala y pásasela
+              a la persona por un canal seguro. No se puede recuperar después.
+            </p>
+            <button class="primary" type="submit">Crear y dar acceso</button>
+          </form>
+
+          <form method="POST" class="card">
+            <h2>Dar acceso a una cuenta existente</h2>
+            <label>Correo<input name="grant" type="email" placeholder="nombre@orbitaleap.com" required /></label>
+            <p class="hint">
+              Para alguien que ya se registró y solo necesita permiso. Si aún no
+              tiene cuenta, usa el formulario de la izquierda.
+            </p>
+            <button class="primary" type="submit">Dar acceso</button>
+          </form>
+        </div>
+      </section>
     </div>
   </body>
 </html>
